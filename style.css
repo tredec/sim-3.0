@@ -271,14 +271,19 @@ td {
 }
 th,
 td {
-  text-align: left;
+  text-align: left ;
 }
-.small th {
-  padding-inline: 1rem;
+.small  td {
+  padding-inline: 0.2rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.small th{
+  padding-inline: 0.2rem;
   font-size: 0.8rem;
   white-space: nowrap;
 }
-.big th {
+.big th  {
   padding-inline: 0.3em;
   font-size: 0.8rem;
 }

@@ -11,11 +11,6 @@ const mode = <HTMLSelectElement>qs(".mode");
 const modeInput = <HTMLInputElement>qs("textarea");
 const hardCap = qs(".hardCap");
 
-//Outputs
-const output = qs(".output");
-const table = qs(".table");
-const thead = qs("thead");
-const tbody = qs("tbody");
 
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
@@ -48,14 +43,6 @@ const modeInputDescription = qs(".extraInputDescription");
 })();
 
 event(mode, "input", modeUpdate);
-
-const tableHeaders = {
-  current: "All",
-  single: "<th>Theory</th><th>&sigma;<sub>t</sub></th><th>Last pub</th><th>Max Rho</th><th>&Delta;&tau;</th><th>Multi</th><th>Strat</th><th>&tau;/h</th><th>Pub Time</th>",
-  all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>"
-};
-thead.innerHTML = tableHeaders.all;
-thead.classList.add("big");
 
 function modeUpdate(): void {
   singleInput.style.display = "none";

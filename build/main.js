@@ -8,19 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { findIndex } from "./Utils/helperFunctions.js";
-import { log10 } from "./Utils/simHelpers.js";
+import { log10, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
+import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./T4/T4main.js";
+const output = qs(".output");
 export const global = {
     dt: 1.5,
     ddt: 1.0001,
     stratFilter: true,
     simulating: false,
-    pubTimeCap: 3600 * 10
+    pubTimeCap: Infinity,
 };
 const cache = {
     lastStrat: null,
-    simEndTimestamp: 0
+    simEndTimestamp: 0,
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -36,7 +38,11 @@ export function simulate(simData) {
         global.simulating = true;
         try {
             let pData = parseData(simData);
-            let res = [yield singleSim(pData)];
+            let res;
+            if (pData.mode === "Single sim")
+                res = [yield singleSim(pData)];
+            else
+                res = yield chainSim(pData);
             cache.simEndTimestamp = performance.now();
             global.simulating = false;
             return res;
@@ -56,7 +62,7 @@ function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null
+        recovery: null,
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
@@ -93,7 +99,7 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: data.recovery,
-            cap: data.hardCap ? data.cap : null
+            cap: data.hardCap ? data.cap : null,
         };
         switch (data.theory) {
             case "T4":
@@ -107,9 +113,22 @@ function chainSim(data) {
         let lastPub = data.rho;
         let time = 0;
         const result = [];
+        let stopOtp = logToExp(data.cap);
+        let lastLog = 0;
         while (lastPub < data.cap) {
-            let res = yield singleSim(data);
+            if (!global.simulating)
+                break;
+            let st = performance.now();
+            if (st - lastLog > 100) {
+                lastLog = st;
+                output.textContent = `Simulating ${logToExp(lastPub, 1)}/${stopOtp}`;
+                yield sleep();
+            }
+            let res = yield singleSim(Object.assign({}, data));
+            result.push(res);
             lastPub = res[res.length - 1][0];
+            data.rho = lastPub;
+            time += res[res.length - 1][1];
         }
         return result;
     });
@@ -155,7 +174,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
             ];
             break;
         case "T5":

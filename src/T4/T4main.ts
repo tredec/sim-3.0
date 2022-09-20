@@ -234,7 +234,6 @@ class t4Sim {
     if (this.recursionValue == null && this.strat === "T4C3d66" && global.pubTimeCap === Infinity) {
       data.recursionValue = Number.MAX_VALUE;
       let auxSim = await new t4Sim(data).simulate(data);
-      console.log(auxSim)
       this.recursionValue = auxSim[9][0];
     }
     let pubCondition = false;
