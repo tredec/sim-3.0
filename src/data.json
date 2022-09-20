@@ -1,0 +1,32 @@
+{
+  "theories": ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "WSP", "SL", "EF", "CSR2", "PD", "FI"],
+  "strats": [
+    ["T1", "T1C34", "T1C4", "T1SolarXLII", "T1RaTio"],
+    ["T2", "T2ms", "T2qs", "T2mc"],
+    ["T3", "T3C11C12C21", "T3C11C12C21d", "T3noC13C32C33", "T3noC11C13C33d", "T3noC13C33", "T3noC13C33d", "T3noC11C13C21C33", "T3noC13C32C33d", "T3noC11C13C21C33d", "T3snax", "T3snax2", "T3Play", "T3Play2"],
+    ["T4", "T4C12", "T4C3", "T4C4", "T4C5", "T4C56", "T4C12d", "T4C123d", "T4C4d", "T4C5d", "T4C56d", "T4C3dC12rcv", "T4C3d66"],
+    ["T5", "T5Idle", "T5AI", "T5AI2"],
+    ["T6", "T6C3", "T6C4", "T6noC1234", "T6noC34", "T6noC345", "T6C3d", "T6C4d", "T6noC1234d", "T6noC34d", "T6noC345d", "T6snax", "T6AI"],
+    ["T7", "T7C12", "T7noC12", "T7noC123", "T7noC124", "T7noC1234", "T7C12d", "T7C3d", "T7Play25", "T7PlaySpqcey"],
+    ["T8", "T8d", "T8noC35", "T8noC3", "T8noC5", "T8noC3d", "T8noC5d", "T8noC35d", "T8Play", "T8PlaySolarswap"],
+    ["WSP", "WSPStopC1", "WSPdStopC1"],
+    ["SL", "SLStopA", "SLStopAd", "SLMS", "SLMSd"],
+    ["EF", "EFd", "EFsnax", "EFAI"],
+    ["CSR2", "CSR2d", "CSR2XL"],
+    ["PD", "PDnoA", "PDnoAB", "PDnoABC", "PDnoAD", "PDnoAd", "PDnoABd", "PDnoABCd", "PDnoADd", "PDAI"],
+    ["GF"]
+  ],
+  "modes": ["All", "Single sim", "Chain", "Steps", "Amount", "Time", "Time diff."],
+  "modeInputDescriptions": ["", "", "", "Step length: ", "Amount of pubs (Chain): ", "Total Time: "],
+  "modeInputPlaceholder": [
+    "<sigma> <t1>* [t2]* ... [wsp]* ... [csr2]* \n\n*[r/t/m] = rho/tau/total multiplier | default tau",
+    "",
+    "",
+    "",
+    "<Number>",
+    "<Hours>",
+    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <csr2> [csr2]",
+    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <csr2> [csr2]",
+    "<sigma 1> <sigma 2> [ct y/n] [idle strats only y/n]"
+  ]
+}
