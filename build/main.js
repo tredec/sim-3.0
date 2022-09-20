@@ -102,15 +102,18 @@ function singleSim(data) {
         throw "Unknown error in singleSim() function. Please contact the author of the sim.";
     });
 }
-// async function chainSim(data: parsedData): Promise<Array<simResult>> {
-//   let lastPub: number = data.rho;
-//   let time: number = 0;
-//   const result: Array<simResult> = [];
-//   while (lastPub < data.cap) {
-//     let res = await singleSim(data);
-//     lastPub = res[res.length-1][0]
-//   }
-// }
+function chainSim(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let lastPub = data.rho;
+        let time = 0;
+        const result = [];
+        while (lastPub < data.cap) {
+            let res = yield singleSim(data);
+            lastPub = res[res.length - 1][0];
+        }
+        return result;
+    });
+}
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {
         const strats = getStrats(data.theory, data.rho, data.strat);

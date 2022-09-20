@@ -117,15 +117,16 @@ async function singleSim(data: parsedData): Promise<simResult> {
   throw "Unknown error in singleSim() function. Please contact the author of the sim.";
 }
 
-// async function chainSim(data: parsedData): Promise<Array<simResult>> {
-//   let lastPub: number = data.rho;
-//   let time: number = 0;
-//   const result: Array<simResult> = [];
-//   while (lastPub < data.cap) {
-//     let res = await singleSim(data);
-//     lastPub = res[res.length-1][0]
-//   }
-// }
+async function chainSim(data: parsedData): Promise<Array<simResult>> {
+  let lastPub: number = data.rho;
+  let time: number = 0;
+  const result: Array<simResult> = [];
+  while (lastPub < data.cap) {
+    let res = await singleSim(data);
+    lastPub = (<Array<any>>res[res.length - 1])[0];
+  }
+  return result;
+}
 
 async function getBestStrat(data: parsedData): Promise<simResult> {
   const strats: Array<string> = getStrats(data.theory, data.rho, data.strat);
