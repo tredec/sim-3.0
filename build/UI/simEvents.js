@@ -54,10 +54,11 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     let res = yield simulate(data);
     if (typeof res === "string")
         output.textContent = res;
-    else if (res !== null)
+    else
+        output.textContent = "";
+    if (res !== null && typeof res !== "string")
         updateTable(res);
     simulateButton.textContent = "Simulate";
-    output.textContent = "";
 }));
 function updateTable(arr) {
     if (arr[0].length !== thead.children[0].children.length) {

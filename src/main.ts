@@ -136,7 +136,7 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
       output.textContent = `Simulating ${logToExp(lastPub, 1)}/${stopOtp}`;
       await sleep();
     }
-    let res = await singleSim({...data});
+    let res = await singleSim({ ...data });
     result.push(res);
     lastPub = (<Array<any>>res[res.length - 1])[0];
     data.rho = lastPub;
@@ -216,6 +216,9 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
     case "FI":
       conditions = [];
       break;
+    case "BP":
+      conditions = []
+      break;
   }
   let res: Array<string> = [];
   for (let i = 0; i < conditions.length; i++) if (conditions[i]) res.push(jsonData.strats[3][i]);
@@ -238,6 +241,8 @@ function getTauFactor(theory: string): number {
     case "FI":
     case "PD":
       return 0.1;
+    case "BP":
+      return 0.15;
     case "EF":
       return 0.4;
   }

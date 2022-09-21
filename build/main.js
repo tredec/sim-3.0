@@ -207,6 +207,9 @@ function getStrats(theory, rho, type) {
         case "FI":
             conditions = [];
             break;
+        case "BP":
+            conditions = [];
+            break;
     }
     let res = [];
     for (let i = 0; i < conditions.length; i++)
@@ -231,6 +234,8 @@ function getTauFactor(theory) {
         case "FI":
         case "PD":
             return 0.1;
+        case "BP":
+            return 0.15;
         case "EF":
             return 0.4;
     }
