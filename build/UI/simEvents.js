@@ -31,7 +31,7 @@ const ddtOtp = qs(".ddtOtp");
 const tableHeaders = {
     current: "All",
     single: "<th>Theory</th><th>&sigma;<sub>t</sub></th><th>Last pub</th><th>Max Rho</th><th>&Delta;&tau;</th><th>Multi</th><th>Strat</th><th>&tau;/h</th><th>Pub Time</th>",
-    all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>"
+    all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>",
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
@@ -46,7 +46,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         mode: mode.value,
         modeInput: modeInput.value,
         hardCap: hardCap.checked,
-        global: { dt: parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5"), ddt: parseFloat((_b = ddtOtp.textContent) !== null && _b !== void 0 ? _b : "1.0001"), stratFilter: true }
+        global: { dt: parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5"), ddt: parseFloat((_b = ddtOtp.textContent) !== null && _b !== void 0 ? _b : "1.0001"), stratFilter: true },
     };
     output.textContent = "";
     simulateButton.textContent = "Stop simulating";

@@ -2,7 +2,7 @@ import { findIndex } from "./Utils/helperFunctions.js";
 import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
-import t4 from "./T4/T4main.js";
+import t4 from "./Theories/T4.js";
 
 const output = qs(".output");
 
