@@ -81,6 +81,7 @@ interface simResultInterface {
   pubT: number;
   strat: string;
   maxTauH: number;
+  theory: string;
 }
 export interface theoryData {
   strats: Array<string>;
@@ -94,7 +95,7 @@ export interface theoryData {
 export type simResult = Array<number | string | Array<number>>;
 export function createResult(data: simResultInterface, stratExtra: null | string) {
   return [
-    "T4",
+    data.theory,
     data.sigma,
     logToExp(data.lastPub, 2),
     logToExp(data.pubRho, 2),

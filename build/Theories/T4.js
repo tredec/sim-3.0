@@ -23,6 +23,7 @@ class t4Sim {
         var _a;
         this.stratIndex = findIndex(data.strats, data.strat);
         this.strat = data.strat;
+        this.theory = "T4";
         //theory
         this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 2] : [Infinity, 0];
         this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };

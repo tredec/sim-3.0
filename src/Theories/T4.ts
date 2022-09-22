@@ -18,6 +18,7 @@ class t4Sim {
 
   stratIndex: number;
   strat: string;
+  theory: string;
   //theory
   cap: Array<number>;
   recovery: { value: number; time: number; recoveryTime: boolean };
@@ -188,6 +189,7 @@ class t4Sim {
   constructor(data: theoryData) {
     this.stratIndex = findIndex(data.strats, data.strat);
     this.strat = data.strat;
+    this.theory = "T4"
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 2] : [Infinity, 0];
     this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };

@@ -12,6 +12,7 @@ import { log10, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./Theories/T4.js";
+import t1 from "./Theories/T1.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -35,16 +36,16 @@ export function simulate(simData) {
         global.dt = simData.global.dt;
         global.ddt = simData.global.ddt;
         global.stratFilter = simData.global.stratFilter;
-        global.simulating = true;
         try {
             let pData = parseData(simData);
             let res;
             if (pData.mode === "Single sim")
                 res = [yield singleSim(pData)];
-            else
+            else {
+                global.simulating = true;
                 res = yield chainSim(pData);
+            }
             cache.simEndTimestamp = performance.now();
-            global.simulating = false;
             return res;
         }
         catch (err) {
@@ -102,6 +103,8 @@ function singleSim(data) {
             cap: data.hardCap ? data.cap : null,
         };
         switch (data.theory) {
+            case "T1":
+                return yield t1(sendData);
             case "T4":
                 return yield t4(sendData);
         }
@@ -152,7 +155,13 @@ function getStrats(theory, rho, type) {
     let conditions = [];
     switch (theory) {
         case "T1":
-            conditions = [];
+            conditions = [
+                rho < 25,
+                type !== "Best Overall" && type !== "Best Active" && rho > 25 && rho < 850,
+                type !== "Best Overall" && type !== "Best Active" && rho < 625,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && (type !== "Best Overall" || rho < 250),
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+            ];
             break;
         case "T2":
             conditions = [];
@@ -214,7 +223,7 @@ function getStrats(theory, rho, type) {
     let res = [];
     for (let i = 0; i < conditions.length; i++)
         if (conditions[i])
-            res.push(jsonData.strats[3][i]);
+            res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
     return res;
 }
 function getTauFactor(theory) {

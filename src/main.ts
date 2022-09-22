@@ -3,6 +3,7 @@ import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./Theories/T4.js";
+import t1 from "./Theories/T1.js";
 
 const output = qs(".output");
 
@@ -55,14 +56,15 @@ export async function simulate(simData: inputData): Promise<string | null | Arra
   global.dt = simData.global.dt;
   global.ddt = simData.global.ddt;
   global.stratFilter = simData.global.stratFilter;
-  global.simulating = true;
   try {
     let pData: parsedData = parseData(simData);
     let res: Array<simResult>;
     if (pData.mode === "Single sim") res = [await singleSim(pData)];
-    else res = await chainSim(pData);
+    else {
+      global.simulating = true;
+      res = await chainSim(pData);
+    }
     cache.simEndTimestamp = performance.now();
-    global.simulating = false;
     return res;
   } catch (err) {
     return String(err);
@@ -116,6 +118,8 @@ async function singleSim(data: parsedData): Promise<simResult> {
     cap: data.hardCap ? data.cap : null,
   };
   switch (data.theory) {
+    case "T1":
+      return await t1(sendData);
     case "T4":
       return await t4(sendData);
   }
@@ -161,7 +165,13 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
   let conditions: Array<boolean> = [];
   switch (theory) {
     case "T1":
-      conditions = [];
+      conditions = [
+        rho < 25, //T1
+        type !== "Best Overall" && type !== "Best Active" && rho > 25 && rho < 850, //T1C34
+        type !== "Best Overall" && type !== "Best Active" && rho < 625, //T1C4
+        type !== "Best Semi-Idle" && type !== "Best Idle" && (type !== "Best Overall" || rho < 250), //T1Ratio
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+      ];
       break;
     case "T2":
       conditions = [];
@@ -217,11 +227,11 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       conditions = [];
       break;
     case "BP":
-      conditions = []
+      conditions = [];
       break;
   }
   let res: Array<string> = [];
-  for (let i = 0; i < conditions.length; i++) if (conditions[i]) res.push(jsonData.strats[3][i]);
+  for (let i = 0; i < conditions.length; i++) if (conditions[i]) res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
   return res;
 }
 function getTauFactor(theory: string): number {

@@ -73,9 +73,8 @@ function updateTable(arr: Array<simResult>): void {
     }
     tbody.appendChild(row);
   }
-  console.log(arr);
 }
 
 function clearTable(): void {
-  while (tbody.firstChild) tbody.firstChild.remove();
+  while (tbody.children[0].firstChild) tbody.children[0].firstChild.remove();
 }
