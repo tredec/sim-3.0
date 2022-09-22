@@ -44,9 +44,14 @@ class t1Sim {
             new Variable({ cost: 15, costInc: 2, stepwisePowerSum: { default: true } }),
             new Variable({ cost: 3000, costInc: 10, varBase: 2 }),
             new Variable({ cost: 1e4, costInc: Math.pow(2, (4.5 * Math.log2(10))), varBase: 10 }),
-            new Variable({ cost: 1e10, costInc: Math.pow(2, (8 * Math.log2(10))), varBase: 10 }),
+            new Variable({ cost: 1e10, costInc: Math.pow(2, (8 * Math.log2(10))), varBase: 10 })
         ];
-        this.variableSum = 0;
+        //values of the different terms, so they are accesible for variable buying conditions
+        this.term1 = 0;
+        this.term2 = 0;
+        this.term3 = 0;
+        this.termRatio = 0;
+        this.c3Ratio = this.lastPub < 300 ? 1 : this.lastPub < 450 ? 1.1 : this.lastPub < 550 ? 2 : this.lastPub < 655 ? 5 : 10;
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -63,47 +68,46 @@ class t1Sim {
     }
     getBuyingConditions() {
         let conditions = [
-            [true],
-            [...arr(8, true)],
-            [true, true, ...arr(6, false)],
-            [false, false, true, ...arr(3, false), true, true],
-            [...arr(3, false), true, false, false, true, true],
-            [...arr(4, false), true, false, true, true],
-            [...arr(4, false), true, true, true, true],
-            [() => this.variables[0].cost + 1 < this.variables[1].cost, true, false, false, false, false, false, false],
-            [() => this.variables[0].cost + 1 < Math.min(this.variables[1].cost), true, true, false, false, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
-            [false, false, false, true, false, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
-            [...arr(4, false), true, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
-            [...arr(4, false), true, true, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
-            [() => this.variables[0].cost + 1 < this.variables[1].cost && this.curMult < 1, () => this.curMult < 1, true, ...arr(3, false), () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c3dc12rcv
+            [...arr(6, true)],
+            [true, true, false, false, true, true],
+            [true, true, false, false, false, true],
+            [
+                this.variables[0].cost + 1 < this.rho,
+                this.variables[1].cost + l10(1.11) < this.rho,
+                this.variables[2].cost + this.termRatio + 1 <= this.rho,
+                this.variables[3].cost + this.termRatio <= this.rho,
+                this.variables[4].cost + l10(this.c3Ratio) < this.rho,
+                true
+            ],
+            [
+                this.variables[0].cost + l10(5) <= this.rho &&
+                    this.variables[0].cost + l10(6 + (this.variables[0].lvl % 10)) <= this.variables[1].cost &&
+                    this.variables[0].cost + l10(15 + (this.variables[0].lvl % 10)) < (this.milestones[3] > 0 ? this.variables[5].cost : 1000),
+                this.variables[1].cost + l10(1.11) < this.rho,
+                this.variables[2].cost + this.termRatio + 1 <= this.rho,
+                this.variables[3].cost + this.termRatio <= this.rho,
+                this.variables[4].cost + l10(this.c3Ratio) < this.rho,
+                true
+            ] //t1SolarXLII
         ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
         return conditions;
     }
     getMilestoneConditions() {
-        let conditions = [() => true, () => true, () => true, () => this.milestones[0] > 0, () => this.milestones[0] > 1, () => this.milestones[0] > 2, () => true, () => true];
+        let conditions = [() => true, () => true, () => true, () => true, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
         return conditions;
     }
     getMilestoneTree() {
         let tree = [
-            [
+            ...new Array(5).fill([
                 [0, 0, 0, 0],
                 [0, 0, 1, 0],
                 [0, 0, 1, 1],
                 [1, 0, 1, 1],
                 [1, 1, 1, 1],
                 [1, 2, 1, 1],
-                [1, 3, 1, 1],
-            ],
-            ...new Array(4).fill([
-                [0, 0, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 1, 1],
-                [1, 0, 1, 1],
-                [1, 1, 1, 1],
-                [1, 2, 1, 1],
-                [1, 3, 1, 1],
-            ]), //t1C34,t1C4,t1Ratio,t1SolarXLII
+                [1, 3, 1, 1]
+            ]) //t1,t1C34,t1C4,t1Ratio,t1SolarXLII
         ];
         return tree;
     }
@@ -138,10 +142,10 @@ class t1Sim {
         });
     }
     tick() {
-        let term1 = this.variables[2].value * (1 + 0.05 * this.milestones[1]) + this.variables[3].value + (this.milestones[0] > 0 ? l10(1 + this.rho / Math.LOG10E / 100) : 0);
-        let term2 = add(this.variables[4].value * 0.2, this.variables[5].value * 0.3);
-        let term3 = this.variables[0].value + this.variables[1].value;
-        let rhodot = add(term1, term2) + term3 + this.totMult + l10(this.dt);
+        this.term1 = this.variables[2].value * (1 + 0.05 * this.milestones[1]) + this.variables[3].value + (this.milestones[0] > 0 ? l10(1 + this.rho / Math.LOG10E / 100) : 0);
+        this.term2 = add(this.variables[4].value * 0.2, this.variables[5].value * 0.3);
+        this.term3 = this.variables[0].value + this.variables[1].value;
+        let rhodot = add(this.term1, this.term2) + this.term3 + this.totMult + l10(this.dt);
         this.rho = add(this.rho, rhodot);
         this.t += this.dt / 1.5;
         this.dt *= this.ddt;
@@ -155,14 +159,19 @@ class t1Sim {
         }
     }
     buyVariables() {
+        let bought = false;
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
+                    bought = true;
                 }
                 else
                     break;
             }
+        if (bought) {
+            this.termRatio = Math.max(l10(5), (this.term2 - this.term1) * Number(this.milestones[3] > 0));
+        }
     }
 }
