@@ -68,9 +68,11 @@ class t4Sim {
         false,
         () => this.variables[2].cost + 0.1 < (this.recursionValue ?? Infinity),
         ...arr(3, false),
-        () => this.variables[6].cost + l10(10 + (this.variables[6].lvl % 10)) <= Math.min(this.variables[7].cost, this.variables[2].cost) && this.variables[6].cost + l10(10 + (this.variables[6].lvl % 10)) + 1 < (this.recursionValue ?? Infinity),
-        () => this.variables[7].cost + 0.5 < (this.recursionValue ?? Infinity) && (this.curMult < 1 || this.variables[7].cost + l10(1.5) <= this.variables[2].cost),
-      ], //t4c3d66
+        () =>
+          this.variables[6].cost + l10(10 + (this.variables[6].lvl % 10)) <= Math.min(this.variables[7].cost, this.variables[2].cost) &&
+          this.variables[6].cost + l10(10 + (this.variables[6].lvl % 10)) + 1 < (this.recursionValue ?? Infinity),
+        () => this.variables[7].cost + 0.5 < (this.recursionValue ?? Infinity) && (this.curMult < 1 || this.variables[7].cost + l10(1.5) <= this.variables[2].cost)
+      ] //t4c3d66
     ];
     conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
     return conditions;
@@ -89,25 +91,25 @@ class t4Sim {
         [3, 0, 1],
         [3, 0, 2],
         [3, 0, 3],
-        [3, 1, 3],
+        [3, 1, 3]
       ], //t4
 
       [
         [0, 0, 0],
-        [0, 1, 0],
+        [0, 1, 0]
       ], //t4c12
       [
         [0, 0, 0],
         [0, 0, 1],
         [0, 0, 2],
-        [0, 0, 3],
+        [0, 0, 3]
       ], //t4c3
       [
         [0, 0, 0],
         [1, 0, 0],
         [1, 0, 1],
         [1, 0, 2],
-        [1, 0, 3],
+        [1, 0, 3]
       ], //t4c4
       [
         [0, 0, 0],
@@ -115,7 +117,7 @@ class t4Sim {
         [2, 0, 0],
         [2, 0, 1],
         [2, 0, 2],
-        [2, 0, 3],
+        [2, 0, 3]
       ], //t4c5
       [
         [0, 0, 0],
@@ -125,25 +127,25 @@ class t4Sim {
         [3, 0, 1],
         [3, 0, 2],
         [3, 0, 3],
-        [3, 0, 3],
+        [3, 0, 3]
       ], //t4c56
       [
         [0, 0, 0],
-        [0, 1, 0],
+        [0, 1, 0]
       ], //t4c12d
       [
         [0, 0, 0],
         [0, 1, 0],
         [0, 1, 1],
         [0, 1, 2],
-        [0, 1, 3],
+        [0, 1, 3]
       ], //t4c123d
       [
         [0, 0, 0],
         [1, 0, 0],
         [1, 0, 1],
         [1, 0, 2],
-        [1, 0, 3],
+        [1, 0, 3]
       ], //t4c4d
       [
         [0, 0, 0],
@@ -151,7 +153,7 @@ class t4Sim {
         [2, 0, 0],
         [2, 0, 1],
         [2, 0, 2],
-        [2, 0, 3],
+        [2, 0, 3]
       ], //t4c5d
       [
         [0, 0, 0],
@@ -161,21 +163,21 @@ class t4Sim {
         [3, 0, 1],
         [3, 0, 2],
         [3, 0, 3],
-        [3, 0, 3],
+        [3, 0, 3]
       ], //t4c56d
       [
         [0, 0, 0],
         [0, 1, 0],
         [0, 1, 1],
         [0, 1, 2],
-        [0, 1, 3],
+        [0, 1, 3]
       ], //t4c3dc12rcv
       [
         [0, 0, 0],
         [0, 0, 1],
         [0, 0, 2],
-        [0, 0, 3],
-      ], //t4c3d66
+        [0, 0, 3]
+      ] //t4c3d66
     ];
     return tree;
   }
@@ -189,7 +191,7 @@ class t4Sim {
   constructor(data: theoryData) {
     this.stratIndex = findIndex(data.strats, data.strat);
     this.strat = data.strat;
-    this.theory = "T4"
+    this.theory = "T4";
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 2] : [Infinity, 0];
     this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
@@ -215,7 +217,7 @@ class t4Sim {
       new Variable({ cost: 1e8, costInc: 12.5, varBase: 5 }),
       new Variable({ cost: 1e10, costInc: 58, varBase: 10 }),
       new Variable({ cost: 1e3, costInc: 100, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 1e4, costInc: 1000, varBase: 2 }),
+      new Variable({ cost: 1e4, costInc: 1000, varBase: 2 })
     ];
     this.variableSum = 0;
     //pub values
@@ -247,7 +249,7 @@ class t4Sim {
       if (this.lastPub < 176) this.updateMilestones();
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
-      pubCondition = global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : (this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.maxRho > 9;
+      pubCondition = global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : (this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 9;
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);

@@ -1,5 +1,5 @@
 import { findIndex } from "./Utils/helperFunctions.js";
-import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
+import { log10, theoryData, simResult, logToExp, add } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./Theories/T4.js";
@@ -12,7 +12,7 @@ export const global = {
   ddt: 1.0001,
   stratFilter: true,
   simulating: false,
-  pubTimeCap: Infinity,
+  pubTimeCap: Infinity
 };
 
 interface cacheInterface {
@@ -21,7 +21,7 @@ interface cacheInterface {
 }
 const cache: cacheInterface = {
   lastStrat: null,
-  simEndTimestamp: 0,
+  simEndTimestamp: 0
 };
 
 export interface inputData {
@@ -33,7 +33,6 @@ export interface inputData {
   mode: string;
   hardCap: boolean;
   modeInput: string;
-  global: { dt: number; ddt: number; stratFilter: boolean };
 }
 interface parsedData {
   theory: string;
@@ -53,15 +52,12 @@ export async function simulate(simData: inputData): Promise<string | null | Arra
     return "Sim stopped.";
   }
   if ((performance.now() - cache.simEndTimestamp) / 1000 < 1) return null;
-  global.dt = simData.global.dt;
-  global.ddt = simData.global.ddt;
-  global.stratFilter = simData.global.stratFilter;
   try {
     let pData: parsedData = parseData(simData);
     let res: Array<simResult>;
+    global.simulating = true;
     if (pData.mode === "Single sim") res = [await singleSim(pData)];
     else {
-      global.simulating = true;
       res = await chainSim(pData);
     }
     cache.simEndTimestamp = performance.now();
@@ -81,7 +77,7 @@ function parseData(data: inputData): parsedData {
     sigma: 0,
     rho: 0,
     cap: Infinity,
-    recovery: null,
+    recovery: null
   };
 
   if (data.mode !== "All" && data.mode !== "Time diff.") {
@@ -107,7 +103,7 @@ function parseData(data: inputData): parsedData {
 }
 
 async function singleSim(data: parsedData): Promise<simResult> {
-  if (findIndex(["Best Overall", "Best active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1) return getBestStrat(data);
+  if (findIndex(["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1) return getBestStrat(data);
   const sendData: theoryData = {
     strat: data.strat,
     strats: jsonData.strats[getIndexFromTheory(data.theory)],
@@ -115,7 +111,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
     rho: data.rho,
     recursionValue: null,
     recovery: data.recovery,
-    cap: data.hardCap ? data.cap : null,
+    cap: data.hardCap ? data.cap : null
   };
   switch (data.theory) {
     case "T1":
@@ -167,10 +163,10 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
     case "T1":
       conditions = [
         rho < 25, //T1
-        type !== "Best Overall" && type !== "Best Active" && rho > 25 && rho < 850, //T1C34
-        type !== "Best Overall" && type !== "Best Active" && rho < 625, //T1C4
-        type !== "Best Semi-Idle" && type !== "Best Idle" && (type !== "Best Overall" || rho < 250), //T1Ratio
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+        type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850, //T1C34
+        type !== "Best Overall" && type !== "Best Active" && rho > 625, //T1C4
+        type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250), //T1Ratio
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
       ];
       break;
     case "T2":
@@ -193,7 +189,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150, // T4C5d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275, // T4C56d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300), //T4C3dC12rcv
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
       ];
       break;
     case "T5":
@@ -230,6 +226,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       conditions = [];
       break;
   }
+  if (conditions.length === 0) throw "No strats found";
   let res: Array<string> = [];
   for (let i = 0; i < conditions.length; i++) if (conditions[i]) res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
   return res;

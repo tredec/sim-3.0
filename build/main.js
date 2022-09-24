@@ -19,11 +19,11 @@ export const global = {
     ddt: 1.0001,
     stratFilter: true,
     simulating: false,
-    pubTimeCap: Infinity,
+    pubTimeCap: Infinity
 };
 const cache = {
     lastStrat: null,
-    simEndTimestamp: 0,
+    simEndTimestamp: 0
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -33,16 +33,13 @@ export function simulate(simData) {
         }
         if ((performance.now() - cache.simEndTimestamp) / 1000 < 1)
             return null;
-        global.dt = simData.global.dt;
-        global.ddt = simData.global.ddt;
-        global.stratFilter = simData.global.stratFilter;
         try {
             let pData = parseData(simData);
             let res;
+            global.simulating = true;
             if (pData.mode === "Single sim")
                 res = [yield singleSim(pData)];
             else {
-                global.simulating = true;
                 res = yield chainSim(pData);
             }
             cache.simEndTimestamp = performance.now();
@@ -63,7 +60,7 @@ function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null,
+        recovery: null
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
@@ -91,7 +88,7 @@ function parseData(data) {
 }
 function singleSim(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (findIndex(["Best Overall", "Best active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1)
+        if (findIndex(["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1)
             return getBestStrat(data);
         const sendData = {
             strat: data.strat,
@@ -100,7 +97,7 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: data.recovery,
-            cap: data.hardCap ? data.cap : null,
+            cap: data.hardCap ? data.cap : null
         };
         switch (data.theory) {
             case "T1":
@@ -157,10 +154,10 @@ function getStrats(theory, rho, type) {
         case "T1":
             conditions = [
                 rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho > 25 && rho < 850,
-                type !== "Best Overall" && type !== "Best Active" && rho < 625,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && (type !== "Best Overall" || rho < 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850,
+                type !== "Best Overall" && type !== "Best Active" && rho > 625,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250),
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
             ];
             break;
         case "T2":
@@ -183,7 +180,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
             ];
             break;
         case "T5":
@@ -220,6 +217,8 @@ function getStrats(theory, rho, type) {
             conditions = [];
             break;
     }
+    if (conditions.length === 0)
+        throw "No strats found";
     let res = [];
     for (let i = 0; i < conditions.length; i++)
         if (conditions[i])

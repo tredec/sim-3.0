@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { simulate } from "../main.js";
+import { simulate, global } from "../main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
 //Inputs
 const theory = qs(".theory");
@@ -30,13 +30,16 @@ const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
 const tableHeaders = {
     current: "All",
-    single: "<th>Theory</th><th>&sigma;<sub>t</sub></th><th>Last pub</th><th>Max Rho</th><th>&Delta;&tau;</th><th>Multi</th><th>Strat</th><th>&tau;/h</th><th>Pub Time</th>",
-    all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>",
+    single: `<th style="padding-inline: 0.5rem !important">Theory</th><th><b style="font-size: 1rem">&sigma;</b><sub>t</sub></th><th>Last Pub</th><th>Max Rho</th><th>&Delta;<i style="font-size:1rem">&tau;</i></th><th>Multi</th><th>Strat</th><th><i style="font-size:1rem">&tau;</i>/h</th><th>Pub Time</th>`,
+    all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>"
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
 event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    global.dt = parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5");
+    global.ddt = parseFloat((_b = ddtOtp.textContent) !== null && _b !== void 0 ? _b : "1.0001");
+    global.stratFilter = true;
     const data = {
         theory: theory.value,
         strat: strat.value,
@@ -45,8 +48,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         cap: cap.value,
         mode: mode.value,
         modeInput: modeInput.value,
-        hardCap: hardCap.checked,
-        global: { dt: parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5"), ddt: parseFloat((_b = ddtOtp.textContent) !== null && _b !== void 0 ? _b : "1.0001"), stratFilter: true },
+        hardCap: hardCap.checked
     };
     output.textContent = "";
     simulateButton.textContent = "Stop simulating";
@@ -59,6 +61,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     if (res !== null && typeof res !== "string")
         updateTable(res);
     simulateButton.textContent = "Simulate";
+    global.simulating = false;
 }));
 function updateTable(arr) {
     if (arr[0].length !== thead.children[0].children.length) {
@@ -80,6 +83,6 @@ function updateTable(arr) {
     }
 }
 function clearTable() {
-    while (tbody.children[0].firstChild)
-        tbody.children[0].firstChild.remove();
+    while (tbody.firstChild)
+        tbody.firstChild.remove();
 }

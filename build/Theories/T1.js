@@ -46,7 +46,7 @@ class t1Sim {
             new Variable({ cost: 15, costInc: 2, stepwisePowerSum: { default: true } }),
             new Variable({ cost: 3000, costInc: 10, varBase: 2 }),
             new Variable({ cost: 1e4, costInc: Math.pow(2, (4.5 * Math.log2(10))), varBase: 10 }),
-            new Variable({ cost: 1e10, costInc: Math.pow(2, (8 * Math.log2(10))), varBase: 10 }),
+            new Variable({ cost: 1e10, costInc: Math.pow(2, (8 * Math.log2(10))), varBase: 10 })
         ];
         //values of the different terms, so they are accesible for variable buying conditions
         this.term1 = 0;
@@ -79,7 +79,7 @@ class t1Sim {
                 () => this.variables[2].cost + this.termRatio + 1 <= this.rho,
                 () => this.variables[3].cost + this.termRatio <= this.rho,
                 () => this.variables[4].cost + l10(this.c3Ratio) < this.rho,
-                true,
+                true
             ],
             [
                 () => this.variables[0].cost + l10(5) <= this.rho &&
@@ -89,8 +89,8 @@ class t1Sim {
                 () => this.variables[2].cost + this.termRatio + 1 <= this.rho,
                 () => this.variables[3].cost + this.termRatio <= this.rho,
                 () => this.variables[4].cost + l10(this.c3Ratio) < this.rho,
-                true,
-            ], //t1SolarXLII
+                true
+            ] //t1SolarXLII
         ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
         return conditions;
@@ -108,8 +108,8 @@ class t1Sim {
                 [1, 0, 1, 1],
                 [1, 1, 1, 1],
                 [1, 2, 1, 1],
-                [1, 3, 1, 1],
-            ]), //t1,t1C34,t1C4,t1Ratio,t1SolarXLII
+                [1, 3, 1, 1]
+            ]) //t1,t1C34,t1C4,t1Ratio,t1SolarXLII
         ];
         return tree;
     }
@@ -138,14 +138,13 @@ class t1Sim {
                 if (this.lastPub < 176)
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
-                if ((this.stratIndex !== 4 || this.rho < coast) || global.pubTimeCap !== Infinity)
+                if (this.stratIndex !== 4 || this.rho < coast || global.pubTimeCap !== Infinity)
                     this.buyVariables();
-                pubCondition = (global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : this.stratIndex === 4 ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.maxRho > 10;
+                pubCondition = (global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : this.stratIndex === 4 ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 10;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             this.result = createResult(this, global.pubTimeCap === Infinity && this.stratIndex === 4 ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
-            console.log(this);
             return this.result;
         });
     }
