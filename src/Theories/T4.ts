@@ -235,7 +235,7 @@ class t4Sim {
     this.updateMilestones();
   }
   async simulate(data: theoryData) {
-    if (this.recursionValue == null && this.strat === "T4C3d66" && global.pubTimeCap === Infinity) {
+    if (this.recursionValue == null && this.strat === "T4C3d66" && global.forcedPubTime === Infinity) {
       data.recursionValue = Number.MAX_VALUE;
       let auxSim = await new t4Sim(data).simulate(data);
       this.recursionValue = auxSim[9][0];
@@ -249,7 +249,7 @@ class t4Sim {
       if (this.lastPub < 176) this.updateMilestones();
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
-      pubCondition = global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : (this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 9;
+      pubCondition = global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : (this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 9;
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
@@ -271,7 +271,7 @@ class t4Sim {
     if (this.maxRho < this.recovery.value) this.recovery.time = this.t;
 
     this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);
-    if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 9 || global.pubTimeCap !== Infinity) {
+    if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 9 || global.forcedPubTime !== Infinity) {
       this.maxTauH = this.tauH;
       this.pubT = this.t;
       this.pubRho = this.maxRho;

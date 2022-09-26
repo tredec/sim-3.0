@@ -1,5 +1,5 @@
 import { simulate, inputData, global } from "../main.js";
-import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
+import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
 import { simResult } from "../Utils/simHelpers.js";
 
 //Inputs

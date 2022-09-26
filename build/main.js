@@ -19,7 +19,7 @@ export const global = {
     ddt: 1.0001,
     stratFilter: true,
     simulating: false,
-    pubTimeCap: Infinity
+    forcedPubTime: Infinity
 };
 const cache = {
     lastStrat: null,

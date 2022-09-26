@@ -163,12 +163,12 @@ class t1Sim {
       if (this.rho > this.maxRho) this.maxRho = this.rho;
       if (this.lastPub < 176) this.updateMilestones();
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
-      if (this.stratIndex !== 4 || this.rho < coast || global.pubTimeCap !== Infinity) this.buyVariables();
-      pubCondition = (global.pubTimeCap !== Infinity ? this.t > global.pubTimeCap : this.stratIndex === 4 ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 10;
+      if (this.stratIndex !== 4 || this.rho < coast || global.forcedPubTime !== Infinity) this.buyVariables();
+      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.stratIndex === 4 ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 10;
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, global.pubTimeCap === Infinity && this.stratIndex === 4 ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
+    this.result = createResult(this, global.forcedPubTime === Infinity && this.stratIndex === 4 ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
     return this.result;
   }
   tick() {
@@ -184,7 +184,7 @@ class t1Sim {
     if (this.maxRho < this.recovery.value) this.recovery.time = this.t;
 
     this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);
-    if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.pubTimeCap !== Infinity || this.stratIndex === 4) {
+    if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.forcedPubTime !== Infinity || this.stratIndex === 4) {
       this.maxTauH = this.tauH;
       this.pubT = this.t;
       this.pubRho = this.maxRho;

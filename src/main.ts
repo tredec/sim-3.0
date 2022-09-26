@@ -1,5 +1,5 @@
 import { findIndex } from "./Utils/helperFunctions.js";
-import { log10, theoryData, simResult, logToExp, add } from "./Utils/simHelpers.js";
+import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./Theories/T4.js";
@@ -12,7 +12,7 @@ export const global = {
   ddt: 1.0001,
   stratFilter: true,
   simulating: false,
-  pubTimeCap: Infinity
+  forcedPubTime: Infinity
 };
 
 interface cacheInterface {
