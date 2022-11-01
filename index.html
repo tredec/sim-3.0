@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theory Simulator</title>
+    <link rel="stylesheet" href="style.css" />
+    <script>
+      var exports = {};
+    </script>
+    <script defer type="module" src="./build/UI/render.js"></script>
+    <script defer type="module" src="./build/UI/simEventsBundle.js"></script>
+    <script defer type="module" src="./build/UI/buttonEvents.js"></script>
+    <script defer type="module" src="./build/UI/settings.js"></script>
+    <script defer type="module" src="./build/UI/simState.js"></script>
+  </head>
+  <body>
+    <div class="nav">
+      <div style="margin-top: auto; margin-bottom: 0.2rem">
+        <span style="font-size: 0.7rem">v1.2.3</span>
+        <button style="margin-left: 1rem; cursor: pointer">Changelog</button>
+        <button style="margin-left: 1rem; cursor: pointer">Instructions</button>
+        <button style="margin-left: 0.8rem" class="settingsBtn"></button>
+      </div>
+      <h1 class="font-color">e<sup>x</sup> Theory simulator</h1>
+    </div>
+    <div class="content-wrapper">
+      <div class="controls">
+        <div>
+          <span class="description">Theory: </span>
+          <select class="theory"></select>
+        </div>
+        <div>
+          <span class="description">Strat: </span>
+          <select class="strat">
+            <option value="Best Overall">Best Overall</option>
+            <option value="Best Active">Best Active</option>
+            <option value="Best Semi-Idle">Best Semi-Idle</option>
+            <option value="Best Idle">Best Idle</option>
+          </select>
+        </div>
+        <div>
+          <span class="description">Sigma: </span>
+          <input type="text" class="sigma" style="width: 3.5rem" placeholder="<number>" />
+        </div>
+        <div>
+          <span class="description">Input: </span>
+          <input type="text" class="input" style="width: 5rem" placeholder="<rho>[r/t/m]>" />
+        </div>
+        <div>
+          <span class="description">Cap: </span>
+          <input type="text" class="cap" style="width: 5rem" placeholder="<rho>[r/t/m]>" />
+        </div>
+      </div>
+      <div class="controls">
+        <div>
+          <span class="description">Mode: </span>
+          <select class="mode"></select>
+        </div>
+        <input style="display: block; position: relative; width: min(1rem, 5vw); outline: none" type="checkbox" class="hardCap" />
+        <div class="extraInputs">
+          <span class="extraInputDescription" style="margin-right: 0.8rem">mode inputs</span>
+          <div class="simAllInputs" style="display: inline">
+            <button class="saveDist">Save distribution</button>
+            <button class="getDist">Get distribution</button>
+          </div>
+          <textarea cols="30" spellcheck="false"></textarea>
+        </div>
+        <div class="timeDiffWrapper" style="display: none">
+          <input type="text" />
+          <input type="text" />
+          <input type="text" />
+        </div>
+      </div>
+      <div class="button-wrapper">
+        <button class="image">Copy Image</button>
+        <button class="image">Download Image</button>
+        <button class="clear">Clear all results</button>
+        <button class="simulate">Simulate</button>
+      </div>
+      <span class="output"></span>
+      <table>
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <dialog class="settings">
+      <h1>Sim settings</h1>
+      <button class="settingsCloseBtn">X</button>
+      <div class="sliderContainer">
+        <label for="dtSlider">dt:</label><br />
+        <input type="range" class="dt" step="0.1" max="10" min="0" value="8.1943" id="dtSlider" />
+        <span class="sliderOtp dtOtp">1.5</span>
+        <br />
+        <label for="ddtSlider">&Delta;dt:</label><br />
+        <input type="range" class="ddt" step="0.1" max="10" min="0" value="2.71233" id="ddtSlider" />
+        <span class="sliderOtp ddtOtp">1.0001</span>
+      </div>
+    </dialog>
+  </body>
+</html>
