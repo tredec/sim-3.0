@@ -4,12 +4,12 @@ import { qs, event, ce } from "../Utils/helperFunctions.js";
 const clear = qs(".clear");
 
 //Other elements
-const table = qs("table");
-const tbody = qs("tbody");
+let tbody:HTMLElement;
 
 const output = qs(".output");
 
 event(clear, "click", () => {
+  tbody = qs("tbody");
   while (tbody.firstChild) tbody.firstChild.remove();
   output.textContent = "";
   console.clear();

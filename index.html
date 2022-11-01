@@ -86,9 +86,9 @@
       </table>
     </div>
     <dialog class="settings">
-      <h1>Sim settings</h1>
+      <h1 style="margin-bottom: 1.5rem">Sim settings</h1>
       <button class="settingsCloseBtn">X</button>
-      <div class="sliderContainer">
+      <div class="sliderContainer" style="margin-bottom: 2rem">
         <label for="dtSlider">dt:</label><br />
         <input type="range" class="dt" step="0.1" max="10" min="0" value="8.1943" id="dtSlider" />
         <span class="sliderOtp dtOtp">1.5</span>
@@ -97,6 +97,10 @@
         <input type="range" class="ddt" step="0.1" max="10" min="0" value="2.71233" id="ddtSlider" />
         <span class="sliderOtp ddtOtp">1.0001</span>
       </div>
+      <span>Copies current sim state to clipboard and local storage.</span><br /><br />
+      <button class="setState">Set Sim State</button><br /><br />
+      <span>Replaces the current sim state with the saved state.</span><br /><br />
+      <button class="getState">Get Sim State</button>
     </dialog>
   </body>
 </html>

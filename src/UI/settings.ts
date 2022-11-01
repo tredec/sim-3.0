@@ -1,15 +1,16 @@
 import { qs, event } from "../Utils/helperFunctions.js";
 import { decimals, round } from "../Utils/simHelpers.js";
+import { getSimState, setSimState } from "./simState.js";
 
 const settingsBtn = <HTMLButtonElement>qs(".settingsBtn");
 const settingsCloseBtn = <HTMLButtonElement>qs(".settingsCloseBtn");
 const settingsModal = <HTMLDialogElement>qs(".settings");
 
-event(settingsBtn, "click", () => {
+event(settingsBtn, "pointerdown", () => {
   settingsModal.showModal();
 });
 
-event(settingsCloseBtn, "click", () => {
+event(settingsCloseBtn, "pointerdown", () => {
   settingsModal.close();
 });
 
@@ -30,3 +31,10 @@ event(
   "input",
   () => (ddtOtp.textContent = ddtSlider.value === "0" ? "1" : ddtSlider.value === "10" ? "1.3" : String(round(1 + Number(decimals(3 ** parseFloat(ddtSlider.value) * (0.3 / 3 ** parseFloat(ddtSlider.max)), 2)), 7)))
 );
+
+
+const setState = qs(".setState")
+const getState = qs(".getState")
+
+event(setState, "pointerdown", ()=>setSimState())
+event(getState, "pointerdown", ()=>getSimState())

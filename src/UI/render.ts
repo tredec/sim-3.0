@@ -20,7 +20,7 @@ const simAllInputs = qs(".simAllInputs");
 const modeInputDescription = qs(".extraInputDescription");
 
 //Renders theories, strats and modes options on page load
-(function () {
+
   for (let i = 0; i < data.theories.length; i++) {
     const option = <HTMLSelectElement>ce("option");
     option.value = data.theories[i];
@@ -34,17 +34,18 @@ const modeInputDescription = qs(".extraInputDescription");
     strat.appendChild(option);
   }
   for (let i = 0; i < data.modes.length; i++) {
+    if (mode.children.length === data.modes.length)break
     const option = <HTMLSelectElement>ce("option");
     option.value = data.modes[i];
     option.textContent = data.modes[i];
     mode.appendChild(option);
   }
   modeUpdate();
-})();
+
 
 event(mode, "input", modeUpdate);
 
-function modeUpdate(): void {
+export function modeUpdate(): void {
   singleInput.style.display = "none";
   extraInputs.style.display = "none";
   timeDiffWrapper.style.display = "none";
@@ -70,7 +71,7 @@ function modeUpdate(): void {
 
 event(theory, "change", theoryUpdate);
 
-function theoryUpdate(): void {
+export function theoryUpdate(): void {
   while (strat.firstChild) strat.firstChild.remove();
   const defaultStrats: Array<string> = ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"];
   for (let i = 0; i < 4; i++) {

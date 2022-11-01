@@ -13,17 +13,18 @@ import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
 import t4 from "./Theories/T4.js";
 import t1 from "./Theories/T1.js";
+import t2 from "./Theories/T2.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
     ddt: 1.0001,
     stratFilter: true,
     simulating: false,
-    forcedPubTime: Infinity
+    forcedPubTime: Infinity,
 };
 const cache = {
     lastStrat: null,
-    simEndTimestamp: 0
+    simEndTimestamp: 0,
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -60,7 +61,7 @@ function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null
+        recovery: null,
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
@@ -97,11 +98,13 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: data.recovery,
-            cap: data.hardCap ? data.cap : null
+            cap: data.hardCap ? data.cap : null,
         };
         switch (data.theory) {
             case "T1":
                 return yield t1(sendData);
+            case "T2":
+                return yield t2(sendData);
             case "T4":
                 return yield t4(sendData);
         }
@@ -147,8 +150,6 @@ function getBestStrat(data) {
     });
 }
 function getStrats(theory, rho, type) {
-    if (!global.stratFilter)
-        return jsonData.strats[getIndexFromTheory(theory)];
     let conditions = [];
     switch (theory) {
         case "T1":
@@ -157,11 +158,16 @@ function getStrats(theory, rho, type) {
                 type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850,
                 type !== "Best Overall" && type !== "Best Active" && rho > 625,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
             ];
             break;
         case "T2":
-            conditions = [];
+            conditions = [
+                (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25,
+                type !== "Best Idle" && (type !== "Best Active" && type !== "Best Overall" || rho >= 250),
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250,
+                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250, //t2qs
+            ];
             break;
         case "T3":
             conditions = [];
@@ -180,7 +186,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
             ];
             break;
         case "T5":
@@ -217,11 +223,79 @@ function getStrats(theory, rho, type) {
             conditions = [];
             break;
     }
+    let requirements = [];
+    switch (theory) {
+        case "T1":
+            requirements = [
+                true,
+                rho >= 25,
+                rho >= 50,
+                true,
+                true, //T1SolarXLII
+            ];
+            break;
+        case "T2":
+            requirements = [true, true, true, true];
+            break;
+        case "T3":
+            requirements = [];
+            break;
+        case "T4":
+            requirements = [
+                true,
+                true,
+                true,
+                rho >= 25,
+                rho >= 50,
+                rho >= 50,
+                true,
+                true,
+                rho >= 25,
+                rho >= 50,
+                rho >= 50,
+                true,
+                true, //T4C3d66
+            ];
+            break;
+        case "T5":
+            requirements = [];
+            break;
+        case "T6":
+            requirements = [];
+            break;
+        case "T7":
+            requirements = [];
+            break;
+        case "T8":
+            requirements = [];
+            break;
+        case "WSP":
+            requirements = [];
+            break;
+        case "SL":
+            requirements = [];
+            break;
+        case "EF":
+            requirements = [];
+            break;
+        case "CSR2":
+            requirements = [];
+            break;
+        case "PD":
+            requirements = [];
+            break;
+        case "FI":
+            requirements = [];
+            break;
+        case "BP":
+            requirements = [];
+            break;
+    }
     if (conditions.length === 0)
         throw "No strats found";
     let res = [];
     for (let i = 0; i < conditions.length; i++)
-        if (conditions[i])
+        if ((conditions[i] || !global.stratFilter) && requirements[i])
             res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
     return res;
 }

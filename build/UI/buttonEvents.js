@@ -2,10 +2,10 @@ import { qs, event } from "../Utils/helperFunctions.js";
 //Buttons
 const clear = qs(".clear");
 //Other elements
-const table = qs("table");
-const tbody = qs("tbody");
+let tbody;
 const output = qs(".output");
 event(clear, "click", () => {
+    tbody = qs("tbody");
     while (tbody.firstChild)
         tbody.firstChild.remove();
     output.textContent = "";

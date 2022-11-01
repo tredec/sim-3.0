@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { simulate, global } from "../main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
+import { getSimState, setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -20,9 +21,9 @@ const modeInput = qs("textarea");
 const hardCap = qs(".hardCap");
 //Outputs
 const output = qs(".output");
-const table = qs("table");
-const thead = qs("thead");
-const tbody = qs("tbody");
+let table = qs("table");
+let thead = qs("thead");
+let tbody = qs("tbody");
 //Buttons
 const simulateButton = qs(".simulate");
 //Setting Inputs
@@ -62,8 +63,13 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         updateTable(res);
     simulateButton.textContent = "Simulate";
     global.simulating = false;
+    setSimState();
 }));
+setTimeout(() => getSimState(), 500);
 function updateTable(arr) {
+    table = qs("table");
+    thead = qs("thead");
+    tbody = qs("tbody");
     if (arr[0].length !== thead.children[0].children.length) {
         if (arr[0].length === 10) {
             thead.innerHTML = tableHeaders.single;

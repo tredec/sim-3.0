@@ -30,7 +30,9 @@ body {
   color: var(--font-clr);
 }
 button {
+  user-select: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 a {
   color: inherit;

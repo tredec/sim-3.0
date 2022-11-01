@@ -16,29 +16,29 @@ const singleInput = qsa(".controls")[0];
 const simAllInputs = qs(".simAllInputs");
 const modeInputDescription = qs(".extraInputDescription");
 //Renders theories, strats and modes options on page load
-(function () {
-    for (let i = 0; i < data.theories.length; i++) {
-        const option = ce("option");
-        option.value = data.theories[i];
-        option.textContent = data.theories[i];
-        theory.appendChild(option);
-    }
-    for (let i = 0; i < data.strats[0].length; i++) {
-        const option = ce("option");
-        option.value = data.strats[0][i];
-        option.textContent = data.strats[0][i];
-        strat.appendChild(option);
-    }
-    for (let i = 0; i < data.modes.length; i++) {
-        const option = ce("option");
-        option.value = data.modes[i];
-        option.textContent = data.modes[i];
-        mode.appendChild(option);
-    }
-    modeUpdate();
-})();
+for (let i = 0; i < data.theories.length; i++) {
+    const option = ce("option");
+    option.value = data.theories[i];
+    option.textContent = data.theories[i];
+    theory.appendChild(option);
+}
+for (let i = 0; i < data.strats[0].length; i++) {
+    const option = ce("option");
+    option.value = data.strats[0][i];
+    option.textContent = data.strats[0][i];
+    strat.appendChild(option);
+}
+for (let i = 0; i < data.modes.length; i++) {
+    if (mode.children.length === data.modes.length)
+        break;
+    const option = ce("option");
+    option.value = data.modes[i];
+    option.textContent = data.modes[i];
+    mode.appendChild(option);
+}
+modeUpdate();
 event(mode, "input", modeUpdate);
-function modeUpdate() {
+export function modeUpdate() {
     singleInput.style.display = "none";
     extraInputs.style.display = "none";
     timeDiffWrapper.style.display = "none";
@@ -66,7 +66,7 @@ function modeUpdate() {
     modeInputDescription.textContent = data.modeInputDescriptions[findIndex(data.modes, mode.value)];
 }
 event(theory, "change", theoryUpdate);
-function theoryUpdate() {
+export function theoryUpdate() {
     while (strat.firstChild)
         strat.firstChild.remove();
     const defaultStrats = ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"];

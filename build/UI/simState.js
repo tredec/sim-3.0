@@ -1,4 +1,5 @@
 import { qs } from "../Utils/helperFunctions.js";
+import { modeUpdate } from "./render.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -22,24 +23,51 @@ export function setSimState() {
             strat: { value: strat.value, innerHTML: strat.innerHTML },
             sigma: sigma.value,
             input: input.value,
-            cap: cap.checked
+            cap: cap.value,
         },
         controls2: {
             mode: mode.value,
             modeInput: modeInput.value,
             extraInputDescription: qs(".extraInputDescription").textContent,
-            hardCap: hardCap.value,
-            timeDiffInputs: [qs(".timeDiffWrapper").children[0].value, qs(".timeDiffWrapper").children[1].value, qs(".timeDiffWrapper").children[2].value]
+            hardCap: hardCap.checked,
+            timeDiffInputs: [qs(".timeDiffWrapper").children[0].value, qs(".timeDiffWrapper").children[1].value, qs(".timeDiffWrapper").children[2].value],
         },
         output: output.textContent,
         table: table.innerHTML,
         settings: {
             dt: dtOtp.textContent,
-            ddt: ddtOtp.textContent
-        }
+            ddt: ddtOtp.textContent,
+        },
     }));
 }
 export function getSimState() {
     var _a;
     const state = JSON.parse((_a = localStorage.getItem("simState")) !== null && _a !== void 0 ? _a : defaultState);
+    theory.innerHTML = state.controls1.theory.innerHTML;
+    theory.value = state.controls1.theory.value;
+    strat.innerHTML = state.controls1.strat.innerHTML;
+    strat.value = state.controls1.strat.value;
+    sigma.value = state.controls1.sigma;
+    input.value = state.controls1.input;
+    cap.value = state.controls1.cap;
+    mode.value = state.controls2.mode;
+    modeInput.value = state.controls2.modeInput;
+    qs(".extraInputDescription").textContent = state.controls2.extraInputDescription;
+    hardCap.checked = state.controls2.hardCap;
+    qs(".timeDiffWrapper").children[0].value = state.controls2.timeDiffInputs[0];
+    qs(".timeDiffWrapper").children[1].value = state.controls2.timeDiffInputs[1];
+    qs(".timeDiffWrapper").children[2].value = state.controls2.timeDiffInputs[2];
+    output.textContent = state.output;
+    table.innerHTML = state.table;
+    dtOtp.textContent = state.settings.dt;
+    ddtOtp.textContent = state.settings.ddt;
+    qs(".dt").value = "8.1943";
+    qs(".ddt").value = "2.71233";
+    modeUpdate();
+    table.classList.remove("big");
+    table.classList.remove("small");
+    if (state.controls2.mode !== "All")
+        table.classList.add("small");
+    else
+        table.classList.add("big");
 }
