@@ -15,8 +15,8 @@ const hardCap = <HTMLInputElement>qs(".hardCap");
 
 //Outputs
 const output = qs(".output");
-let  table = qs("table");
-let  thead = qs("thead");
+let table = qs("table");
+let thead = qs("thead");
 let tbody = qs("tbody");
 
 //Buttons
@@ -57,15 +57,15 @@ event(simulateButton, "click", async () => {
   if (res !== null && typeof res !== "string") updateTable(res);
   simulateButton.textContent = "Simulate";
   global.simulating = false;
-  setSimState()
+  setSimState();
 });
 
-setTimeout(()=>getSimState(),500)
+setTimeout(() => getSimState(), 500);
 
 function updateTable(arr: Array<simResult>): void {
-   table = qs("table");
- thead = qs("thead");
- tbody = qs("tbody");
+  table = qs("table");
+  thead = qs("thead");
+  tbody = qs("tbody");
 
   if (arr[0].length !== thead.children[0].children.length) {
     if (arr[0].length === 10) {

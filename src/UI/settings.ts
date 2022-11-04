@@ -32,9 +32,15 @@ event(
   () => (ddtOtp.textContent = ddtSlider.value === "0" ? "1" : ddtSlider.value === "10" ? "1.3" : String(round(1 + Number(decimals(3 ** parseFloat(ddtSlider.value) * (0.3 / 3 ** parseFloat(ddtSlider.max)), 2)), 7)))
 );
 
+const setState = qs(".setState");
+const getState = qs(".getState");
 
-const setState = qs(".setState")
-const getState = qs(".getState")
+event(setState, "pointerdown", () => setSimState());
+event(getState, "pointerdown", () => getSimState());
 
-event(setState, "pointerdown", ()=>setSimState())
-event(getState, "pointerdown", ()=>getSimState())
+event(qs(".resetSettings"), "pointerdown", () => {
+  dtSlider.value = "8.1943";
+  dtOtp.textContent = "1.5";
+  ddtSlider.value = "2.71233";
+  ddtOtp.textContent = "1.0001";
+});

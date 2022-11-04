@@ -1,6 +1,6 @@
-import { log10, subtract, add, ZERO } from "./Utils/simHelpers.js";
+import { log10, add, ZERO } from "./Utils/simHelpers.js";
 
-interface dataProps {
+interface variableData {
   lvl?: number;
   cost: number | string;
   costInc: number;
@@ -17,7 +17,7 @@ export default class Variable {
   stepwisePowerSum: { default?: boolean; length: number; base: number };
   varBase: number;
 
-  constructor(data: dataProps) {
+  constructor(data: variableData) {
     this.lvl = data.lvl ?? 0;
     this.cost = parseValue(String(data.cost));
     this.costInc = Math.log10(data.costInc);
@@ -33,13 +33,16 @@ export default class Variable {
   buy(): void {
     this.cost += this.costInc;
     if (this.stepwisePowerSum.base !== 0) {
-      this.value = this.value === ZERO ? Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length) : add(this.value, Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length));
+      this.value =
+        this.value === ZERO
+          ? Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length)
+          : add(this.value, Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length));
     } else this.value = this.varBase * (this.lvl + 1);
     this.lvl++;
   }
 }
 
-function parseValue(val: string):number {
+function parseValue(val: string): number {
   if (val === "Infinity") throw "Variable value reached Infinity";
   if (val === "0") return ZERO;
   if (/[e]/.test(val)) return log10(val);

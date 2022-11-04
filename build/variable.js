@@ -17,7 +17,10 @@ export default class Variable {
     buy() {
         this.cost += this.costInc;
         if (this.stepwisePowerSum.base !== 0) {
-            this.value = this.value === ZERO ? Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length) : add(this.value, Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length));
+            this.value =
+                this.value === ZERO
+                    ? Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length)
+                    : add(this.value, Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length));
         }
         else
             this.value = this.varBase * (this.lvl + 1);

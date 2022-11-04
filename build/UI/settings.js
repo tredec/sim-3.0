@@ -20,3 +20,9 @@ const setState = qs(".setState");
 const getState = qs(".getState");
 event(setState, "pointerdown", () => setSimState());
 event(getState, "pointerdown", () => getSimState());
+event(qs(".resetSettings"), "pointerdown", () => {
+    dtSlider.value = "8.1943";
+    dtOtp.textContent = "1.5";
+    ddtSlider.value = "2.71233";
+    ddtOtp.textContent = "1.0001";
+});

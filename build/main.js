@@ -11,20 +11,21 @@ import { findIndex } from "./Utils/helperFunctions.js";
 import { log10, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
-import t4 from "./Theories/T4.js";
 import t1 from "./Theories/T1.js";
 import t2 from "./Theories/T2.js";
+import t3 from "./Theories/T3.js";
+import t4 from "./Theories/T4.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
     ddt: 1.0001,
     stratFilter: true,
     simulating: false,
-    forcedPubTime: Infinity,
+    forcedPubTime: Infinity
 };
 const cache = {
     lastStrat: null,
-    simEndTimestamp: 0,
+    simEndTimestamp: 0
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -61,14 +62,14 @@ function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null,
+        recovery: null
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
         if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0)
             parsedDataObj.sigma = parseInt(data.sigma);
         else
-            throw "Invalid sigma value. Sigma must be an integer that's > 0";
+            throw "Invalid sigma value. Sigma must be an integer that's >= 0";
         //parsing currency
         if (data.rho.length > 0)
             parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
@@ -98,13 +99,15 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: data.recovery,
-            cap: data.hardCap ? data.cap : null,
+            cap: data.hardCap ? data.cap : null
         };
         switch (data.theory) {
             case "T1":
                 return yield t1(sendData);
             case "T2":
                 return yield t2(sendData);
+            case "T3":
+                return yield t3(sendData);
             case "T4":
                 return yield t4(sendData);
         }
@@ -124,7 +127,7 @@ function chainSim(data) {
             let st = performance.now();
             if (st - lastLog > 100) {
                 lastLog = st;
-                output.textContent = `Simulating ${logToExp(lastPub, 1)}/${stopOtp}`;
+                output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
                 yield sleep();
             }
             let res = yield singleSim(Object.assign({}, data));
@@ -158,19 +161,35 @@ function getStrats(theory, rho, type) {
                 type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850,
                 type !== "Best Overall" && type !== "Best Active" && rho > 625,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
             ];
             break;
         case "T2":
             conditions = [
                 (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25,
-                type !== "Best Idle" && (type !== "Best Active" && type !== "Best Overall" || rho >= 250),
+                type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250),
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250,
-                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250, //t2qs
+                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
             ];
             break;
         case "T3":
-            conditions = [];
+            conditions = [
+                rho < 25,
+                type !== "Best Overall" && type !== "Best Active" && rho < 150,
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
+                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 175,
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
+                type !== "Best Overall" && type !== "Best Active" && rho >= 260 && (rho < 500 || type !== "Best Semi-Idle"),
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 150,
+                type !== "Best Overall" && type !== "Best Idle" && type !== "Best Semi-Idle" && rho >= 275,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
+            ];
             break;
         case "T4":
             conditions = [
@@ -186,7 +205,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
             ];
             break;
         case "T5":
@@ -231,14 +250,30 @@ function getStrats(theory, rho, type) {
                 rho >= 25,
                 rho >= 50,
                 true,
-                true, //T1SolarXLII
+                true //T1SolarXLII
             ];
             break;
         case "T2":
             requirements = [true, true, true, true];
             break;
         case "T3":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true //T3Play2
+            ];
             break;
         case "T4":
             requirements = [
@@ -254,7 +289,7 @@ function getStrats(theory, rho, type) {
                 rho >= 50,
                 rho >= 50,
                 true,
-                true, //T4C3d66
+                true //T4C3d66
             ];
             break;
         case "T5":
@@ -359,7 +394,7 @@ function parseCurrencyValue(value, theory, sigma, defaultConv = "r") {
 }
 function isValidCurrency(val) {
     //if currency contains any other characters than 0-9 or e, throw error for invalid currency.
-    if (val.match(/^[0-9/e]+$/) === null)
+    if (val.match(/^[0-9/e/.]+$/) === null)
         throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
     //if amount of e's in currency are more than 1, throw error for invalid currency.
     let es = 0;
@@ -367,6 +402,12 @@ function isValidCurrency(val) {
         if (val[i] === "e")
             es++;
     if (es > 1)
+        throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
+    let dots = 0;
+    for (let i = 0; i < val.length; i++)
+        if (val[i] === ".")
+            dots++;
+    if (dots > 1)
         throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
     //if currency is valid, return true.
     return true;

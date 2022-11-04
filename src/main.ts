@@ -2,10 +2,10 @@ import { findIndex } from "./Utils/helperFunctions.js";
 import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "./Utils/helperFunctions.js";
-import t4 from "./Theories/T4.js";
 import t1 from "./Theories/T1.js";
 import t2 from "./Theories/T2.js";
 import t3 from "./Theories/T3.js";
+import t4 from "./Theories/T4.js";
 
 const output = qs(".output");
 
@@ -14,7 +14,7 @@ export const global = {
   ddt: 1.0001,
   stratFilter: true,
   simulating: false,
-  forcedPubTime: Infinity,
+  forcedPubTime: Infinity
 };
 
 interface cacheInterface {
@@ -23,7 +23,7 @@ interface cacheInterface {
 }
 const cache: cacheInterface = {
   lastStrat: null,
-  simEndTimestamp: 0,
+  simEndTimestamp: 0
 };
 
 export interface inputData {
@@ -79,13 +79,13 @@ function parseData(data: inputData): parsedData {
     sigma: 0,
     rho: 0,
     cap: Infinity,
-    recovery: null,
+    recovery: null
   };
 
   if (data.mode !== "All" && data.mode !== "Time diff.") {
     //parsing sigma
     if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0) parsedDataObj.sigma = parseInt(data.sigma);
-    else throw "Invalid sigma value. Sigma must be an integer that's > 0";
+    else throw "Invalid sigma value. Sigma must be an integer that's >= 0";
 
     //parsing currency
     if (data.rho.length > 0) parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
@@ -113,7 +113,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
     rho: data.rho,
     recursionValue: null,
     recovery: data.recovery,
-    cap: data.hardCap ? data.cap : null,
+    cap: data.hardCap ? data.cap : null
   };
   switch (data.theory) {
     case "T1":
@@ -121,7 +121,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
     case "T2":
       return await t2(sendData);
     case "T3":
-      return await t3(sendData)
+      return await t3(sendData);
     case "T4":
       return await t4(sendData);
   }
@@ -139,7 +139,7 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
     let st = performance.now();
     if (st - lastLog > 100) {
       lastLog = st;
-      output.textContent = `Simulating ${logToExp(lastPub, 1)}/${stopOtp}`;
+      output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
       await sleep();
     }
     let res = await singleSim({ ...data });
@@ -171,7 +171,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850, //T1C34
         type !== "Best Overall" && type !== "Best Active" && rho > 625, //T1C4
         type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250), //T1Ratio
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
       ];
       break;
     case "T2":
@@ -179,17 +179,18 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25, //T2
         type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250), //T2mc
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250, //T2ms
-        type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250, //T2qs
+        type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
       ];
       break;
     case "T3":
       conditions = [
         rho < 25, //t3
         type !== "Best Overall" && type !== "Best Active" && rho < 150, //T3C11C12C21
-        type !== "Best Overall" && type !== "Best Active" && rho >= 175 && (rho < 300 || type !== "Best Semi-Idle"), //T3noC11C13C21C33
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300, //T3noC11C13C21C33
         type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 175, //T3noC13C32C33
-        type !== "Best Overall" && type !== "Best Active" && rho >= 175 && rho < 300, //T3noC13C33
-        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 200, //T3Snax
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300, //T3noC13C33
+        type !== "Best Overall" && type !== "Best Active" && rho >= 260 && (rho < 500 || type !== "Best Semi-Idle"), //T3noP1C13C33
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 150, //T3Snax
         type !== "Best Overall" && type !== "Best Idle" && type !== "Best Semi-Idle" && rho >= 275, //T3Snax2
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150, //T3C11C12C21d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350, //T3noC11C13C21C33d
@@ -197,7 +198,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175, //T3noC13C32C33d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225, //T3noC13C33d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375, //T3Play
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250, //T3Play2
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
       ];
       break;
     case "T4":
@@ -214,7 +215,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150, // T4C5d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275, // T4C56d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300), //T4C3dC12rcv
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225, //T4C3d66
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
       ];
       break;
     case "T5":
@@ -259,14 +260,30 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 25, //T1C34
         rho >= 50, //T1C4
         true, //T1Ratio
-        true, //T1SolarXLII
+        true //T1SolarXLII
       ];
       break;
     case "T2":
       requirements = [true, true, true, true];
       break;
     case "T3":
-      requirements = [];
+      requirements = [
+        true, //t3
+        true, //T3C11C12C21
+        true, //T3noC11C13C21C33
+        true, //T3noC13C32C33
+        true, //T3noC13C33
+        true, //T3noP1C13C33
+        true, //T3Snax
+        true, //T3Snax2
+        true, //T3C11C12C21d
+        true, //T3noC11C13C21C33d
+        true, //T3noC11C13C33d
+        true, //T3noC13C32C33d
+        true, //T3noC13C33d
+        true, //T3Play
+        true //T3Play2
+      ];
       break;
     case "T4":
       requirements = [
@@ -282,7 +299,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 50, //T4C5
         rho >= 50, //T4C56
         true, //T4C3dC12rcv
-        true, //T4C3d66
+        true //T4C3d66
       ];
       break;
     case "T5":
@@ -376,11 +393,14 @@ function parseCurrencyValue(value: string | Array<number | string>, theory: stri
 
 function isValidCurrency(val: string): boolean {
   //if currency contains any other characters than 0-9 or e, throw error for invalid currency.
-  if (val.match(/^[0-9/e]+$/) === null) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
+  if (val.match(/^[0-9/e/.]+$/) === null) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
   //if amount of e's in currency are more than 1, throw error for invalid currency.
   let es = 0;
   for (let i = 0; i < val.length; i++) if (val[i] === "e") es++;
   if (es > 1) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
+  let dots = 0;
+  for (let i = 0; i < val.length; i++) if (val[i] === ".") dots++;
+  if (dots > 1) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
   //if currency is valid, return true.
   return true;
 }
