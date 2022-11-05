@@ -8,10 +8,12 @@ const settingsModal = <HTMLDialogElement>qs(".settings");
 
 event(settingsBtn, "pointerdown", () => {
   settingsModal.showModal();
+  document.body.style.overflow = "hidden";
 });
 
 event(settingsCloseBtn, "pointerdown", () => {
   settingsModal.close();
+  document.body.style.overflow = "auto";
 });
 
 const dtSlider = <HTMLInputElement>qs(".dt");
