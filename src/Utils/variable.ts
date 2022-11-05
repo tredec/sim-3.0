@@ -1,4 +1,4 @@
-import { log10, add, ZERO } from "./Utils/simHelpers.js";
+import { log10, add, ZERO } from "./simHelpers.js";
 
 interface variableData {
   lvl?: number;

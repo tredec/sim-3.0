@@ -1,9 +1,9 @@
-import { global } from "../main.js";
+import { global } from "../Sim/main.js";
 import { simResult, theoryData } from "../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../Utils/simHelpers.js";
 import { findIndex, sleep } from "../Utils/helperFunctions.js";
 import { variableInterface } from "../Utils/simHelpers.js";
-import Variable from "../variable.js";
+import Variable from "../Utils/variable.js";
 
 export default async function t3(data: theoryData): Promise<simResult> {
   let sim = new t3Sim(data);

@@ -95,7 +95,7 @@ export interface theoryData {
 export type simResult = Array<number | string | Array<number>>;
 export function createResult(data: simResultInterface, stratExtra: null | string) {
   return [
-    data.theory,
+    "<b>" + data.theory + "</b",
     data.sigma,
     logToExp(data.lastPub, 2),
     logToExp(data.pubRho, 2),

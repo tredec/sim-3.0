@@ -1,5 +1,5 @@
 import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
-import data from "../data.json" assert { type: "json" };
+import data from "../Sim/data.json" assert { type: "json" };
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -16,27 +16,27 @@ const singleInput = qsa(".controls")[0];
 const simAllInputs = qs(".simAllInputs");
 const modeInputDescription = qs(".extraInputDescription");
 //Renders theories, strats and modes options on page load
-for (let i = 0; i < data.theories.length; i++) {
-    const option = ce("option");
-    option.value = data.theories[i];
-    option.textContent = data.theories[i];
-    theory.appendChild(option);
-}
-for (let i = 0; i < data.strats[0].length; i++) {
-    const option = ce("option");
-    option.value = data.strats[0][i];
-    option.textContent = data.strats[0][i];
-    strat.appendChild(option);
-}
-for (let i = 0; i < data.modes.length; i++) {
-    if (mode.children.length === data.modes.length)
-        break;
-    const option = ce("option");
-    option.value = data.modes[i];
-    option.textContent = data.modes[i];
-    mode.appendChild(option);
-}
-modeUpdate();
+window.onload = () => {
+    for (let i = 0; i < data.theories.length; i++) {
+        const option = ce("option");
+        option.value = data.theories[i];
+        option.textContent = data.theories[i];
+        theory.appendChild(option);
+    }
+    for (let i = 0; i < data.strats[0].length; i++) {
+        const option = ce("option");
+        option.value = data.strats[0][i];
+        option.textContent = data.strats[0][i];
+        strat.appendChild(option);
+    }
+    for (let i = 0; i < data.modes.length; i++) {
+        const option = ce("option");
+        option.value = data.modes[i];
+        option.textContent = data.modes[i];
+        mode.appendChild(option);
+    }
+    modeUpdate();
+};
 event(mode, "input", modeUpdate);
 export function modeUpdate() {
     singleInput.style.display = "none";

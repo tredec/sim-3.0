@@ -7,10 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { global } from "../main.js";
+import { global } from "../Sim/main.js";
 import { add, createResult, l10, subtract } from "../Utils/simHelpers.js";
 import { findIndex, sleep } from "../Utils/helperFunctions.js";
-import Variable from "../variable.js";
+import Variable from "../Utils/variable.js";
 export default function t2(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new t2Sim(data);
@@ -55,7 +55,7 @@ class t2Sim {
             new Variable({ cost: 2e6, costInc: 2, stepwisePowerSum: { default: true } }),
             new Variable({ cost: 3e9, costInc: 2, stepwisePowerSum: { default: true } }),
             new Variable({ cost: 4e25, costInc: 3, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 5e50, costInc: 4, stepwisePowerSum: { default: true } }),
+            new Variable({ cost: 5e50, costInc: 4, stepwisePowerSum: { default: true } })
         ];
         //pub values
         this.tauH = 0;
@@ -74,9 +74,18 @@ class t2Sim {
     getBuyingConditions() {
         let conditions = [
             new Array(8).fill(true),
-            [() => this.curMult < 4650, () => this.curMult < 2900, () => this.curMult < 2250, () => this.curMult < 1150, () => this.curMult < 4650, () => this.curMult < 2900, () => this.curMult < 2250, () => this.curMult < 1150],
+            [
+                () => this.curMult < 4650,
+                () => this.curMult < 2900,
+                () => this.curMult < 2250,
+                () => this.curMult < 1150,
+                () => this.curMult < 4650,
+                () => this.curMult < 2900,
+                () => this.curMult < 2250,
+                () => this.curMult < 1150
+            ],
             new Array(8).fill(true),
-            new Array(8).fill(true), //t2qs
+            new Array(8).fill(true) //t2qs
         ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
         return conditions;
@@ -98,8 +107,8 @@ class t2Sim {
                 [2, 2, 3, 0],
                 [2, 2, 3, 1],
                 [2, 2, 3, 2],
-                [2, 2, 3, 3],
-            ]), //t2,t2mc
+                [2, 2, 3, 3]
+            ]) //t2,t2mc
         ];
         return tree;
     }

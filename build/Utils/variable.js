@@ -1,4 +1,4 @@
-import { log10, add, ZERO } from "./Utils/simHelpers.js";
+import { log10, add, ZERO } from "./simHelpers.js";
 export default class Variable {
     constructor(data) {
         var _a, _b, _c, _d;

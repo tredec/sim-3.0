@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { simulate, global } from "../main.js";
+import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
 import { getSimState, setSimState } from "./simState.js";
 //Inputs
@@ -29,10 +29,11 @@ const simulateButton = qs(".simulate");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
+const tau = `<span style="font-size:0.9rem; font-style:italics">&tau;</span>`;
 const tableHeaders = {
     current: "All",
-    single: `<th style="padding-inline: 0.5rem !important">Theory</th><th><b style="font-size: 1rem">&sigma;</b><sub>t</sub></th><th>Last Pub</th><th>Max Rho</th><th>&Delta;<i style="font-size:1rem">&tau;</i></th><th>Multi</th><th>Strat</th><th><i style="font-size:1rem">&tau;</i>/h</th><th>Pub Time</th>`,
-    all: "<th>&emsp;</th><th>Input</th><th>&tau;/h Active</th><th>&tau;/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;&tau; Active</th><th>&Delta;&tau; Idle</th>"
+    single: `<th style="padding-inline: 0.5rem !important">Theory</th><th><span style="font-size:0.9rem;">&sigma;</span><sub>t</sub></th><th>Last Pub</th><th>Max Rho</th><th>&Delta;${tau}</th><th>Multi</th><th>Strat</th><th>${tau}/h</th><th>Pub Time</th>`,
+    all: `<th>&emsp;</th><th>Input</th><th>${tau}/h Active</th><th>${tau}/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;${tau} Active</th><th>&Delta;${tau} Idle</th>`
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
@@ -82,7 +83,7 @@ function updateTable(arr) {
         const row = ce("tr");
         for (let j = 0; j < thead.children[0].children.length; j++) {
             const cell = ce("td");
-            cell.innerText = String(arr[i][j]);
+            cell.innerHTML = String(arr[i][j]);
             row.appendChild(cell);
         }
         tbody.appendChild(row);

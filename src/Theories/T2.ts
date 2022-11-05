@@ -1,9 +1,9 @@
-import { global } from "../main.js";
+import { global } from "../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../Utils/simHelpers.js";
 import { add, arr, createResult, l10, subtract } from "../Utils/simHelpers.js";
 import { findIndex, sleep } from "../Utils/helperFunctions.js";
 import { variableInterface } from "../Utils/simHelpers.js";
-import Variable from "../variable.js";
+import Variable from "../Utils/variable.js";
 
 export default async function t2(data: theoryData): Promise<simResult> {
   let sim = new t2Sim(data);
@@ -56,9 +56,18 @@ class t2Sim {
   getBuyingConditions() {
     let conditions: Array<Array<boolean | Function>> = [
       new Array(8).fill(true), //t2
-      [() => this.curMult < 4650, () => this.curMult < 2900, () => this.curMult < 2250, () => this.curMult < 1150, () => this.curMult < 4650, () => this.curMult < 2900, () => this.curMult < 2250, () => this.curMult < 1150], //t2mc
+      [
+        () => this.curMult < 4650,
+        () => this.curMult < 2900,
+        () => this.curMult < 2250,
+        () => this.curMult < 1150,
+        () => this.curMult < 4650,
+        () => this.curMult < 2900,
+        () => this.curMult < 2250,
+        () => this.curMult < 1150
+      ], //t2mc
       new Array(8).fill(true), //t2ms
-      new Array(8).fill(true), //t2qs
+      new Array(8).fill(true) //t2qs
     ];
     conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
     return conditions;
@@ -80,8 +89,8 @@ class t2Sim {
         [2, 2, 3, 0],
         [2, 2, 3, 1],
         [2, 2, 3, 2],
-        [2, 2, 3, 3],
-      ]), //t2,t2mc
+        [2, 2, 3, 3]
+      ]) //t2,t2mc
     ];
     return tree;
   }
@@ -159,7 +168,7 @@ class t2Sim {
       new Variable({ cost: 2e6, costInc: 2, stepwisePowerSum: { default: true } }),
       new Variable({ cost: 3e9, costInc: 2, stepwisePowerSum: { default: true } }),
       new Variable({ cost: 4e25, costInc: 3, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 5e50, costInc: 4, stepwisePowerSum: { default: true } }),
+      new Variable({ cost: 5e50, costInc: 4, stepwisePowerSum: { default: true } })
     ];
     //pub values
     this.tauH = 0;

@@ -7,11 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { global } from "../main.js";
+import { global } from "../Sim/main.js";
 import { logToExp } from "../Utils/simHelpers.js";
 import { add, arr, createResult, l10, subtract } from "../Utils/simHelpers.js";
 import { findIndex, sleep } from "../Utils/helperFunctions.js";
-import Variable from "../variable.js";
+import Variable from "../Utils/variable.js";
 export default function t1(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new t1Sim(data);

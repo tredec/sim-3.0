@@ -1,5 +1,5 @@
 import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
-import data from "../data.json" assert { type: "json" };
+import data from "../Sim/data.json" assert { type: "json" };
 
 //Inputs
 const theory = <HTMLSelectElement>qs(".theory");
@@ -11,7 +11,6 @@ const mode = <HTMLSelectElement>qs(".mode");
 const modeInput = <HTMLInputElement>qs("textarea");
 const hardCap = qs(".hardCap");
 
-
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
 const timeDiffWrapper = qs(".timeDiffWrapper");
@@ -21,6 +20,7 @@ const modeInputDescription = qs(".extraInputDescription");
 
 //Renders theories, strats and modes options on page load
 
+window.onload = () => {
   for (let i = 0; i < data.theories.length; i++) {
     const option = <HTMLSelectElement>ce("option");
     option.value = data.theories[i];
@@ -34,14 +34,13 @@ const modeInputDescription = qs(".extraInputDescription");
     strat.appendChild(option);
   }
   for (let i = 0; i < data.modes.length; i++) {
-    if (mode.children.length === data.modes.length)break
     const option = <HTMLSelectElement>ce("option");
     option.value = data.modes[i];
     option.textContent = data.modes[i];
     mode.appendChild(option);
   }
   modeUpdate();
-
+};
 
 event(mode, "input", modeUpdate);
 

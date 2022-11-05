@@ -1,11 +1,12 @@
-import { findIndex } from "./Utils/helperFunctions.js";
-import { log10, theoryData, simResult, logToExp } from "./Utils/simHelpers.js";
+import { findIndex } from "../Utils/helperFunctions.js";
+import { log10, theoryData, simResult, logToExp } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
-import { qs, sleep } from "./Utils/helperFunctions.js";
-import t1 from "./Theories/T1.js";
-import t2 from "./Theories/T2.js";
-import t3 from "./Theories/T3.js";
-import t4 from "./Theories/T4.js";
+import { qs, sleep } from "../Utils/helperFunctions.js";
+import t1 from "../Theories/T1.js";
+import t2 from "../Theories/T2.js";
+import t3 from "../Theories/T3.js";
+import t4 from "../Theories/T4.js";
+import t5 from "../Theories/T5.js";
 
 const output = qs(".output");
 
@@ -124,6 +125,8 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await t3(sendData);
     case "T4":
       return await t4(sendData);
+    case "T5":
+      return await t5(sendData);
   }
   throw "Unknown error in singleSim() function. Please contact the author of the sim.";
 }
@@ -137,7 +140,7 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
   while (lastPub < data.cap) {
     if (!global.simulating) break;
     let st = performance.now();
-    if (st - lastLog > 100) {
+    if (st - lastLog > 250) {
       lastLog = st;
       output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
       await sleep();
@@ -219,7 +222,11 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       ];
       break;
     case "T5":
-      conditions = [];
+      conditions = [
+        rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"), //T5
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle", //T5Idle
+        type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
+      ];
       break;
     case "T6":
       conditions = [];
@@ -303,7 +310,11 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       ];
       break;
     case "T5":
-      requirements = [];
+      requirements = [
+        true, //T5
+        true, //T5Idle
+        true //T5AI2
+      ];
       break;
     case "T6":
       requirements = [];

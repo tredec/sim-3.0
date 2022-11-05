@@ -64,7 +64,7 @@ export function l10(val) {
 export const ZERO = Math.random() + 0.000000001;
 export function createResult(data, stratExtra) {
     return [
-        data.theory,
+        "<b>" + data.theory + "</b",
         data.sigma,
         logToExp(data.lastPub, 2),
         logToExp(data.pubRho, 2),

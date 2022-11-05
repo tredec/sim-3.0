@@ -7,14 +7,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { findIndex } from "./Utils/helperFunctions.js";
-import { log10, logToExp } from "./Utils/simHelpers.js";
+import { findIndex } from "../Utils/helperFunctions.js";
+import { log10, logToExp } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
-import { qs, sleep } from "./Utils/helperFunctions.js";
-import t1 from "./Theories/T1.js";
-import t2 from "./Theories/T2.js";
-import t3 from "./Theories/T3.js";
-import t4 from "./Theories/T4.js";
+import { qs, sleep } from "../Utils/helperFunctions.js";
+import t1 from "../Theories/T1.js";
+import t2 from "../Theories/T2.js";
+import t3 from "../Theories/T3.js";
+import t4 from "../Theories/T4.js";
+import t5 from "../Theories/T5.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -110,6 +111,8 @@ function singleSim(data) {
                 return yield t3(sendData);
             case "T4":
                 return yield t4(sendData);
+            case "T5":
+                return yield t5(sendData);
         }
         throw "Unknown error in singleSim() function. Please contact the author of the sim.";
     });
@@ -125,7 +128,7 @@ function chainSim(data) {
             if (!global.simulating)
                 break;
             let st = performance.now();
-            if (st - lastLog > 100) {
+            if (st - lastLog > 250) {
                 lastLog = st;
                 output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
                 yield sleep();
@@ -209,7 +212,11 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "T5":
-            conditions = [];
+            conditions = [
+                rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"),
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+                type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
+            ];
             break;
         case "T6":
             conditions = [];
@@ -293,7 +300,11 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "T5":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true //T5AI2
+            ];
             break;
         case "T6":
             requirements = [];
