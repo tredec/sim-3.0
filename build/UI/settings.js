@@ -6,9 +6,11 @@ const settingsCloseBtn = qs(".settingsCloseBtn");
 const settingsModal = qs(".settings");
 event(settingsBtn, "pointerdown", () => {
     settingsModal.showModal();
+    document.body.style.overflow = "hidden";
 });
 event(settingsCloseBtn, "pointerdown", () => {
     settingsModal.close();
+    document.body.style.overflow = "auto";
 });
 const dtSlider = qs(".dt");
 const dtOtp = qs(".dtOtp");

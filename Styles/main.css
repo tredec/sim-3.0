@@ -1,0 +1,61 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+:root {
+  font-size: calc(0.5vw + 0.5rem + 0.5vh);
+  --bg-clr-dark-0: rgb(24, 23, 44);
+  --bg-clr-dark-1: rgb(26, 24, 83);
+  --bg-clr-dark-2: rgb(32, 29, 124);
+  --bg-clr-dark-3: rgb(34, 30, 164);
+  --clr-yellow: rgb(90, 78, 5);
+  --ff-primary: "Computer Modern Bright Semibold";
+  --font-clr: rgb(212, 194, 191);
+  --input-bg: white;
+  --input-f-clr: black;
+  --button-bg: white;
+  --button-f-clr: black;
+  --table-bg: white;
+  --table-f-clr: black;
+  --border-clr: rgb(161, 161, 161);
+  --title-clr: white;
+  --other-font-clr: white;
+  --log-bg: #333;
+}
+body {
+  background-color: var(--bg-clr-dark-1);
+  font-family: var(--ff-primary);
+  font-weight: bolders;
+  color: var(--font-clr);
+  letter-spacing: 0.02em;
+}
+body.no-scroll {
+  overflow: hidden;
+}
+button {
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: var(--button-bg) !important;
+  color: var(--button-f-clr) !important;
+  border: none;
+  outline: 1px solid var(--border-clr);
+  border-radius: 0.2rem;
+  padding: 0.3em;
+  transition: background-color 100ms ease-in-out, color 100ms ease-in-out, transform 0.1s;
+}
+table,
+th,
+td,
+tr {
+  background-color: var(--table-bg) !important;
+  color: var(--table-f-clr) !important;
+  border: 1px solid var(--table-f-clr) !important;
+  transition: background-color 100ms ease-in-out, color 100ms ease-in-out;
+}
+.font-color {
+  transition: color 100ms ease-in-out;
+  color: var(--other-font-clr);
+}
