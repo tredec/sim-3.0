@@ -23,21 +23,21 @@ export function setSimState() {
             strat: { value: strat.value, innerHTML: strat.innerHTML },
             sigma: sigma.value,
             input: input.value,
-            cap: cap.value,
+            cap: cap.value
         },
         controls2: {
             mode: mode.value,
             modeInput: modeInput.value,
             extraInputDescription: qs(".extraInputDescription").textContent,
             hardCap: hardCap.checked,
-            timeDiffInputs: [qs(".timeDiffWrapper").children[0].value, qs(".timeDiffWrapper").children[1].value, qs(".timeDiffWrapper").children[2].value],
+            timeDiffInputs: [qs(".timeDiffWrapper").children[0].value, qs(".timeDiffWrapper").children[1].value, qs(".timeDiffWrapper").children[2].value]
         },
         output: output.textContent,
         table: table.innerHTML,
         settings: {
             dt: dtOtp.textContent,
-            ddt: ddtOtp.textContent,
-        },
+            ddt: ddtOtp.textContent
+        }
     }));
 }
 export function getSimState() {

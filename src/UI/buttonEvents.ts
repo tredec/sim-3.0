@@ -4,7 +4,7 @@ import { qs, event, ce } from "../Utils/helperFunctions.js";
 const clear = qs(".clear");
 
 //Other elements
-let tbody:HTMLElement;
+let tbody: HTMLElement;
 
 const output = qs(".output");
 

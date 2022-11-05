@@ -253,13 +253,11 @@ class t4Sim {
         }
     }
     buyVariables() {
-        let bought = false;
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
-                    bought = true;
                 }
                 else
                     break;
