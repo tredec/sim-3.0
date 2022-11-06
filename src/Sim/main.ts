@@ -1,5 +1,5 @@
 import { findIndex } from "../Utils/helperFunctions.js";
-import { log10, theoryData, simResult, logToExp } from "../Utils/simHelpers.js";
+import { log10, theoryData, simResult, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "../Utils/helperFunctions.js";
 import t1 from "../Theories/T1.js";
@@ -134,11 +134,11 @@ async function singleSim(data: parsedData): Promise<simResult> {
 async function chainSim(data: parsedData): Promise<Array<simResult>> {
   let lastPub: number = data.rho;
   let time: number = 0;
+  const start = data.rho;
   const result: Array<simResult> = [];
   let stopOtp = logToExp(data.cap);
   let lastLog = 0;
   while (lastPub < data.cap) {
-    if (!global.simulating) break;
     let st = performance.now();
     if (st - lastLog > 250) {
       lastLog = st;
@@ -146,11 +146,17 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
       await sleep();
     }
     let res = await singleSim({ ...data });
+    if (!global.simulating) break;
+    cache.lastStrat = (<string>res[6]).split(" ")[0];
     result.push(res);
     lastPub = (<Array<any>>res[res.length - 1])[0];
     data.rho = lastPub;
     time += (<Array<any>>res[res.length - 1])[1];
   }
+  cache.lastStrat = null;
+  result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
+  const dtau = (data.rho - start) * getTauFactor(data.theory);
+  result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
   return result;
 }
 
@@ -207,18 +213,17 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
     case "T4":
       conditions = [
         rho < 30, //T4
-        type !== "Best Overall" && type !== "Best Active" && rho < 600 && (cache.lastStrat === "T4C12" || cache.lastStrat === null || rho < 225), //T4C12
+        type !== "Best Overall" && type !== "Best Active" && rho < 600 && cache.lastStrat !== "T4C3", //T4C12
         type !== "Best Overall" && type !== "Best Active" && rho > 200, //T4C3
         type !== "Best Overall" && type !== "Best Active" && rho < 125, //T4C4
         type !== "Best Overall" && type !== "Best Active" && rho < 150, //T4C5
         type !== "Best Overall" && type !== "Best Active" && rho < 275, //T4C56
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat === "T4C12d" || cache.lastStrat === null || rho < 225), //T4C12d
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && cache.lastStrat !== "T4C3d66" && cache.lastStrat !== "T4C123d", //T4C12d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && rho > 175 && (cache.lastStrat !== "T4C3d66" || rho < 225), //T4C123d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 125, // T4C4d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150, // T4C5d
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200, //T4C456dC12rcvMS
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300, //T4C356dC12rcv
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275, // T4C56d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300), //T4C3dC12rcv
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
       ];
       break;
     case "T5":
@@ -302,10 +307,9 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 50, //T4C56
         true, //T4C12d
         true, //T4C123d
-        rho >= 25, //T4C4
-        rho >= 50, //T4C5
-        rho >= 50, //T4C56
-        true, //T4C3dC12rcv
+        rho >= 25, //T4C456dC12rcvMS
+        rho >= 75, //T4C356dC12rcv
+        rho >= 50, //T4C56d
         true //T4C3d66
       ];
       break;

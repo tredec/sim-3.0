@@ -74,7 +74,11 @@
     grid-template-columns: repeat(3, auto);
     gap: 0.5rem 1rem;
   }
-
+  .button-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.5rem 1rem;
+  }
   .settings {
     width: 90%;
     --inline-padding: 2rem;
@@ -99,5 +103,11 @@
   }
   .content-wrapper {
     padding: 1rem;
+  }
+  table,
+  th,
+  td {
+    border: 2px solid var(--table-f-clr) !important;
+    border-spacing: 0.14rem;
   }
 }

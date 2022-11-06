@@ -19,7 +19,7 @@
   grid-template-columns: repeat(5, auto);
   gap: 1rem;
   width: fit-content;
-  margin-top: 2rem;
+  margin-block: 2rem 1rem;
 }
 .button-wrapper button {
   font-size: 0.8rem;
@@ -33,7 +33,6 @@ table,
 th,
 td {
   position: relative;
-  border: 1px solid black;
   background: white;
   color: black;
   height: fit-content;

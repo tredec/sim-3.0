@@ -59,10 +59,9 @@ class t4Sim {
       [...arr(4, false), true, true, true, true], //t4c56
       [() => this.variables[0].cost + 1 < this.variables[1].cost, true, false, false, false, false, false, false], //t4c12d
       [() => this.variables[0].cost + 1 < Math.min(this.variables[1].cost), true, true, false, false, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c123d
-      [false, false, false, true, false, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c4d
-      [...arr(4, false), true, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c5d
+      [() => this.variables[0].cost + 1 < this.variables[1].cost && this.maxRho < this.lastPub, () => this.maxRho < this.lastPub, false, true, true, true, true, true], //T4C456dC12rcvMS
+      [() => this.variables[0].cost + 1 < this.variables[1].cost && this.maxRho < this.lastPub, () => this.maxRho < this.lastPub, true, false, true, true, true, true], //T4C356dC12rcv
       [...arr(4, false), true, true, () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c56d
-      [() => this.variables[0].cost + 1 < this.variables[1].cost && this.curMult < 1, () => this.curMult < 1, true, ...arr(3, false), () => this.variables[6].cost + 1 < this.variables[7].cost, true], //t4c3dc12rcv
       [
         false,
         false,
@@ -146,15 +145,17 @@ class t4Sim {
         [1, 0, 1],
         [1, 0, 2],
         [1, 0, 3]
-      ], //t4c4d
+      ], //T4C456dC12rcvMS (this doesnt matter)
       [
         [0, 0, 0],
-        [1, 0, 0],
-        [2, 0, 0],
-        [2, 0, 1],
-        [2, 0, 2],
-        [2, 0, 3]
-      ], //t4c5d
+        [0, 1, 0],
+        [0, 1, 1],
+        [0, 1, 2],
+        [0, 1, 3],
+        [1, 1, 3],
+        [2, 1, 3],
+        [3, 1, 3]
+      ], //T4C356dC12rcv
       [
         [0, 0, 0],
         [1, 0, 0],
@@ -165,13 +166,6 @@ class t4Sim {
         [3, 0, 3],
         [3, 0, 3]
       ], //t4c56d
-      [
-        [0, 0, 0],
-        [0, 1, 0],
-        [0, 1, 1],
-        [0, 1, 2],
-        [0, 1, 3]
-      ], //t4c3dc12rcv
       [
         [0, 0, 0],
         [0, 0, 1],
@@ -187,6 +181,29 @@ class t4Sim {
   updateMilestones(): void {
     const stage = Math.min(7, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
     this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+
+    if (this.stratIndex === 8) {
+      const max = [3, 1, 3];
+      this.milestones = [0, 0, 0];
+
+      let priority;
+      if (this.maxRho < this.lastPub) {
+        priority = [2, 3, 1];
+      } else if (this.t % 100 < 50) {
+        priority = [3, 1, 2];
+      } else {
+        priority = [1, 3, 2];
+      }
+
+      let milestoneCount = stage;
+      this.milestones = [0, 0, 0];
+      for (let i = 0; i < priority.length; i++) {
+        while (this.milestones[priority[i] - 1] < max[priority[i] - 1] && milestoneCount > 0) {
+          this.milestones[priority[i] - 1]++;
+          milestoneCount--;
+        }
+      }
+    }
   }
   constructor(data: theoryData) {
     this.stratIndex = findIndex(data.strats, data.strat);
@@ -253,7 +270,7 @@ class t4Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, this.stratIndex === 12 ? ` q1: ${this.variables[6].lvl} q2: ${this.variables[7].lvl}` : "");
+    this.result = createResult(this, this.stratIndex === 11 ? ` q1:${this.variables[6].lvl} q2:${this.variables[7].lvl}` : "");
     return this.result;
   }
   tick() {
@@ -267,7 +284,7 @@ class t4Sim {
     this.rho = add(this.rho, rhodot + l10(this.dt));
 
     this.t += this.dt / 1.5;
-    this.dt *= this.stratIndex === 12 && this.recursionValue === Number.MAX_VALUE ? this.ddt * 10 : this.ddt;
+    this.dt *= this.stratIndex === 11 && this.recursionValue === Number.MAX_VALUE ? Math.min(1.3, this.ddt * 10) : this.ddt;
     if (this.maxRho < this.recovery.value) this.recovery.time = this.t;
 
     this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { findIndex } from "../Utils/helperFunctions.js";
-import { log10, logToExp } from "../Utils/simHelpers.js";
+import { log10, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "../Utils/helperFunctions.js";
 import t1 from "../Theories/T1.js";
@@ -121,12 +121,11 @@ function chainSim(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let lastPub = data.rho;
         let time = 0;
+        const start = data.rho;
         const result = [];
         let stopOtp = logToExp(data.cap);
         let lastLog = 0;
         while (lastPub < data.cap) {
-            if (!global.simulating)
-                break;
             let st = performance.now();
             if (st - lastLog > 250) {
                 lastLog = st;
@@ -134,11 +133,18 @@ function chainSim(data) {
                 yield sleep();
             }
             let res = yield singleSim(Object.assign({}, data));
+            if (!global.simulating)
+                break;
+            cache.lastStrat = res[6].split(" ")[0];
             result.push(res);
             lastPub = res[res.length - 1][0];
             data.rho = lastPub;
             time += res[res.length - 1][1];
         }
+        cache.lastStrat = null;
+        result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
+        const dtau = (data.rho - start) * getTauFactor(data.theory);
+        result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
         return result;
     });
 }
@@ -197,18 +203,17 @@ function getStrats(theory, rho, type) {
         case "T4":
             conditions = [
                 rho < 30,
-                type !== "Best Overall" && type !== "Best Active" && rho < 600 && (cache.lastStrat === "T4C12" || cache.lastStrat === null || rho < 225),
+                type !== "Best Overall" && type !== "Best Active" && rho < 600 && cache.lastStrat !== "T4C3",
                 type !== "Best Overall" && type !== "Best Active" && rho > 200,
                 type !== "Best Overall" && type !== "Best Active" && rho < 125,
                 type !== "Best Overall" && type !== "Best Active" && rho < 150,
                 type !== "Best Overall" && type !== "Best Active" && rho < 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat === "T4C12d" || cache.lastStrat === null || rho < 225),
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && cache.lastStrat !== "T4C3d66" && cache.lastStrat !== "T4C123d",
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && rho > 175 && (cache.lastStrat !== "T4C3d66" || rho < 225),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 125,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
             ];
             break;
         case "T5":
@@ -293,9 +298,8 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 rho >= 25,
+                rho >= 75,
                 rho >= 50,
-                rho >= 50,
-                true,
                 true //T4C3d66
             ];
             break;

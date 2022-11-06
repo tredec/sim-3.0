@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./Styles/main.css" />
     <link rel="stylesheet" href="./Styles/simStyles.css" />
     <link rel="stylesheet" href="./Styles/navbar.css" />
+    <script defer src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer type="module" src="./build/UI/render.js"></script>
     <script defer type="module" src="./build/UI/simEventsBundle.js"></script>
     <script defer type="module" src="./build/UI/buttonEvents.js"></script>
@@ -19,7 +20,7 @@
   <body>
     <div class="nav">
       <div style="margin-top: auto; margin-bottom: 0.2rem">
-        <span style="font-size: 0.9rem">v3 (Alpha)</span>
+        <span style="font-size: 0.9rem">v3.0.0 (Alpha)</span>
         <button style="margin-left: 1rem; cursor: pointer" class="settingsButtons">Changelog</button>
         <button style="margin-left: 1rem; cursor: pointer" class="settingsButtons">Instructions</button>
         <button style="margin-left: 0.8rem" class="settingsBtn"></button>
@@ -75,12 +76,12 @@
         </div>
       </div>
       <div class="button-wrapper">
-        <button class="image">Copy Image</button>
-        <button class="image">Download Image</button>
+        <button class="imageC">Copy Image</button>
+        <button class="imageD">Download Image</button>
         <button class="clear">Clear all results</button>
         <button class="simulate">Simulate</button>
       </div>
-      <span class="output"></span>
+      <span class="output" style="min-width: max-content"></span>
       <table>
         <thead></thead>
         <tbody></tbody>
