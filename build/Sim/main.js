@@ -16,6 +16,7 @@ import t2 from "../Theories/T2.js";
 import t3 from "../Theories/T3.js";
 import t4 from "../Theories/T4.js";
 import t5 from "../Theories/T5.js";
+import t6 from "../Theories/T6.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -113,6 +114,8 @@ function singleSim(data) {
                 return yield t4(sendData);
             case "T5":
                 return yield t5(sendData);
+            case "T6":
+                return yield t6(sendData);
         }
         throw "Unknown error in singleSim() function. Please contact the author of the sim.";
     });

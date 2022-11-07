@@ -7,6 +7,7 @@ import t2 from "../Theories/T2.js";
 import t3 from "../Theories/T3.js";
 import t4 from "../Theories/T4.js";
 import t5 from "../Theories/T5.js";
+import t6 from "../Theories/T6.js";
 
 const output = qs(".output");
 
@@ -127,6 +128,8 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await t4(sendData);
     case "T5":
       return await t5(sendData);
+    case "T6":
+      return await t6(sendData);
   }
   throw "Unknown error in singleSim() function. Please contact the author of the sim.";
 }
