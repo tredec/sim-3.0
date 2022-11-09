@@ -11,12 +11,14 @@ import { findIndex } from "../Utils/helperFunctions.js";
 import { log10, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "../Utils/helperFunctions.js";
-import t1 from "../Theories/T1.js";
-import t2 from "../Theories/T2.js";
-import t3 from "../Theories/T3.js";
-import t4 from "../Theories/T4.js";
-import t5 from "../Theories/T5.js";
-import t6 from "../Theories/T6.js";
+import t1 from "../Theories/T1-T8/T1.js";
+import t2 from "../Theories/T1-T8/T2.js";
+import t3 from "../Theories/T1-T8/T3.js";
+import t4 from "../Theories/T1-T8/T4.js";
+import t5 from "../Theories/T1-T8/T5.js";
+import t6 from "../Theories/T1-T8/T6.js";
+import t7 from "../Theories/T1-T8/T7.js";
+import t8 from "../Theories/T1-T8/T8.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -116,8 +118,12 @@ function singleSim(data) {
                 return yield t5(sendData);
             case "T6":
                 return yield t6(sendData);
+            case "T7":
+                return yield t7(sendData);
+            case "T8":
+                return yield t8(sendData);
         }
-        throw "Unknown error in singleSim() function. Please contact the author of the sim.";
+        throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
     });
 }
 function chainSim(data) {
@@ -138,7 +144,8 @@ function chainSim(data) {
             let res = yield singleSim(Object.assign({}, data));
             if (!global.simulating)
                 break;
-            cache.lastStrat = res[6].split(" ")[0];
+            if (typeof res[6] === "string")
+                cache.lastStrat = res[6].split(" ")[0];
             result.push(res);
             lastPub = res[res.length - 1][0];
             data.rho = lastPub;
@@ -227,13 +234,49 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "T6":
-            conditions = [];
+            conditions = [
+                rho < 25,
+                type !== "Best Overall" && type !== "Best Active" && rho < 25,
+                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 100,
+                type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+                type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+                type !== "Best Overall" && type !== "Best Active" && rho > 800,
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho > 400,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 25,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 100,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
+            ];
             break;
         case "T7":
-            conditions = [];
+            conditions = [
+                false,
+                type !== "Best Overall" && type !== "Best Active" && (rho < 25 || (rho >= 75 && rho < 100)),
+                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 75,
+                type !== "Best Overall" && type !== "Best Active" && rho < 550 && rho >= 100,
+                type !== "Best Overall" && type !== "Best Active" && rho < 625 && rho > 500,
+                type !== "Best Overall" && type !== "Best Active" && rho > 525,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && (rho < 25 || (rho >= 75 && rho < 150)),
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 75,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 //T7PlaySpqcey
+            ];
             break;
         case "T8":
-            conditions = [];
+            conditions = [
+                type !== "Best Overall" && type !== "Best Active" && (type !== "Best Semi-Idle" || rho < 100),
+                type !== "Best Overall" && type !== "Best Active" && rho < 25,
+                type !== "Best Overall" && type !== "Best Active" && rho >= 160 && rho < 220,
+                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 160,
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 60,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 160 && rho < 220,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 && rho < 160,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 40 && rho < 100,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 220,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T8PlaySolarswap
+            ];
             break;
         case "WSP":
             conditions = [];
@@ -269,7 +312,12 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "T2":
-            requirements = [true, true, true, true];
+            requirements = [
+                true,
+                true,
+                true,
+                true //T2qs
+            ];
             break;
         case "T3":
             requirements = [
@@ -314,13 +362,49 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "T6":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true,
+                true,
+                true,
+                rho >= 125,
+                true,
+                true,
+                true,
+                true,
+                true,
+                rho >= 125,
+                true //T6AI
+            ];
             break;
         case "T7":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                rho >= 25,
+                rho >= 25,
+                rho >= 75,
+                rho >= 75,
+                true,
+                rho >= 25,
+                rho >= 100 //T7PlaySpqcey
+            ];
             break;
         case "T8":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true //T8PlaySolarswap
+            ];
             break;
         case "WSP":
             requirements = [];

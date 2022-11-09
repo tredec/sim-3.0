@@ -51,7 +51,7 @@ class t6Sim {
             new Variable({ cost: 100, costInc: 5, varBase: 2 }),
             new Variable({ cost: 1e7, costInc: 1.255, stepwisePowerSum: { default: true } }),
             new Variable({ cost: 1e25, costInc: 5e5, varBase: 2 }),
-            new Variable({ cost: 15, costInc: 3.9, varBase: 2 })
+            new Variable({ cost: 15, costInc: 3.9, varBase: 2 }),
         ];
         this.k = 0;
         this.stopC12 = [0, 0, true];
@@ -87,7 +87,7 @@ class t6Sim {
                 false,
                 true,
                 false,
-                false
+                false,
             ],
             [
                 () => this.variables[0].cost + l10(5) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[7].cost),
@@ -98,7 +98,7 @@ class t6Sim {
                 false,
                 false,
                 true,
-                false
+                false,
             ],
             [
                 () => this.variables[0].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
@@ -109,7 +109,7 @@ class t6Sim {
                 true,
                 false,
                 false,
-                true
+                true,
             ],
             [
                 () => this.variables[0].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost),
@@ -120,7 +120,7 @@ class t6Sim {
                 true,
                 false,
                 false,
-                false
+                false,
             ],
             [
                 () => this.variables[0].cost + l10(7 + (this.variables[0].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
@@ -131,9 +131,9 @@ class t6Sim {
                 false,
                 false,
                 false,
-                true
+                true,
             ],
-            [false] //T6AI has own buying system
+            [false], //T6AI has own buying system
         ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
         return conditions;
@@ -151,8 +151,8 @@ class t6Sim {
                 [1, 1, 1, 0],
                 [1, 0, 0, 3],
                 [1, 0, 1, 3],
-                [1, 1, 1, 3]
-            ])
+                [1, 1, 1, 3],
+            ]),
         ];
         return tree;
     }
@@ -186,11 +186,11 @@ class t6Sim {
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 3 || this.pubRho > this.cap[0]) && this.pubRho > 12;
+                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 12;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            this.result = createResult(this, this.strat === "T6snax" ? logToExp(this.stopC12[0], 2) : "");
+            this.result = createResult(this, this.strat === " T6snax" ? logToExp(this.stopC12[0], 2) : "");
             return this.result;
         });
     }
@@ -201,7 +201,7 @@ class t6Sim {
         this.r = this.milestones[0] > 0 ? add(this.r, this.variables[2].value + this.variables[3].value + l10(this.dt) - 3) : 0;
         let newCurrency = this.calculateIntegral(vc1, this.variables[5].value, this.variables[6].value, this.variables[7].value, this.variables[8].value);
         C = C > newCurrency ? newCurrency : C;
-        this.rho = subtract(newCurrency, C);
+        this.rho = Math.max(0, subtract(newCurrency, C));
         if (this.k > 0.3)
             this.stopC12[1]++;
         else
@@ -236,7 +236,7 @@ class t6Sim {
             while (true) {
                 let rawCost = this.variables.map((item) => item.cost);
                 let weights = [
-                    l10(7 + this.variables[0].lvl),
+                    l10(7 + (this.variables[0].lvl % 10)),
                     0,
                     l10(5 + (this.variables[2].lvl % 10)),
                     0,
@@ -244,15 +244,17 @@ class t6Sim {
                     Math.max(0, this.k),
                     Infinity,
                     Infinity,
-                    -Math.min(0, this.k) //c5
+                    -Math.min(0, this.k), //c5
                 ];
                 let minCost = [Number.MAX_VALUE, -1];
                 for (let i = this.variables.length - 1; i >= 0; i--)
                     if (rawCost[i] + weights[i] < minCost[0] && this.milestoneConditions[i]()) {
                         minCost = [rawCost[i] + weights[i], i];
                     }
-                if (minCost[1] !== -1 && rawCost[minCost[1]] <= this.rho)
+                if (minCost[1] !== -1 && rawCost[minCost[1]] < this.rho) {
+                    this.rho = subtract(this.rho, this.variables[minCost[1]].cost);
                     this.variables[minCost[1]].buy();
+                }
                 else
                     break;
             }
