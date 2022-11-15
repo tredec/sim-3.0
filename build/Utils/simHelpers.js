@@ -1,3 +1,4 @@
+import { getTauFactor } from "../Sim/Components/helpers.js";
 export function log10(num) {
     const split = String(num).split("e");
     const result = Number(split[1]) + Math.log10(Math.max(1, Number(split[0])));
@@ -10,7 +11,21 @@ export function logToExp(num, dec = 3) {
     return (frac1 >= 10 ? frac1 / 10 : frac1) + "e" + (frac1 >= 10 ? wholePart + 1 : wholePart);
 }
 export function convertTime(secs) {
-    return `${Math.floor(secs / 86400)}d${Math.floor((secs / 3600) % 24)}h${Math.floor((secs / 60) % 60)}m`;
+    let mins = Math.floor((secs / 60) % 60);
+    let hrs = Math.floor((secs / 3600) % 24);
+    let days = Math.floor((secs / 86400) % 365);
+    let years = Math.floor(secs / 31536000);
+    let result = "";
+    if (years > 0) {
+        result += years < 1e6 ? years : logToExp(Math.log10(years));
+        result += "y";
+    }
+    if (days > 0)
+        result += days + "d";
+    result += (hrs < 10 ? "0" : "") + hrs + "h";
+    if (years === 0)
+        result += (mins < 10 ? "0" : "") + mins + "m";
+    return result;
 }
 export function decimals(val, def = 5) {
     if (val >= 1e6)
@@ -64,14 +79,14 @@ export function l10(val) {
 export const ZERO = Math.random() + 0.000000001;
 export function createResult(data, stratExtra) {
     return [
-        "<b>" + data.theory + "</b",
+        data.theory,
         data.sigma,
         logToExp(data.lastPub, 2),
         logToExp(data.pubRho, 2),
-        logToExp(data.pubRho - data.lastPub, 2),
+        logToExp((data.pubRho - data.lastPub) * getTauFactor(data.theory), 2),
         decimals(data.pubMulti),
         data.strat + stratExtra,
-        decimals(data.maxTauH),
+        decimals(data.maxTauH * getTauFactor(data.theory)),
         convertTime(Math.max(0, data.pubT - data.recovery.time)),
         [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
     ];

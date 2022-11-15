@@ -1,4 +1,4 @@
-import { log10, add, ZERO } from "./simHelpers.js";
+import { log10, add, ZERO, subtract } from "./simHelpers.js";
 
 interface variableData {
   lvl?: number;
@@ -7,6 +7,7 @@ interface variableData {
   varBase?: number;
   value?: number | string;
   stepwisePowerSum?: { default?: boolean; length?: number; base?: number };
+  firstFreeCost?: boolean;
 }
 
 export default class Variable {
@@ -28,7 +29,11 @@ export default class Variable {
         : typeof data.stepwisePowerSum?.base === "number" && typeof data.stepwisePowerSum?.length === "number"
         ? { base: data.stepwisePowerSum.base, length: data.stepwisePowerSum.length }
         : { base: 0, length: 0 };
-    this.varBase = data.varBase ? Math.log10(data.varBase) : 1;
+    this.varBase = data.varBase ? data.varBase : 10;
+    if (data.firstFreeCost) {
+      this.buy();
+      this.cost -= this.costInc;
+    }
   }
   buy(): void {
     this.cost += this.costInc;
@@ -37,8 +42,16 @@ export default class Variable {
         this.value === ZERO
           ? Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length)
           : add(this.value, Math.log10(this.stepwisePowerSum.base) * Math.floor(this.lvl / this.stepwisePowerSum.length));
-    } else this.value = this.varBase * (this.lvl + 1);
+    } else this.value = Math.log10(this.varBase) * (this.lvl + 1);
     this.lvl++;
+  }
+  reCalculate(): void {
+    if (this.stepwisePowerSum.base !== 0) {
+      let intPart = Math.floor(this.lvl / this.stepwisePowerSum.length);
+      let modPart = this.lvl - intPart * this.stepwisePowerSum.length;
+      let d = this.stepwisePowerSum.length / (this.stepwisePowerSum.base - 1);
+      this.value = subtract(Math.log10(d + modPart) + Math.log10(this.stepwisePowerSum.base) * intPart, Math.log10(d));
+    } else this.value = Math.log10(this.varBase) * this.lvl;
   }
 }
 

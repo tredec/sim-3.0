@@ -71,14 +71,14 @@ function updateTable(arr) {
     table = qs("table");
     thead = qs("thead");
     tbody = qs("tbody");
-    if (arr[0].length !== thead.children[0].children.length) {
-        if (arr[0].length === 10) {
-            thead.innerHTML = tableHeaders.single;
-            table.classList.remove("big");
-            table.classList.add("small");
-            clearTable();
-        }
-    }
+    // if (arr[0].length !== thead.children[0].children.length) {
+    //   if (arr[0].length === 10) {
+    //     thead.innerHTML = tableHeaders.single;
+    //     table.classList.remove("big");
+    //     table.classList.add("small");
+    //     clearTable();
+    //   }
+    // }
     for (let i = 0; i < arr.length; i++) {
         const row = ce("tr");
         for (let j = 0; j < thead.children[0].children.length; j++) {

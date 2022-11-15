@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { findIndex } from "../Utils/helperFunctions.js";
-import { log10, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
+import { logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "../Utils/helperFunctions.js";
 import t1 from "../Theories/T1-T8/T1.js";
@@ -19,6 +19,12 @@ import t5 from "../Theories/T1-T8/T5.js";
 import t6 from "../Theories/T1-T8/T6.js";
 import t7 from "../Theories/T1-T8/T7.js";
 import t8 from "../Theories/T1-T8/T8.js";
+import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
+import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
+import wsp from "../Theories/CTs/WSP.js";
+import sl from "../Theories/CTs/SL.js";
+import ef from "../Theories/CTs/EF.js";
+import csr2 from "../Theories/CTs/CSR2.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -41,12 +47,21 @@ export function simulate(simData) {
             return null;
         try {
             let pData = parseData(simData);
-            let res;
+            let res = [];
             global.simulating = true;
-            if (pData.mode === "Single sim")
-                res = [yield singleSim(pData)];
-            else {
-                res = yield chainSim(pData);
+            switch (pData.mode) {
+                case "Single sim":
+                    res = [yield singleSim(pData)];
+                    break;
+                case "Chain":
+                    res = yield chainSim(pData);
+                    break;
+                case "Steps":
+                    res = yield stepSim(pData);
+                    break;
+                case "All":
+                    res = yield simAll(pData);
+                    break;
             }
             cache.simEndTimestamp = performance.now();
             return res;
@@ -93,6 +108,7 @@ function parseData(data) {
     return parsedDataObj;
 }
 function singleSim(data) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (findIndex(["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1)
             return getBestStrat(data);
@@ -102,7 +118,7 @@ function singleSim(data) {
             sigma: data.sigma,
             rho: data.rho,
             recursionValue: null,
-            recovery: data.recovery,
+            recovery: (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false },
             cap: data.hardCap ? data.cap : null
         };
         switch (data.theory) {
@@ -122,6 +138,14 @@ function singleSim(data) {
                 return yield t7(sendData);
             case "T8":
                 return yield t8(sendData);
+            case "WSP":
+                return yield wsp(sendData);
+            case "SL":
+                return yield sl(sendData);
+            case "EF":
+                return yield ef(sendData);
+            case "CSR2":
+                return yield csr2(sendData);
         }
         throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
     });
@@ -156,6 +180,58 @@ function chainSim(data) {
         const dtau = (data.rho - start) * getTauFactor(data.theory);
         result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
         return result;
+    });
+}
+function stepSim(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let time = 0;
+        const start = data.rho;
+        const result = [];
+        let stopOtp = logToExp(data.cap);
+        let lastLog = 0;
+        while (data.rho < data.cap + 0.00001) {
+            let st = performance.now();
+            if (st - lastLog > 250) {
+                lastLog = st;
+                output.textContent = `Simulating ${logToExp(data.rho, 0)}/${stopOtp}`;
+                yield sleep();
+            }
+            let res = yield singleSim(Object.assign({}, data));
+            if (!global.simulating)
+                break;
+            if (typeof res[6] === "string")
+                cache.lastStrat = res[6].split(" ")[0];
+            result.push(res);
+            data.rho += data.modeInput;
+            time += res[res.length - 1][1];
+        }
+        cache.lastStrat = null;
+        return result;
+    });
+}
+function simAll(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const sigma = data.modeInput[0];
+        const values = data.modeInput.slice(1, data.modeInput.length);
+        let res = [];
+        for (let i = 0; i < values.length; i++) {
+            if (values[i] === 0)
+                continue;
+            output.innerText = `Simulating ${getTheoryFromIndex(i)}/${getTheoryFromIndex(values.length - 1)}`;
+            yield sleep();
+            if (!global.simulating)
+                break;
+            let sendData = {
+                theory: getTheoryFromIndex(i),
+                strat: "Best Overall",
+                sigma,
+                rho: values[i],
+                cap: Infinity,
+                mode: "Single Sim"
+            };
+            res.push(yield singleSim(sendData));
+        }
+        return res;
     });
 }
 function getBestStrat(data) {
@@ -279,25 +355,35 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "WSP":
-            conditions = [];
+            conditions = [
+                type !== "Best Overall" && type !== "Best Active" && rho < 525,
+                type !== "Best Overall" && type !== "Best Active" && rho > 475,
+                type !== "Best Semi-Idle" && type !== "Best Idle" //WSPdstopC1
+            ];
             break;
         case "SL":
-            conditions = [];
+            conditions = [
+                rho < 25 || type === "Best Idle",
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 300,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 300,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho < 300,
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300 //SLMSd
+            ];
             break;
         case "EF":
-            conditions = [];
+            conditions = [
+                rho < 10 || type === "Best Idle",
+                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 10,
+                type !== "Best Semi-Idle" && type !== "Best Idle" //EFAI
+            ];
             break;
         case "CSR2":
-            conditions = [];
-            break;
-        case "PD":
-            conditions = [];
-            break;
-        case "FI":
-            conditions = [];
-            break;
-        case "BP":
-            conditions = [];
+            conditions = [
+                rho < 10 || type === "Best Idle" || type === "Best Semi-Idle",
+                type === "Best Active" && rho < 500,
+                (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10 //CSR2XL
+            ];
             break;
     }
     let requirements = [];
@@ -407,25 +493,35 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "WSP":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true //WSPdstopC1
+            ];
             break;
         case "SL":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true,
+                true,
+                true //SLMSd
+            ];
             break;
         case "EF":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true,
+                true //EFAI
+            ];
             break;
         case "CSR2":
-            requirements = [];
-            break;
-        case "PD":
-            requirements = [];
-            break;
-        case "FI":
-            requirements = [];
-            break;
-        case "BP":
-            requirements = [];
+            requirements = [
+                true,
+                true,
+                true //CSR2XL
+            ];
             break;
     }
     if (conditions.length === 0)
@@ -435,139 +531,4 @@ function getStrats(theory, rho, type) {
         if ((conditions[i] || !global.stratFilter) && requirements[i])
             res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
     return res;
-}
-function getTauFactor(theory) {
-    switch (theory) {
-        case "T1":
-        case "T2":
-        case "T3":
-        case "T4":
-        case "T5":
-        case "T6":
-        case "T7":
-        case "T8":
-            return 1;
-        case "WSP":
-        case "SL":
-        case "CSR2":
-        case "FI":
-        case "PD":
-            return 0.1;
-        case "BP":
-            return 0.15;
-        case "EF":
-            return 0.4;
-    }
-    throw `Invalid theory ${theory}. Please contact the author of the sim.`;
-}
-function parseCurrencyValue(value, theory, sigma, defaultConv = "r") {
-    if (typeof value === "string") {
-        const lastChar = value.charAt(value.length - 1);
-        //checks if last character is not valid currency character. If not, throw error
-        if (lastChar.match(/[r/t/m]/) !== null) {
-            value = value.slice(0, -1);
-            if (isValidCurrency(value))
-                value = [value, lastChar];
-        }
-        else if (lastChar.match(/[0-9]/)) {
-            if (isValidCurrency(value))
-                value = [value, defaultConv];
-        }
-        else {
-            throw `Invalid currency value ${value}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-        }
-    }
-    //Parses currency value if it is still a string.
-    if (typeof value[0] === "string" && Array.isArray(value))
-        value[0] = parseValue(value[0]);
-    //failsafe in case value is not parsed currectly.
-    if (typeof value[0] !== "number")
-        throw `Cannot parse value ${value[0]}. Please contact the author of the sim.`;
-    //returns value if last character is r.
-    if (value[1] === "r")
-        return value[0];
-    //returns value with correct tau factor if last character is t.
-    if (value[1] === "t")
-        return value[0] / getTauFactor(theory);
-    //returns value converted to rho from current multiplier if last character is r.
-    if (value[1] === "m")
-        return reverseMulti(theory, value[0], sigma);
-    throw `Cannot parse value ${value[0]} and ${value[1]}. Please contact the author of the sim.`;
-}
-function isValidCurrency(val) {
-    //if currency contains any other characters than 0-9 or e, throw error for invalid currency.
-    if (val.match(/^[0-9/e/.]+$/) === null)
-        throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-    //if amount of e's in currency are more than 1, throw error for invalid currency.
-    let es = 0;
-    for (let i = 0; i < val.length; i++)
-        if (val[i] === "e")
-            es++;
-    if (es > 1)
-        throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-    let dots = 0;
-    for (let i = 0; i < val.length; i++)
-        if (val[i] === ".")
-            dots++;
-    if (dots > 1)
-        throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-    //if currency is valid, return true.
-    return true;
-}
-function getIndexFromTheory(theory) {
-    return findIndex(jsonData.theories, theory);
-}
-function parseValue(val) {
-    if (/[e]/.test(val))
-        return log10(val);
-    return parseFloat(val);
-}
-function reverseMulti(theory, value, sigma) {
-    let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
-    let divSigmaMulti = (exp, div) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) + Math.log10(div)) * (1 / exp);
-    let multSigmaMulti = (exp, mult) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) - Math.log10(mult)) * (1 / exp);
-    let sigmaMulti = (exp) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp()))) * (1 / exp);
-    switch (theory) {
-        case "T1":
-            return divSigmaMulti(0.164, 3);
-        case "T2":
-            return divSigmaMulti(0.198, 100);
-        case "T3":
-            return multSigmaMulti(0.147, 3);
-        case "T4":
-            return divSigmaMulti(0.165, 4);
-        case "T5":
-            return sigmaMulti(0.159);
-        case "T6":
-            return divSigmaMulti(0.196, 50);
-        case "T7":
-            return sigmaMulti(0.152);
-        case "T8":
-            return sigmaMulti(0.15);
-        case "WSP":
-        case "SL":
-            return value / 0.15;
-        case "EF":
-            return value * (1 / 0.387) * 2.5;
-        case "CSR2":
-            return (value + Math.log10(200)) * (1 / 2.203) * 10;
-    }
-    throw `Failed parsing multiplier. Please contact the author of the sim.`;
-}
-function parseModeInput(input, mode) {
-    //Parsing Step mode input
-    if (mode === "Steps" && typeof input === "string") {
-        if (isValidCurrency(input))
-            return parseValue(input);
-    }
-    //Parsing Time and Amount input
-    if ((mode === "Time" || mode === "Amount") && typeof input === "string") {
-        if (input.match(/[0-9]/) !== null)
-            return parseFloat(input);
-        throw mode + " input must be a number.";
-    }
-    //All and Time diff. mode has it's own parser functions
-    if (mode === "Time diff." || mode === "All" || mode === "Single sim" || mode === "Chain")
-        return input;
-    throw `Couldnt parse mode ${mode}. Please contact the author of the sim.`;
 }

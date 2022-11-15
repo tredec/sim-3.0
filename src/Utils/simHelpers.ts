@@ -1,3 +1,5 @@
+import { getTauFactor } from "../Sim/Components/helpers.js";
+
 export function log10(num: string): number {
   const split: Array<string> = String(num).split("e");
   const result: number = Number(split[1]) + Math.log10(Math.max(1, Number(split[0])));
@@ -11,7 +13,19 @@ export function logToExp(num: number, dec: number = 3): string {
   return (frac1 >= 10 ? frac1 / 10 : frac1) + "e" + (frac1 >= 10 ? wholePart + 1 : wholePart);
 }
 export function convertTime(secs: number): string {
-  return `${Math.floor(secs / 86400)}d${Math.floor((secs / 3600) % 24)}h${Math.floor((secs / 60) % 60)}m`;
+  let mins = Math.floor((secs / 60) % 60);
+  let hrs = Math.floor((secs / 3600) % 24);
+  let days = Math.floor((secs / 86400) % 365);
+  let years = Math.floor(secs / 31536000);
+  let result = "";
+  if (years > 0) {
+    result += years < 1e6 ? years : logToExp(Math.log10(years));
+    result += "y";
+  }
+  if (days > 0) result += days + "d";
+  result += (hrs < 10 ? "0" : "") + hrs + "h";
+  if (years === 0) result += (mins < 10 ? "0" : "") + mins + "m";
+  return result;
 }
 export function decimals(val: number, def: number = 5): number | string {
   if (val >= 1e6) return logToExp(Math.log10(val), 3);
@@ -70,7 +84,8 @@ export interface variableInterface {
   value: number;
   stepwisePowerSum: { default?: boolean; length: number; base: number };
   varBase: number;
-  buy: Function;
+  buy: VoidFunction;
+  reCalculate: VoidFunction;
 }
 interface simResultInterface {
   sigma: number;
@@ -90,19 +105,19 @@ export interface theoryData {
   strat: string;
   recovery: null | { value: number; time: number; recoveryTime: boolean };
   cap: null | number;
-  recursionValue: null | number;
+  recursionValue: null | number | Array<number>;
 }
 export type simResult = Array<number | string | Array<number>>;
 export function createResult(data: simResultInterface, stratExtra: null | string) {
   return [
-    "<b>" + data.theory + "</b",
+    data.theory,
     data.sigma,
     logToExp(data.lastPub, 2),
     logToExp(data.pubRho, 2),
-    logToExp(data.pubRho - data.lastPub, 2),
+    logToExp((data.pubRho - data.lastPub) * getTauFactor(data.theory), 2),
     decimals(data.pubMulti),
     data.strat + stratExtra,
-    decimals(data.maxTauH),
+    decimals(data.maxTauH * getTauFactor(data.theory)),
     convertTime(Math.max(0, data.pubT - data.recovery.time)),
     [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
   ];
