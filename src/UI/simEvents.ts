@@ -1,7 +1,7 @@
 import { simulate, inputData, global } from "../Sim/main.js";
 import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
 import { simResult } from "../Utils/simHelpers.js";
-import { getSimState, setSimState } from "./simState.js";
+import { setSimState } from "./simState.js";
 
 //Inputs
 const theory = <HTMLSelectElement>qs(".theory");
@@ -40,6 +40,8 @@ const tableHeaders = {
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
 
+// setTimeout(() => getSimState(), 500);
+
 event(simulateButton, "click", async () => {
   global.dt = parseFloat(dtOtp.textContent ?? "1.5");
   global.ddt = parseFloat(ddtOtp.textContent ?? "1.0001");
@@ -47,9 +49,9 @@ event(simulateButton, "click", async () => {
   const data: inputData = {
     theory: theory.value,
     strat: strat.value,
-    sigma: sigma.value,
-    rho: input.value,
-    cap: cap.value,
+    sigma: sigma.value.replace(" ", ""),
+    rho: input.value.replace(" ", ""),
+    cap: cap.value.replace(" ", ""),
     mode: mode.value,
     modeInput: modeInput.value,
     simAllInputs: [semi_idle.checked, hard_active.checked],
@@ -66,8 +68,6 @@ event(simulateButton, "click", async () => {
   global.simulating = false;
   setSimState();
 });
-
-setTimeout(() => getSimState(), 500);
 
 function updateTable(arr: Array<simResult>): void {
   if (prevMode !== mode.value) clearTable();

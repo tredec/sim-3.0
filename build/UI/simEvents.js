@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
-import { getSimState, setSimState } from "./simState.js";
+import { setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -40,6 +40,7 @@ const tableHeaders = {
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
+// setTimeout(() => getSimState(), 500);
 event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     global.dt = parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5");
@@ -48,9 +49,9 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     const data = {
         theory: theory.value,
         strat: strat.value,
-        sigma: sigma.value,
-        rho: input.value,
-        cap: cap.value,
+        sigma: sigma.value.replace(" ", ""),
+        rho: input.value.replace(" ", ""),
+        cap: cap.value.replace(" ", ""),
         mode: mode.value,
         modeInput: modeInput.value,
         simAllInputs: [semi_idle.checked, hard_active.checked],
@@ -70,7 +71,6 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     global.simulating = false;
     setSimState();
 }));
-setTimeout(() => getSimState(), 500);
 function updateTable(arr) {
     if (prevMode !== mode.value)
         clearTable();
