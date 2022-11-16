@@ -64,7 +64,7 @@ event(simulateButton, "click", async () => {
   setSimState();
 });
 
-setTimeout(() => getSimState(), 500);
+// setTimeout(() => getSimState(), 500);
 
 function updateTable(arr: Array<simResult>): void {
   if (prevMode !== mode.value) clearTable();

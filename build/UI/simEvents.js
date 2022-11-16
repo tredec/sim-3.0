@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
-import { getSimState, setSimState } from "./simState.js";
+import { setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -67,7 +67,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     global.simulating = false;
     setSimState();
 }));
-setTimeout(() => getSimState(), 500);
+// setTimeout(() => getSimState(), 500);
 function updateTable(arr) {
     if (prevMode !== mode.value)
         clearTable();
