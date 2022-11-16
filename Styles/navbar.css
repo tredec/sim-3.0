@@ -8,7 +8,7 @@
   color: inherit;
 }
 .settingsBtn {
-  background: url(../../settings.png);
+  background: url(../settings.png);
   width: 2.25rem;
   aspect-ratio: 1;
   background-size: cover;
