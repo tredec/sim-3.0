@@ -59,7 +59,7 @@ export function modeUpdate(): void {
   if (mode.value !== "All" && mode.value !== "Time diff.") singleInput.style.display = "grid";
   if (mode.value === "Chain") hardCap.style.display = "block";
   if (mode.value === "All") {
-    simAllInputs.style.display = "inline-flex";
+    simAllInputs.style.display = "grid";
     modeInputDescription.style.display = "none";
     modeInput.style.height = "3rem";
     modeInput.style.width = "20rem";

@@ -57,7 +57,7 @@ export function modeUpdate() {
     if (mode.value === "Chain")
         hardCap.style.display = "block";
     if (mode.value === "All") {
-        simAllInputs.style.display = "inline-flex";
+        simAllInputs.style.display = "-ms-inline-grid";
         modeInputDescription.style.display = "none";
         modeInput.style.height = "3rem";
         modeInput.style.width = "20rem";

@@ -221,18 +221,27 @@ function simAll(data) {
             yield sleep();
             if (!global.simulating)
                 break;
-            let sendData = {
-                theory: getTheoryFromIndex(i),
-                strat: "Best Overall",
-                sigma,
-                rho: values[i],
-                cap: Infinity,
-                mode: "Single Sim"
-            };
-            res.push(yield singleSim(sendData));
+            const modes = ["Best Semi-Idle", "Best Overall"];
+            let temp = [];
+            for (let j = 0; j < modes.length; j++) {
+                let sendData = {
+                    theory: getTheoryFromIndex(i),
+                    strat: modes[j],
+                    sigma,
+                    rho: values[i],
+                    cap: Infinity,
+                    mode: "Single Sim"
+                };
+                temp.push(yield singleSim(sendData));
+            }
+            res.push(createSimAllOutput(temp));
         }
+        res.push([sigma]);
         return res;
     });
+}
+function createSimAllOutput(arr) {
+    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], decimals(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
 }
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {

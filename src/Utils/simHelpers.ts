@@ -37,22 +37,20 @@ export function round(number: number, decimals: number): number {
   return Math.round(number * 10 ** decimals) / 10 ** decimals;
 }
 
-export function add(value1: number, value2: number): number {
-  const max: number = value1 > value2 ? value1 : value2;
-  const min: number = value1 > value2 ? value2 : value1;
-  const wholePart1: number = Math.floor(max);
-  const fractionalPart1: number = 10 ** (max - wholePart1);
-  const wholePart2: number = Math.floor(min);
-  const fractionalPart2: number = 10 ** (min - wholePart2);
+export function add(value1: number, value2: number) {
+  const wholePart1 = Math.floor(value1);
+  const fractionalPart1 = 10 ** (value1 - wholePart1);
+  const wholePart2 = Math.floor(value2);
+  const fractionalPart2 = 10 ** (value2 - wholePart2);
   return wholePart1 + Math.log10(fractionalPart1 + fractionalPart2 / 10 ** (wholePart1 - wholePart2));
 }
-export function subtract(value1: number, value2: number): number {
-  const max: number = value1 > value2 ? value1 : value2;
-  const min: number = value1 > value2 ? value2 : value1;
-  const wholePart1: number = Math.floor(max);
-  const fractionalPart1: number = 10 ** (max - wholePart1);
-  const wholePart2: number = Math.floor(min);
-  const fractionalPart2: number = 10 ** (min - wholePart2);
+export function subtract(value1: number, value2: number) {
+  const max = value1 > value2 ? value1 : value2;
+  const min = value1 > value2 ? value2 : value1;
+  const wholePart1 = Math.floor(max);
+  const fractionalPart1 = 10 ** (max - wholePart1);
+  const wholePart2 = Math.floor(min);
+  const fractionalPart2 = 10 ** (min - wholePart2);
   return wholePart1 + Math.log10(fractionalPart1 - fractionalPart2 / 10 ** (wholePart1 - wholePart2));
 }
 

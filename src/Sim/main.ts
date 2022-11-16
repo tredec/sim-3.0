@@ -222,17 +222,26 @@ async function simAll(data: parsedData): Promise<Array<simResult>> {
     output.innerText = `Simulating ${getTheoryFromIndex(i)}/${getTheoryFromIndex(values.length - 1)}`;
     await sleep();
     if (!global.simulating) break;
-    let sendData: parsedData = {
-      theory: getTheoryFromIndex(i),
-      strat: "Best Overall",
-      sigma,
-      rho: values[i],
-      cap: Infinity,
-      mode: "Single Sim"
-    };
-    res.push(await singleSim(sendData));
+    const modes = ["Best Semi-Idle", "Best Overall"];
+    let temp = [];
+    for (let j = 0; j < modes.length; j++) {
+      let sendData: parsedData = {
+        theory: getTheoryFromIndex(i),
+        strat: modes[j],
+        sigma,
+        rho: values[i],
+        cap: Infinity,
+        mode: "Single Sim"
+      };
+      temp.push(await singleSim(sendData));
+    }
+    res.push(createSimAllOutput(temp));
   }
+  res.push([sigma]);
   return res;
+}
+function createSimAllOutput(arr: Array<simResult>): simResult {
+  return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], decimals(<number>arr[1][7] / <number>arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
 }
 async function getBestStrat(data: parsedData): Promise<simResult> {
   const strats: Array<string> = getStrats(data.theory, data.rho, data.strat);

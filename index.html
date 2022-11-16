@@ -63,11 +63,15 @@
         <input style="display: block; position: relative; width: min(1rem, 5vw); outline: none" type="checkbox" class="hardCap" />
         <div class="extraInputs">
           <span class="extraInputDescription" style="margin-right: 0.8rem">mode inputs</span>
-          <div class="simAllInputs" style="display: inline">
+          <div class="simAllInputs">
             <button class="saveDist">Save distribution</button>
+            <span style="font-size: 0.7rem">Semi-Idle: </span>
+            <input type="checkbox" class="semi-idle" style="position: relative" />
             <button class="getDist">Get distribution</button>
+            <span style="font-size: 0.7rem">Hard Active: </span>
+            <input type="checkbox" class="hard-active" style="position: relative" />
           </div>
-          <textarea cols="30" spellcheck="false"></textarea>
+          <textarea cols="30" spellcheck="false" style="margin-block: auto"></textarea>
         </div>
         <div class="timeDiffWrapper" style="display: none">
           <input type="text" />

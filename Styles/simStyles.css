@@ -88,13 +88,15 @@ tr:hover {
   width: 20rem;
 }
 .simAllInputs {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-right: 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem 0.5rem;
+  margin-right: 2rem;
+  place-items: center;
 }
 .simAllInputs button:hover {
   cursor: pointer;
+  transform: scale(1.1);
 }
 .saveDist {
   position: relative;
@@ -112,6 +114,26 @@ tr:hover {
 .saveDist.animate::before {
   opacity: 1;
 }
+/* .semi-idle::before {
+  content: "Semi-Idle";
+  position: absolute;
+  inset: -500%;
+  color: white;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  text-align: center;
+  top: -100%;
+}
+.hard-active::before {
+  content: "Hard Active";
+  position: absolute;
+  inset: -500%;
+  color: white;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  text-align: center;
+  top: -100%;
+} */
 textarea {
   resize: none;
   width: 6rem;

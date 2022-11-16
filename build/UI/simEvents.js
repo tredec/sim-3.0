@@ -29,6 +29,7 @@ const simulateButton = qs(".simulate");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
+let prevMode = "All";
 const tau = `<span style="font-size:0.9rem; font-style:italics">&tau;</span>`;
 const tableHeaders = {
     current: "All",
@@ -68,17 +69,26 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
 }));
 setTimeout(() => getSimState(), 500);
 function updateTable(arr) {
+    if (prevMode !== mode.value)
+        clearTable();
+    prevMode = mode.value;
     table = qs("table");
     thead = qs("thead");
     tbody = qs("tbody");
-    // if (arr[0].length !== thead.children[0].children.length) {
-    //   if (arr[0].length === 10) {
-    //     thead.innerHTML = tableHeaders.single;
-    //     table.classList.remove("big");
-    //     table.classList.add("small");
-    //     clearTable();
-    //   }
-    // }
+    if (mode.value === "All") {
+        table.classList.add("big");
+        table.classList.remove("small");
+        thead.innerHTML = tableHeaders.all;
+        thead.children[0].children[0].innerHTML = arr[arr.length - 1][0].toString() + '<span style="font-size:0.9rem;">&sigma;</span><sub>t</sub>';
+        arr.pop();
+    }
+    else {
+        table.classList.remove("big");
+        table.classList.add("small");
+        thead.innerHTML = tableHeaders.single;
+    }
+    if ((tbody.children.length > 1 && (arr.length > 1 || tbody.children[tbody.children.length - 1].children[0].innerHTML === "")) || mode.value === "All")
+        clearTable();
     for (let i = 0; i < arr.length; i++) {
         const row = ce("tr");
         for (let j = 0; j < thead.children[0].children.length; j++) {
