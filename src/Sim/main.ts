@@ -45,6 +45,7 @@ export interface inputData {
   mode: string;
   hardCap: boolean;
   modeInput: string;
+  simAllInputs: Array<boolean>;
 }
 interface parsedData {
   theory: string;
@@ -53,6 +54,7 @@ interface parsedData {
   rho: number;
   cap: number;
   mode: string;
+  simAllInputs?: Array<boolean>;
   hardCap?: boolean;
   modeInput?: string | Array<number> | number;
   recovery?: null | { value: number; time: number; recoveryTime: boolean };
@@ -96,6 +98,7 @@ function parseData(data: inputData): parsedData {
     mode: data.mode,
     hardCap: data.hardCap,
     modeInput: data.modeInput,
+    simAllInputs: data.simAllInputs,
     sigma: 0,
     rho: 0,
     cap: Infinity,
@@ -222,7 +225,8 @@ async function simAll(data: parsedData): Promise<Array<simResult>> {
     output.innerText = `Simulating ${getTheoryFromIndex(i)}/${getTheoryFromIndex(values.length - 1)}`;
     await sleep();
     if (!global.simulating) break;
-    const modes = ["Best Semi-Idle", "Best Overall"];
+    let modes = ["Best Semi-Idle", "Best Overall"];
+    if (data.simAllInputs != null) modes = [data.simAllInputs[0] ? "Best Semi-Idle" : "Best Idle", data.simAllInputs[1] ? "Best Overall" : "Best Active"];
     let temp = [];
     for (let j = 0; j < modes.length; j++) {
       let sendData: parsedData = {

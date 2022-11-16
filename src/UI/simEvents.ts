@@ -12,6 +12,8 @@ const cap = <HTMLInputElement>qs(".cap");
 const mode = <HTMLSelectElement>qs(".mode");
 const modeInput = <HTMLInputElement>qs("textarea");
 const hardCap = <HTMLInputElement>qs(".hardCap");
+const semi_idle = <HTMLInputElement>qs(".semi-idle");
+const hard_active = <HTMLInputElement>qs(".hard-active");
 
 //Outputs
 const output = qs(".output");
@@ -50,6 +52,7 @@ event(simulateButton, "click", async () => {
     cap: cap.value,
     mode: mode.value,
     modeInput: modeInput.value,
+    simAllInputs: [semi_idle.checked, hard_active.checked],
     hardCap: hardCap.checked
   };
   output.textContent = "";
@@ -64,7 +67,7 @@ event(simulateButton, "click", async () => {
   setSimState();
 });
 
-// setTimeout(() => getSimState(), 500);
+setTimeout(() => getSimState(), 500);
 
 function updateTable(arr: Array<simResult>): void {
   if (prevMode !== mode.value) clearTable();

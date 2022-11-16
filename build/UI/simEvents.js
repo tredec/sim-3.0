@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
-import { setSimState } from "./simState.js";
+import { getSimState, setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -19,6 +19,8 @@ const cap = qs(".cap");
 const mode = qs(".mode");
 const modeInput = qs("textarea");
 const hardCap = qs(".hardCap");
+const semi_idle = qs(".semi-idle");
+const hard_active = qs(".hard-active");
 //Outputs
 const output = qs(".output");
 let table = qs("table");
@@ -51,6 +53,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         cap: cap.value,
         mode: mode.value,
         modeInput: modeInput.value,
+        simAllInputs: [semi_idle.checked, hard_active.checked],
         hardCap: hardCap.checked
     };
     output.textContent = "";
@@ -67,7 +70,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
     global.simulating = false;
     setSimState();
 }));
-// setTimeout(() => getSimState(), 500);
+setTimeout(() => getSimState(), 500);
 function updateTable(arr) {
     if (prevMode !== mode.value)
         clearTable();

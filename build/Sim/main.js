@@ -78,6 +78,7 @@ function parseData(data) {
         mode: data.mode,
         hardCap: data.hardCap,
         modeInput: data.modeInput,
+        simAllInputs: data.simAllInputs,
         sigma: 0,
         rho: 0,
         cap: Infinity,
@@ -221,7 +222,9 @@ function simAll(data) {
             yield sleep();
             if (!global.simulating)
                 break;
-            const modes = ["Best Semi-Idle", "Best Overall"];
+            let modes = ["Best Semi-Idle", "Best Overall"];
+            if (data.simAllInputs != null)
+                modes = [data.simAllInputs[0] ? "Best Semi-Idle" : "Best Idle", data.simAllInputs[1] ? "Best Overall" : "Best Active"];
             let temp = [];
             for (let j = 0; j < modes.length; j++) {
                 let sendData = {
