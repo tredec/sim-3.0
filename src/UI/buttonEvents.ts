@@ -37,3 +37,17 @@ function createImage(mode: string) {
     })
   );
 }
+
+const saveDist = qs(".saveDist");
+const getDist = qs(".getDist");
+const modeInput = <HTMLTextAreaElement>qs("textarea");
+
+event(saveDist, "pointerdown", () => {
+  if (modeInput.value.replace(" ", "").length === 0) return;
+  saveDist.classList.add("animate");
+  setTimeout(() => saveDist.classList.remove("animate"), 550);
+  localStorage.setItem("savedDistribution", modeInput.value);
+});
+event(getDist, "pointerdown", () => {
+  modeInput.value = localStorage.getItem("savedDistribution") ?? modeInput.value;
+});

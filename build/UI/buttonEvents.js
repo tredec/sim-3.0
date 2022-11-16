@@ -31,3 +31,17 @@ function createImage(mode) {
         }
     }));
 }
+const saveDist = qs(".saveDist");
+const getDist = qs(".getDist");
+const modeInput = qs("textarea");
+event(saveDist, "pointerdown", () => {
+    if (modeInput.value.replace(" ", "").length === 0)
+        return;
+    saveDist.classList.add("animate");
+    setTimeout(() => saveDist.classList.remove("animate"), 550);
+    localStorage.setItem("savedDistribution", modeInput.value);
+});
+event(getDist, "pointerdown", () => {
+    var _a;
+    modeInput.value = (_a = localStorage.getItem("savedDistribution")) !== null && _a !== void 0 ? _a : modeInput.value;
+});
