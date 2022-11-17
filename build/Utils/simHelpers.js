@@ -37,10 +37,12 @@ export function round(number, decimals) {
     return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
 }
 export function add(value1, value2) {
-    const wholePart1 = Math.floor(value1);
-    const fractionalPart1 = Math.pow(10, (value1 - wholePart1));
-    const wholePart2 = Math.floor(value2);
-    const fractionalPart2 = Math.pow(10, (value2 - wholePart2));
+    const max = value1 > value2 ? value1 : value2;
+    const min = value1 > value2 ? value2 : value1;
+    const wholePart1 = Math.floor(max);
+    const fractionalPart1 = Math.pow(10, (max - wholePart1));
+    const wholePart2 = Math.floor(min);
+    const fractionalPart2 = Math.pow(10, (min - wholePart2));
     return wholePart1 + Math.log10(fractionalPart1 + fractionalPart2 / Math.pow(10, (wholePart1 - wholePart2)));
 }
 export function subtract(value1, value2) {

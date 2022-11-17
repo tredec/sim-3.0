@@ -88,7 +88,7 @@ function parseData(data) {
         //parsing sigma
         if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0)
             parsedDataObj.sigma = parseInt(data.sigma);
-        else
+        else if (data.theory.charAt(0) === "T")
             throw "Invalid sigma value. Sigma must be an integer that's >= 0";
         //parsing currency
         if (data.rho.length > 0)
@@ -326,14 +326,14 @@ function getStrats(theory, rho, type) {
                 rho < 25,
                 type !== "Best Overall" && type !== "Best Active" && rho < 25,
                 type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 100,
-                type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
-                type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
                 type !== "Best Overall" && type !== "Best Active" && rho > 800,
                 type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho > 400,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 25,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 100,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
             ];

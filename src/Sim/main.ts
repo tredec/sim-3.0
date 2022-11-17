@@ -108,7 +108,7 @@ function parseData(data: inputData): parsedData {
   if (data.mode !== "All" && data.mode !== "Time diff.") {
     //parsing sigma
     if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0) parsedDataObj.sigma = parseInt(data.sigma);
-    else throw "Invalid sigma value. Sigma must be an integer that's >= 0";
+    else if (data.theory.charAt(0) === "T") throw "Invalid sigma value. Sigma must be an integer that's >= 0";
 
     //parsing currency
     if (data.rho.length > 0) parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
@@ -324,14 +324,14 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho < 25, //T6
         type !== "Best Overall" && type !== "Best Active" && rho < 25, //T6C3
         type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 100, //T6C4
-        type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234", //T6noC34
-        type !== "Best Overall" && type !== "Best Active" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234", //T6noC345
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234", //T6noC34
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234", //T6noC345
         type !== "Best Overall" && type !== "Best Active" && rho > 800, //T6noC1234
         type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho > 400, //T6snax
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 25, //T6C3d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 100, //T6C4d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 1100 && cache.lastStrat !== "T6noC1234", //T6noC34d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234", //T6noC345d
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234", //T6noC34d
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234", //T6noC345d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800, //T6noC1234d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
       ];
