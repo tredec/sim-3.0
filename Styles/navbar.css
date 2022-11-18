@@ -67,7 +67,7 @@
 
 @media screen and (max-width: 500px) {
   :root {
-    font-size: calc(0.5vw + 4rem + 0.5vh);
+    font-size: calc(0.5vw + 0.8rem + 0.5vh);
   }
   .controls:nth-of-type(1) {
     display: grid;
