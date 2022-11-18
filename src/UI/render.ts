@@ -57,7 +57,7 @@ export function modeUpdate(): void {
   if (mode.value !== "Single sim" && mode.value !== "Time diff." && mode.value !== "Chain") extraInputs.style.display = "flex";
   if (mode.value === "Time diff.") timeDiffWrapper.style.display = "grid";
   if (mode.value !== "All" && mode.value !== "Time diff.") singleInput.style.display = "grid";
-  if (mode.value === "Chain") hardCap.style.display = "block";
+  // if (mode.value === "Chain") hardCap.style.display = "block";
   if (mode.value === "All") {
     simAllInputs.style.display = "grid";
     modeInputDescription.style.display = "none";

@@ -121,7 +121,7 @@
     height: 0.7rem;
   }
   .output {
-    min-width: 300vw !important;
+    min-width: 80vw !important;
   }
   .saveDist::before {
     content: "Saved!";
