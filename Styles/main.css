@@ -24,6 +24,8 @@
   --title-clr: white;
   --other-font-clr: white;
   --log-bg: #333;
+  width: 100vw;
+  overflow: hidden;
 }
 body {
   background-color: var(--bg-clr-dark-1);
@@ -31,6 +33,7 @@ body {
   font-weight: bolders;
   color: var(--font-clr);
   letter-spacing: 0.02em;
+  height: 100vh;
 }
 body.no-scroll {
   overflow: hidden;
