@@ -133,4 +133,11 @@
     opacity: 0;
     top: -90%;
   }
+  .extraInputs {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .simAllInputs {
+    width: max-content;
+  }
 }

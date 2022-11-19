@@ -1,3 +1,4 @@
+var _a;
 import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
 import data from "../Sim/data.json" assert { type: "json" };
 //Inputs
@@ -9,6 +10,8 @@ const cap = qs(".cap");
 const mode = qs(".mode");
 const modeInput = qs("textarea");
 const hardCap = qs(".hardCap");
+const semi_idle = qs(".semi-idle");
+const hard_active = qs(".hard-active");
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
 const timeDiffWrapper = qs(".timeDiffWrapper");
@@ -83,3 +86,6 @@ export function theoryUpdate() {
         strat.appendChild(option);
     }
 }
+const simAllSettings = JSON.parse((_a = localStorage.getItem("simAllSettings")) !== null && _a !== void 0 ? _a : "[true, false]");
+semi_idle.checked = simAllSettings[0];
+hard_active.checked = simAllSettings[1];

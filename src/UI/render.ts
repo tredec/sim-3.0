@@ -10,6 +10,8 @@ const cap = <HTMLInputElement>qs(".cap");
 const mode = <HTMLSelectElement>qs(".mode");
 const modeInput = <HTMLInputElement>qs("textarea");
 const hardCap = qs(".hardCap");
+const semi_idle = <HTMLInputElement>qs(".semi-idle");
+const hard_active = <HTMLInputElement>qs(".hard-active");
 
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
@@ -87,3 +89,7 @@ export function theoryUpdate(): void {
     strat.appendChild(option);
   }
 }
+
+const simAllSettings: Array<boolean> = JSON.parse(localStorage.getItem("simAllSettings") ?? "[true, false]");
+semi_idle.checked = simAllSettings[0];
+hard_active.checked = simAllSettings[1];

@@ -46,6 +46,7 @@ event(simulateButton, "click", async () => {
   global.dt = parseFloat(dtOtp.textContent ?? "1.5");
   global.ddt = parseFloat(ddtOtp.textContent ?? "1.0001");
   global.stratFilter = true;
+  localStorage.setItem("simAllSettings", JSON.stringify([semi_idle.checked, hard_active.checked]));
   const data: inputData = {
     theory: theory.value,
     strat: strat.value,
