@@ -121,3 +121,6 @@ textarea {
   padding: 0.2em;
   font-size: 0.7rem;
 }
+textarea::placeholder {
+  font-size: 0.6rem;
+}

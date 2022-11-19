@@ -104,7 +104,7 @@ function parseSimAll(input: string): Array<number> {
   //needs at least two items
   if (split.length < 2) throw "Student count and at least one theory value that is not 0 is required.";
   //dont allow more inputs than students + theories
-  if (split[jsonData.theories.length] !== undefined) throw `Invalid value ${split[jsonData.theories.length]} does not match any theory.`;
+  if (split.length - 1 > jsonData.theories.length) throw `Invalid value ${split[jsonData.theories.length + 1]} does not match any theory.`;
   //parse students
   let res: Array<number> = [];
   if (/^\d+$/.test(split[0])) res.push(parseInt(split[0]));
