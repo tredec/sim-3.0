@@ -185,8 +185,20 @@ class efSim {
             (this.lastPub < 46.4 && this.lastPub > 44.7 && this.curMult > 3) ||
             (this.lastPub < 37 && this.lastPub > 36 && this.curMult > 3) ||
             (this.lastPub < 27 && this.lastPub > 26 && this.curMult > 3) ||
+            (this.lastPub < 298.2 && this.maxRho > 300) ||
+            (this.lastPub < 323.2 && this.maxRho > 325) ||
             (totalMilestones - initMilestones < 1 && this.curMult > 2.6 + (totalMilestones - initMilestones) && this.recursionValue[1] < 2 && this.stratIndex === 3) ||
             (this.recursionValue[1] === 2 && this.pubRho > this.variables[7].cost + l10(4) && this.variables[7].cost + l10((this.variables[7].lvl % 10) / 3) > this.recursionValue[0]));
+    }
+    forcedPubConditions() {
+        if (this.stratIndex !== 3)
+            return true;
+        return (this.lastPub < 296 || this.pubRho > 300) && (this.lastPub < 321 || this.pubRho > 325);
+    }
+    evaluateTauHConditions() {
+        if (this.stratIndex !== 3)
+            return false;
+        return (this.lastPub < 298.2 && this.lastPub >= 296) || (this.lastPub >= 321 && this.lastPub < 323.2);
     }
     simulate(data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -196,6 +208,10 @@ class efSim {
                 data.recursionValue = [res1[9][0], 1];
                 let res2 = yield ef(data);
                 this.recursionValue = [res2[9][0], 2];
+                if (this.recursionValue[0] > 300 && this.recursionValue[0] < 301)
+                    this.recursionValue[0] = 299.2;
+                if (this.recursionValue[0] > 325 && this.recursionValue[0] < 326)
+                    this.recursionValue[0] = 324.2;
             }
             let pubCondition = false;
             while (!pubCondition) {
@@ -210,7 +226,8 @@ class efSim {
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) && this.pubRho > 10;
+                pubCondition =
+                    (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) && this.pubRho > 10 && this.forcedPubConditions();
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
@@ -245,7 +262,7 @@ class efSim {
         if (this.maxRho < this.recovery.value)
             this.recovery.time = this.t;
         this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);
-        if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.forcedPubTime !== Infinity) {
+        if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.forcedPubTime !== Infinity || this.evaluateTauHConditions()) {
             this.maxTauH = this.tauH;
             this.pubT = this.t;
             this.pubRho = this.maxRho;
