@@ -141,3 +141,8 @@
     width: max-content;
   }
 }
+/* @media screen and (max-width: 500px) {
+  :root {
+    overflow: hidden;
+  }
+} */

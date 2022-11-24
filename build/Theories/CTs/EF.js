@@ -210,7 +210,8 @@ class efSim {
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) && this.pubRho > 10;
+                pubCondition =
+                    ((global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) && this.pubRho > 10) || this.pubRho > 325;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
@@ -245,7 +246,7 @@ class efSim {
         if (this.maxRho < this.recovery.value)
             this.recovery.time = this.t;
         this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);
-        if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.forcedPubTime !== Infinity) {
+        if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 10 || global.forcedPubTime !== Infinity || true) {
             this.maxTauH = this.tauH;
             this.pubT = this.t;
             this.pubRho = this.maxRho;

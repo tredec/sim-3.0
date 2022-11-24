@@ -60,6 +60,9 @@ export function parseValue(val) {
         return log10(val);
     return parseFloat(val);
 }
+function isInt(str) {
+    return /^\d+$/.test(str);
+}
 export function reverseMulti(theory, value, sigma) {
     let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
     let divSigmaMulti = (exp, div) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) + Math.log10(div)) * (1 / exp);
@@ -98,12 +101,14 @@ export function parseModeInput(input, mode) {
         if (isValidCurrency(input))
             return parseValue(input);
     }
-    //Parsing Time and Amount input
-    if ((mode === "Time" || mode === "Amount") && typeof input === "string") {
+    //Parsing Amount input
+    if (mode === "Amount" && typeof input === "string") {
         if (input.match(/[0-9]/) !== null)
             return parseFloat(input);
         throw mode + " input must be a number.";
     }
+    //Parsing Time input
+    // if (mode === "Time") return parseTime(input);
     //All and Time diff. mode has it's own parser export functions
     if (mode === "All")
         return parseSimAll(input);
@@ -111,6 +116,15 @@ export function parseModeInput(input, mode) {
         return input;
     throw `Couldnt parse mode ${mode}. Please contact the author of the sim.`;
 }
+// function parseTime(input: string):number {
+//   let years: string | Array<string> = input.split("y");
+//   let days: string | Array<string> = years[Math.min(years.length - 1, 1)].split("d");
+//   let hours: string | Array<string> = days[Math.min(days.length - 1, 1)].split("h");
+//   let minutes: string | Array<string> = hours[Math.min(hours.length - 1, 1)].split("m");
+//   if(Math.max(years.length, days.length, hours.length, minutes.length)>2)throw "Invalid time value."
+//   if(years.length > 0)
+//   years = years[0]
+// }
 function parseSimAll(input) {
     //splitting input at every space
     let split = input.split(" ");
@@ -128,7 +142,7 @@ function parseSimAll(input) {
         throw `Invalid value ${split[jsonData.theories.length + 1]} does not match any theory.`;
     //parse students
     let res = [];
-    if (/^\d+$/.test(split[0]))
+    if (isInt(split[0]))
         res.push(parseInt(split[0]));
     else
         throw `Invalid student value ${split[0]}.`;

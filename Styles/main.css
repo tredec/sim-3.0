@@ -25,7 +25,7 @@
   --other-font-clr: white;
   --log-bg: #333;
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 body {
   background-color: var(--bg-clr-dark-1);
