@@ -3,6 +3,7 @@ declare var html2canvas: any;
 //Buttons
 const clear = qs(".clear");
 const copyImage = qs(".imageC");
+const downloadImage = qs(".imageD");
 
 //Other elements
 let tbody: HTMLElement;
@@ -17,6 +18,7 @@ event(clear, "pointerdown", () => {
 });
 
 event(copyImage, "pointerdown", () => createImage(""));
+event(downloadImage, "pointerdown", () => createImage("download"));
 
 function createImage(mode: string) {
   html2canvas(qs("table")).then((canvas: any) =>

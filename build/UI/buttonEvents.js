@@ -2,6 +2,7 @@ import { qs, event } from "../Utils/helperFunctions.js";
 //Buttons
 const clear = qs(".clear");
 const copyImage = qs(".imageC");
+const downloadImage = qs(".imageD");
 //Other elements
 let tbody;
 const output = qs(".output");
@@ -13,6 +14,7 @@ event(clear, "pointerdown", () => {
     console.clear();
 });
 event(copyImage, "pointerdown", () => createImage(""));
+event(downloadImage, "pointerdown", () => createImage("download"));
 function createImage(mode) {
     html2canvas(qs("table")).then((canvas) => canvas.toBlob((blob) => {
         if (mode === "download") {
