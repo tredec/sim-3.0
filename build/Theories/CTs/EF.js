@@ -56,6 +56,7 @@ class efSim {
             new Variable({ cost: 500, costInc: Math.pow(2, 2.2), varBase: 2 })
         ];
         this.recursionValue = (_b = data.recursionValue) !== null && _b !== void 0 ? _b : [Infinity, 0];
+        this.lastA23 = [0, 0];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -77,17 +78,17 @@ class efSim {
             [true, () => this.curMult < 1, true, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1 || this.lastPub > 150, true, true],
             [true, () => this.variables[1].cost + 1 < this.variables[2].cost, true, true, true, true, true, () => this.variables[6].cost + l10(2.5) < this.variables[2].cost, true, true],
             [
-                true,
-                () => this.variables[1].cost + l10(10 + (this.variables[1].lvl % 10)) < this.variables[2].cost && this.variables[1].cost + l10((this.variables[1].lvl % 10) + 5) < this.recursionValue[0],
-                () => this.variables[2].cost + 0.2 < this.recursionValue[0],
-                () => this.variables[3].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
-                () => this.variables[4].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
-                () => this.variables[5].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
-                () => this.variables[6].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
-                () => (this.variables[7].cost + l10(4 + (this.variables[7].lvl % 10) / 2) < this.variables[2].cost || this.variables[2].cost > this.recursionValue[0]) &&
+                /*t*/ true,
+                /*q1*/ () => this.variables[1].cost + l10(10 + (this.variables[1].lvl % 10)) < this.variables[2].cost && this.variables[1].cost + l10((this.variables[1].lvl % 10) + 5) < this.recursionValue[0],
+                /*q2*/ () => this.variables[2].cost + 0.2 < this.recursionValue[0],
+                /*b1*/ () => this.variables[3].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
+                /*b2*/ () => this.variables[4].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
+                /*c1*/ () => this.variables[5].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
+                /*c2*/ () => this.variables[6].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
+                /*a1*/ () => (this.variables[7].cost + l10(4 + (this.variables[7].lvl % 10) / 2) < this.variables[2].cost || this.variables[2].cost > this.recursionValue[0]) &&
                     this.variables[7].cost + l10((this.variables[7].lvl % 10) / 3) < this.recursionValue[0],
-                true,
-                true
+                /*a2*/ true,
+                /*a3*/ true
             ] //EFAI -_-
         ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
@@ -231,7 +232,7 @@ class efSim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            this.result = createResult(this, this.stratIndex === 3 ? ` q1: ${this.variables[1].lvl} q2: ${this.variables[2].lvl} a1: ${this.variables[7].lvl}` : "");
+            this.result = createResult(this, this.stratIndex === 3 ? ` q1: ${this.variables[1].lvl} q2: ${this.variables[2].lvl} a1: ${this.variables[7].lvl}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : "");
             return this.result;
         });
     }
@@ -266,6 +267,7 @@ class efSim {
             this.maxTauH = this.tauH;
             this.pubT = this.t;
             this.pubRho = this.maxRho;
+            this.lastA23 = [this.variables[8].lvl, this.variables[9].lvl];
         }
     }
     buyVariables() {

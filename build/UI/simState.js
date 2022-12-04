@@ -15,6 +15,7 @@ const table = qs("table");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
+const showA23 = qs(".a23");
 const defaultState = `{"controls1":{"theory":{"value":"T1","innerHTML":"<option value=\\"T1\\">T1</option><option value=\\"T2\\">T2</option><option value=\\"T3\\">T3</option><option value=\\"T4\\">T4</option><option value=\\"T5\\">T5</option><option value=\\"T6\\">T6</option><option value=\\"T7\\">T7</option><option value=\\"T8\\">T8</option><option value=\\"WSP\\">WSP</option><option value=\\"SL\\">SL</option><option value=\\"EF\\">EF</option><option value=\\"CSR2\\">CSR2</option><option value=\\"PD\\">PD</option><option value=\\"FI\\">FI</option>"},"strat":{"value":"Best Overall","innerHTML":"\\n            <option value=\\"Best Overall\\">Best Overall</option>\\n            <option value=\\"Best Active\\">Best Active</option>\\n            <option value=\\"Best Semi-Idle\\">Best Semi-Idle</option>\\n            <option value=\\"Best Idle\\">Best Idle</option>\\n          <option value=\\"T1\\">T1</option><option value=\\"T1C34\\">T1C34</option><option value=\\"T1C4\\">T1C4</option><option value=\\"T1Ratio\\">T1Ratio</option><option value=\\"T1SolarXLII\\">T1SolarXLII</option>"},"sigma":"","input":"","cap":false},"controls2":{"mode":"All","modeInput":"","extraInputDescription":"","hardCap":"on","timeDiffInputs":["","",""]},"output":"","table":"\\n<thead><tr><th> </th><th>Input</th><th>τ/h Active</th><th>τ/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>Δτ Active</th><th>Δτ Idle</th></tr></thead>\\n        <tbody></tbody>\\n      ","settings":{"dt":"1.5","ddt":"1.0001"}}`;
 export function setSimState() {
     localStorage.setItem("simState", JSON.stringify({
@@ -36,7 +37,8 @@ export function setSimState() {
         table: table.innerHTML,
         settings: {
             dt: dtOtp.textContent,
-            ddt: ddtOtp.textContent
+            ddt: ddtOtp.textContent,
+            showA23: showA23.checked
         }
     }));
 }
@@ -61,6 +63,7 @@ export function getSimState() {
     table.innerHTML = state.table;
     dtOtp.textContent = state.settings.dt;
     ddtOtp.textContent = state.settings.ddt;
+    showA23.checked = state.settings.showA23;
     qs(".dt").value = "8.1943";
     qs(".ddt").value = "2.71233";
     modeUpdate();

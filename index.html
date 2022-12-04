@@ -27,6 +27,25 @@
     <script defer type="module" src="./build/UI/buttonEvents.js"></script>
     <script defer type="module" src="./build/UI/settings.js"></script>
     <script defer type="module" src="./build/UI/simState.js"></script>
+    <script>
+      let ab1 = false;
+      function ctc(index = 7) {
+        if (ab1) return;
+        ab1 = true;
+        document.querySelector("table").addEventListener("click", () => {
+          const table = document.querySelector("tbody");
+          let res = "";
+          for (let i = 0; i < table.children.length; i++) {
+            let val = table.children[i].children[index].innerText;
+            if (isNaN(Number(val))) break;
+            res += val + "\n";
+          }
+          navigator.clipboard.writeText(res);
+          console.log(`Copied ${table.children.length - 1} values to clipboard.`);
+        });
+        return "Click on table to copy tau/h values to clipboard.";
+      }
+    </script>
   </head>
   <body>
     <div class="nav">
@@ -115,10 +134,11 @@
         <span class="sliderOtp ddtOtp">1.0001</span><br /><br />
         <button class="resetSettings settingsButtons">Reset</button>
       </div>
-      <span>Copies current sim state to clipboard and local storage.</span><br /><br />
-      <button class="setState settingsButtons">Set Sim State</button><br /><br />
-      <span>Replaces the current sim state with the saved state.</span><br /><br />
-      <button class="getState settingsButtons">Get Sim State</button>
+      <span>Show a2 and a3 lvl in EFAI strat output: </span> <input type="checkbox" class="a23" /><br />
+      <span style="display: none">Copies current sim state to clipboard and local storage.</span><br /><br />
+      <button class="setState settingsButtons" style="display: none">Set Sim State</button><br /><br />
+      <span style="display: none">Replaces the current sim state with the saved state.</span><br /><br />
+      <button class="getState settingsButtons" style="display: none">Get Sim State</button>
       <!-- <br /><br /> -->
       <!-- <span>Automatically restore last state. (may conflict with sim updates): </span>
       <input type="checkbox" class="autoState" /> -->

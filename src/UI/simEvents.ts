@@ -1,7 +1,7 @@
 import { simulate, inputData, global } from "../Sim/main.js";
 import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
 import { simResult } from "../Utils/simHelpers.js";
-import { setSimState } from "./simState.js";
+import { getSimState, setSimState } from "./simState.js";
 
 //Inputs
 const theory = <HTMLSelectElement>qs(".theory");
@@ -27,6 +27,7 @@ const simulateButton = qs(".simulate");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
+const showA23 = <HTMLInputElement>qs(".a23");
 
 let prevMode = "All";
 
@@ -40,12 +41,13 @@ const tableHeaders = {
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
 
-// setTimeout(() => getSimState(), 500);
+if (localStorage.getItem("autoSave") === "true") setTimeout(() => getSimState(), 500);
 
 event(simulateButton, "click", async () => {
   global.dt = parseFloat(dtOtp.textContent ?? "1.5");
   global.ddt = parseFloat(ddtOtp.textContent ?? "1.0001");
   global.stratFilter = true;
+  global.showA23 = showA23.checked;
   localStorage.setItem("simAllSettings", JSON.stringify([semi_idle.checked, hard_active.checked]));
   const data: inputData = {
     theory: theory.value,

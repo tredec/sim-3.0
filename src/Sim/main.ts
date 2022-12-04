@@ -24,7 +24,8 @@ export const global = {
   ddt: 1.0001,
   stratFilter: true,
   simulating: false,
-  forcedPubTime: Infinity
+  forcedPubTime: Infinity,
+  showA23: false
 };
 
 interface cacheInterface {

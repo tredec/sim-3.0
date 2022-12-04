@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
-import { setSimState } from "./simState.js";
+import { getSimState, setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -31,6 +31,7 @@ const simulateButton = qs(".simulate");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");
+const showA23 = qs(".a23");
 let prevMode = "All";
 const tau = `<span style="font-size:0.9rem; font-style:italics">&tau;</span>`;
 const tableHeaders = {
@@ -40,12 +41,14 @@ const tableHeaders = {
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
-// setTimeout(() => getSimState(), 500);
+if (localStorage.getItem("autoSave") === "true")
+    setTimeout(() => getSimState(), 500);
 event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     global.dt = parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5");
     global.ddt = parseFloat((_b = ddtOtp.textContent) !== null && _b !== void 0 ? _b : "1.0001");
     global.stratFilter = true;
+    global.showA23 = showA23.checked;
     localStorage.setItem("simAllSettings", JSON.stringify([semi_idle.checked, hard_active.checked]));
     const data = {
         theory: theory.value,
