@@ -55,7 +55,12 @@ export function modeUpdate(): void {
   modeInputDescription.style.display = "inline";
   modeInput.style.height = "1.8em";
   modeInput.style.width = "6rem";
-  cap.style.display = "inline";
+  cap.style.display = "none";
+  qs(".capDesc").style.display = "none";
+  if (mode.value === "Chain" || mode.value === "Steps") {
+    cap.style.display = "inline";
+    qs(".capDesc").style.display = "inline";
+  }
   if (mode.value !== "Single sim" && mode.value !== "Time diff." && mode.value !== "Chain") extraInputs.style.display = "flex";
   if (mode.value === "Time diff.") timeDiffWrapper.style.display = "grid";
   if (mode.value !== "All" && mode.value !== "Time diff.") singleInput.style.display = "grid";

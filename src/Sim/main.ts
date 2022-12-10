@@ -1,5 +1,5 @@
 import { findIndex } from "../Utils/helperFunctions.js";
-import { log10, theoryData, simResult, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
+import { theoryData, simResult, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
 import { qs, sleep } from "../Utils/helperFunctions.js";
 import t1 from "../Theories/T1-T8/T1.js";
@@ -10,12 +10,12 @@ import t5 from "../Theories/T1-T8/T5.js";
 import t6 from "../Theories/T1-T8/T6.js";
 import t7 from "../Theories/T1-T8/T7.js";
 import t8 from "../Theories/T1-T8/T8.js";
-import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
-import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
+import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
+import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 
 const output = qs(".output");
 
