@@ -125,6 +125,7 @@ function resetVarBuy() {
   global.varBuy = [];
 }
 function openVarModal(arr: Array<varBuys>) {
+  document.body.style.overflow = "hidden";
   (<HTMLDialogElement>qs(".boughtVars")).showModal();
   const tbody = qs(".boughtVarsOtp");
   while (tbody.firstChild) tbody.firstChild.remove();
@@ -147,6 +148,7 @@ function openVarModal(arr: Array<varBuys>) {
 }
 event(qs(".boughtVarsCloseBtn"), "pointerdown", () => {
   (<HTMLDialogElement>qs(".boughtVars")).close();
+  document.body.style.overflow = "auto";
 });
 function clearTable(): void {
   while (tbody.firstChild) tbody.firstChild.remove();
