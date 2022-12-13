@@ -29,9 +29,9 @@
 .button-wrapper button:hover {
   transform: scale(1.1);
 }
-table,
-th,
-td {
+.content-wrapper table,
+.content-wrapper th,
+.content-wrapper td {
   position: relative;
   background: white;
   color: black;
@@ -57,9 +57,6 @@ td {
 }
 table {
   margin-block-start: 2.5rem;
-}
-tr:hover {
-  background-color: #666;
 }
 .inputMode::before {
   content: attr(data-value);
@@ -123,4 +120,64 @@ textarea {
 }
 textarea::placeholder {
   font-size: 0.6rem;
+}
+
+.boughtVars {
+  padding: 5rem 0 5rem 1rem;
+  background-color: rgb(13, 15, 131);
+  color: white;
+  border: 0.1rem solid white;
+  border-radius: 0.5rem;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  max-height: 70vh;
+  overflow: hidden;
+  position: relative;
+}
+.boughtVars table,
+.boughtVars tr,
+.boughtVars td {
+  border-collapse: collapse;
+  padding: 0.3rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.boughtVars > div > table > thead > tr {
+  border-bottom: 2px solid white;
+}
+.boughtVars tr ~ tr {
+  border-top: 2px solid white;
+}
+.boughtVars td ~ td {
+  border-left: 1px solid white;
+}
+.boughtVarsCloseBtn {
+  border-radius: 50%;
+  width: 1.5rem;
+  aspect-ratio: 1;
+  background-color: red !important;
+  color: white !important;
+  font-weight: bold;
+  font-size: 0.8rem;
+  font-style: italic;
+  font-family: "Luicida Handwriting";
+  cursor: pointer;
+  transition: scale 100ms;
+  position: fixed;
+  right: 10%;
+  top: 5%;
+  outline: 0.1em solid white;
+}
+.boughtVars > div::-webkit-scrollbar {
+  width: 1rem;
+}
+.boughtVars > div::-webkit-scrollbar-thumb {
+  background-color: rgb(21, 69, 137);
+  border: 1px solid rgb(11, 210, 241);
+  border-radius: 0.5rem;
+}
+.boughtVars > div::-webkit-scrollbar-track {
+  background-color: rgb(8, 7, 77);
+  border-radius: 0.5rem;
 }

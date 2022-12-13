@@ -37,7 +37,8 @@
   translate: -50% -50%;
   overflow: hidden;
 }
-.settings::backdrop {
+.settings::backdrop,
+.boughtVars::backdrop {
   background-color: black;
   opacity: 0.6;
 }
@@ -139,5 +140,13 @@
   }
   .simAllInputs {
     width: max-content;
+  }
+  .boughtVars table,
+  .boughtVars tr,
+  .boughtVars td {
+    border-collapse: collapse;
+    padding: 0.3rem;
+    text-align: center;
+    font-size: 0.67rem;
   }
 }

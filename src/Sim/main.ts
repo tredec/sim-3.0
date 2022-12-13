@@ -166,7 +166,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
   }
   throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
 }
-async function chainSim(data: parsedData): Promise<Array<simResult>> {
+async function chainSim(data: parsedData, amount: number = Infinity): Promise<Array<simResult>> {
   let lastPub: number = data.rho;
   let time: number = 0;
   const start = data.rho;
