@@ -38,7 +38,7 @@ const tau = `<span style="font-size:0.9rem; font-style:italics">&tau;</span>`;
 const tableHeaders = {
     current: "All",
     single: `<th style="padding-inline: 0.5rem !important">Theory</th><th><span style="font-size:0.9rem;">&sigma;</span><sub>t</sub></th><th>Last Pub</th><th>Max Rho</th><th>&Delta;${tau}</th><th>Multi</th><th>Strat</th><th>${tau}/h</th><th>Pub Time</th>`,
-    all: `<th>&emsp;</th><th>Input</th><th>${tau}/h Active</th><th>${tau}/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;${tau} Active</th><th>&Delta;${tau} Idle</th>`,
+    all: `<th>&emsp;</th><th>Input</th><th>${tau}/h Active</th><th>${tau}/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;${tau} Active</th><th>&Delta;${tau} Idle</th>`
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
@@ -60,7 +60,7 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         mode: mode.value,
         modeInput: modeInput.value,
         simAllInputs: [semi_idle.checked, hard_active.checked],
-        hardCap: hardCap.checked,
+        hardCap: hardCap.checked
     };
     output.textContent = "";
     simulateButton.textContent = "Stop simulating";
@@ -115,7 +115,7 @@ function resetVarBuy() {
             const row = tbody === null || tbody === void 0 ? void 0 : tbody.children[j];
             if (parseFloat(row === null || row === void 0 ? void 0 : row.children[7].innerHTML) === global.varBuy[i][0]) {
                 let val = global.varBuy[i][1];
-                (row === null || row === void 0 ? void 0 : row.children[8]).onclick = () => {
+                (row === null || row === void 0 ? void 0 : row.children[8]).onpointerdown = () => {
                     openVarModal(val);
                 };
                 (row === null || row === void 0 ? void 0 : row.children[8]).style.cursor = "pointer";
