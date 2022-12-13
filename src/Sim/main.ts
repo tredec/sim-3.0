@@ -25,7 +25,8 @@ export const global = {
   stratFilter: true,
   simulating: false,
   forcedPubTime: Infinity,
-  showA23: false
+  showA23: false,
+  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
 };
 
 interface cacheInterface {

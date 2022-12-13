@@ -42,12 +42,15 @@ class csr2Sim {
   variables: Array<variableInterface>;
   updateError_flag: boolean;
   error: number;
-  boughtVars: (number|{
-    variable: string;
-    level: number;
-    cost: number;
-    timeStamp: number;
-})[];
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -205,7 +208,7 @@ class csr2Sim {
     this.bestCoast = [0, 0];
     this.updateError_flag = true;
     this.error = 0;
-    this.boughtVars=[]
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -244,8 +247,8 @@ class csr2Sim {
       lastBuy = Math.max(lastBuy, this.variables[i].cost - this.variables[i].costInc);
     }
     this.result = createResult(this, this.stratIndex === 2 ? " " + Math.min(this.pubMulti, 10 ** (this.getTotMult(lastBuy) - this.totMult)).toFixed(2) : "");
-    if(this.recursionValue[1]===1){
-      global.varBuy.push([this.result[7], this.boughtVars])
+    if (this.recursionValue[1] === 1 && this.stratIndex === 2) {
+      global.varBuy.push([this.result[7], this.boughtVars]);
     }
     return this.result;
   }
@@ -283,9 +286,9 @@ class csr2Sim {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
         if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
-          if(this.maxRho + 5 > this.lastPub){
-            let vars = ["q1","q2","c1","n","c2"]
-            this.boughtVars.push({variable:vars[i], level:this.variables[i].lvl, cost:this.variables[i].cost,timeStamp: this.t})
+          if (this.maxRho + 5 > this.lastPub && this.stratIndex === 2) {
+            let vars = ["q1", "q2", "c1", "n", "c2"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();
