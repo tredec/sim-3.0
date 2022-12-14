@@ -12,7 +12,7 @@
   --bg-clr-dark-2: rgb(32, 29, 124);
   --bg-clr-dark-3: rgb(34, 30, 164);
   --clr-yellow: rgb(90, 78, 5);
-  --ff-primary: "Computer Modern Bright Semibold";
+  --ff-primary: Comic Sans MS, Comic Sans;
   --font-clr: rgb(212, 194, 191);
   --input-bg: white;
   --input-f-clr: black;
@@ -32,7 +32,6 @@ body {
   font-family: var(--ff-primary);
   font-weight: bolders;
   color: var(--font-clr);
-  letter-spacing: 0.02em;
   height: 100vh;
 }
 body.no-scroll {
