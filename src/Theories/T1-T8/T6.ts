@@ -4,6 +4,7 @@ import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
 import { variableInterface } from "../../Utils/simHelpers.js";
 import Variable from "../../Utils/variable.js";
+import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t6(data: theoryData): Promise<simResult> {
   let sim = new t6Sim(data);
@@ -39,6 +40,15 @@ class t6Sim {
   variables: Array<variableInterface>;
   k: number;
   stopC12: Array<number | boolean>;
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -186,6 +196,7 @@ class t6Sim {
     ];
     this.k = 0;
     this.stopC12 = [0, 0, true];
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -215,6 +226,10 @@ class t6Sim {
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
     this.result = createResult(this, this.strat === "T6snax" ? " " + logToExp(<number>this.stopC12[0], 1) : "");
+    if (this.stratIndex === 12) {
+      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
+      global.varBuy.push([this.result[7], this.boughtVars]);
+    }
     return this.result;
   }
   tick() {
@@ -279,6 +294,10 @@ class t6Sim {
           }
         if (minCost[1] !== -1 && rawCost[minCost[1]] < this.rho) {
           this.rho = subtract(this.rho, this.variables[minCost[1]].cost);
+          if (this.maxRho + 5 > this.lastPub) {
+            let vars = ["q1", "q2", "r1", "r2", "c1", "c2", "c3", "c4", "c5"];
+            this.boughtVars.push({ variable: vars[minCost[1]], level: this.variables[minCost[1]].lvl + 1, cost: this.variables[minCost[1]].cost, timeStamp: this.t });
+          }
           this.variables[minCost[1]].buy();
         } else break;
       }
