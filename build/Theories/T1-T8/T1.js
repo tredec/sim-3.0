@@ -54,6 +54,7 @@ class t1Sim {
         this.term3 = 0;
         this.termRatio = 0;
         this.c3Ratio = this.lastPub < 300 ? 1 : this.lastPub < 450 ? 1.1 : this.lastPub < 550 ? 2 : this.lastPub < 655 ? 5 : 10;
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -145,6 +146,9 @@ class t1Sim {
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             this.result = createResult(this, global.forcedPubTime === Infinity && this.stratIndex === 4 ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
+            if (this.stratIndex === 4) {
+                global.varBuy.push([this.result[7], this.boughtVars]);
+            }
             return this.result;
         });
     }
@@ -170,6 +174,10 @@ class t1Sim {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                    if (this.maxRho + 5 > this.lastPub && this.stratIndex === 4 && ((i !== 2 && i !== 3) || this.lastPub < 350)) {
+                        let vars = ["q1", "q2", "c1", "c2", "c3", "c4"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
                     bought = true;

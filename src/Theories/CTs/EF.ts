@@ -5,6 +5,7 @@ import { findIndex, sleep } from "../../Utils/helperFunctions.js";
 import { variableInterface } from "../../Utils/simHelpers.js";
 import Variable from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
+import { varBuys } from "../../UI/simEvents.js";
 
 export default async function ef(data: theoryData): Promise<simResult> {
   let sim = new efSim(data);
@@ -41,6 +42,15 @@ class efSim {
   //initialize variables
   variables: Array<variableInterface>;
   lastA23: Array<number>;
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -213,6 +223,7 @@ class efSim {
     ];
     this.recursionValue = <Array<number>>data.recursionValue ?? [Infinity, 0];
     this.lastA23 = [0, 0];
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -256,6 +267,10 @@ class efSim {
       this,
       this.stratIndex === 3 ? ` q1: ${this.variables[1].lvl} q2: ${this.variables[2].lvl} a1: ${this.variables[7].lvl}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : ""
     );
+    if (this.stratIndex === 3 && this.recursionValue[1] === 2) {
+      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
+      global.varBuy.push([this.result[7], this.boughtVars]);
+    }
     return this.result;
   }
   tick() {
@@ -306,6 +321,10 @@ class efSim {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
         if (this.currencies[currencyIndexes[i]] > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+          if (this.maxRho + 5 > this.lastPub && this.stratIndex === 3 && this.recursionValue[1] === 2) {
+            let vars = ["t", "q1", "q2", "b1", "b2", "c1", "c2", "a1", "a2", "a3"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+          }
           this.currencies[currencyIndexes[i]] = subtract(this.currencies[currencyIndexes[i]], this.variables[i].cost);
           this.variables[i].buy();
         } else break;

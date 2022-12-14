@@ -57,6 +57,7 @@ class efSim {
         ];
         this.recursionValue = (_b = data.recursionValue) !== null && _b !== void 0 ? _b : [Infinity, 0];
         this.lastA23 = [0, 0];
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -233,6 +234,11 @@ class efSim {
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             this.result = createResult(this, this.stratIndex === 3 ? ` q1: ${this.variables[1].lvl} q2: ${this.variables[2].lvl} a1: ${this.variables[7].lvl}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : "");
+            if (this.stratIndex === 3 && this.recursionValue[1] === 2) {
+                while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                    this.boughtVars.pop();
+                global.varBuy.push([this.result[7], this.boughtVars]);
+            }
             return this.result;
         });
     }
@@ -275,6 +281,10 @@ class efSim {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.currencies[currencyIndexes[i]] > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                    if (this.maxRho + 5 > this.lastPub && this.stratIndex === 3 && this.recursionValue[1] === 2) {
+                        let vars = ["t", "q1", "q2", "b1", "b2", "c1", "c2", "a1", "a2", "a3"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.currencies[currencyIndexes[i]] = subtract(this.currencies[currencyIndexes[i]], this.variables[i].cost);
                     this.variables[i].buy();
                 }

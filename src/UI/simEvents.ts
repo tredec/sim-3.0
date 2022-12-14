@@ -102,7 +102,7 @@ function updateTable(arr: Array<simResult>): void {
   }
   resetVarBuy();
 }
-interface varBuys {
+export interface varBuys {
   variable: string;
   level: number;
   cost: number;
