@@ -258,7 +258,7 @@ class csr2Sim {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub && this.stratIndex === 2) {
                         let vars = ["q1", "q2", "c1", "n", "c2"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
