@@ -4,6 +4,7 @@ import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
 import { variableInterface } from "../../Utils/simHelpers.js";
 import Variable from "../../Utils/variable.js";
+import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t3(data: theoryData): Promise<simResult> {
   let sim = new t3Sim(data);
@@ -35,6 +36,15 @@ class t3Sim {
   maxRho: number;
   //initialize variables
   variables: Array<variableInterface>;
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -255,6 +265,7 @@ class t3Sim {
       new Variable({ cost: 1e3, costInc: 6.81744, varBase: 2 }), //c32
       new Variable({ cost: 1e5, costInc: 2.98, varBase: 2 }) //c33
     ];
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -284,6 +295,10 @@ class t3Sim {
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
     this.result = createResult(this, "");
+    if (this.stratIndex === 14) {
+      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
+      global.varBuy.push([this.result[7], this.boughtVars]);
+    }
     return this.result;
   }
   tick() {
@@ -316,6 +331,10 @@ class t3Sim {
       let currencyIndex = i % 3;
       while (true) {
         if (this.currencies[currencyIndex] > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+          if (this.maxRho + 5 > this.lastPub && this.stratIndex === 14) {
+            let vars = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+          }
           this.currencies[currencyIndex] = subtract(this.currencies[currencyIndex], this.variables[i].cost);
           this.variables[i].buy();
         } else break;
