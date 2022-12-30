@@ -6,7 +6,8 @@
     "webpack-cli": "^4.10.0"
   },
   "scripts": {
-    "build": "tsc && webpack ./build/UI/simEvents.js --output-path  ./build/UI --output-filename simEventsBundle.js --mode development"
+    "build": "tsc && webpack ./build/UI/simEvents.js --output-path  ./build/UI --output-filename simEventsBundle.js --mode development",
+    "prod": "tsc && webpack ./build/UI/simEvents.js --output-path  ./build/UI --output-filename simEventsBundle.js --mode production"
   },
   "dependencies": {
     "html2canvas": "^1.4.1"

@@ -49,6 +49,7 @@ class t5Sim {
             new Variable({ cost: 1e3, costInc: 8.85507e7, varBase: 2 })
         ];
         this.c2worth = true;
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -138,6 +139,11 @@ class t5Sim {
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             this.result = createResult(this, this.stratIndex === 1 ? " " + logToExp(this.variables[2].cost, 1) : "");
+            if (this.stratIndex === 2) {
+                while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                    this.boughtVars.pop();
+                global.varBuy.push([this.result[7], this.boughtVars]);
+            }
             return this.result;
         });
     }
@@ -166,6 +172,10 @@ class t5Sim {
         for (let i = this.variables.length - 1; i >= 0; i--) {
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                    if (this.maxRho + 5 > this.lastPub && this.stratIndex === 2) {
+                        let vars = ["q1", "q2", "c1", "c2", "c3"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
                     if (i === 3) {
