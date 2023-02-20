@@ -62,6 +62,7 @@ class wspSim {
             new Variable({ cost: 1e10, costInc: Math.pow(2, (3.38 * 10)), varBase: 2 })
         ];
         this.S = 0;
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -160,6 +161,11 @@ class wspSim {
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             this.result = createResult(this, "");
+            if (this.stratIndex === 2) {
+                while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                    this.boughtVars.pop();
+                global.varBuy.push([this.result[7], this.boughtVars]);
+            }
             return this.result;
         });
     }
@@ -186,6 +192,10 @@ class wspSim {
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
                     this.rho = subtract(this.rho, this.variables[i].cost);
+                    if (this.maxRho + 5 > this.lastPub) {
+                        let vars = ["q1", "q2", "n", "c1", "c2"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.variables[i].buy();
                     if (i === 2 || i === 4)
                         updateS_flag = true;

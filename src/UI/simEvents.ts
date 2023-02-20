@@ -11,15 +11,16 @@ const input = <HTMLInputElement>qs(".input");
 const cap = <HTMLInputElement>qs(".cap");
 const mode = <HTMLSelectElement>qs(".mode");
 const modeInput = <HTMLInputElement>qs("textarea");
+const timeDiffInputs = <Array<HTMLInputElement>>(<unknown>qsa(".timeDiffInput"));
 const hardCap = <HTMLInputElement>qs(".hardCap");
 const semi_idle = <HTMLInputElement>qs(".semi-idle");
 const hard_active = <HTMLInputElement>qs(".hard-active");
 
 //Outputs
 const output = qs(".output");
-let table = qs("table");
-let thead = qs("thead");
-let tbody = qs("tbody");
+let table = qs(".simTable");
+let thead = qs(".simTable > thead");
+let tbody = qs(".simTable > tbody");
 
 //Buttons
 const simulateButton = qs(".simulate");
@@ -58,8 +59,12 @@ event(simulateButton, "click", async () => {
     mode: mode.value,
     modeInput: modeInput.value,
     simAllInputs: [semi_idle.checked, hard_active.checked],
+    timeDiffInputs: [],
     hardCap: hardCap.checked
   };
+  for (let element of timeDiffInputs) {
+    data.timeDiffInputs.push(element.value);
+  }
   output.textContent = "";
   simulateButton.textContent = "Stop simulating";
   await sleep();
@@ -75,9 +80,9 @@ event(simulateButton, "click", async () => {
 function updateTable(arr: Array<simResult>): void {
   if (prevMode !== mode.value) clearTable();
   prevMode = mode.value;
-  table = qs("table");
-  thead = qs("thead");
-  tbody = qs("tbody");
+  table = qs(".simTable");
+  thead = qs(".simTable > thead");
+  tbody = qs(".simTable > tbody");
   if (mode.value === "All") {
     table.classList.add("big");
     table.classList.remove("small");
@@ -109,7 +114,7 @@ export interface varBuys {
   timeStamp: number;
 }
 function resetVarBuy() {
-  tbody = qs("tbody");
+  tbody = qs(".simTable > tbody");
   for (let i = 0; i < global.varBuy.length; i++) {
     for (let j = 0; j < tbody?.children.length; j++) {
       const row = tbody?.children[j];

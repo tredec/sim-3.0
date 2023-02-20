@@ -217,7 +217,7 @@ class efSim {
       new Variable({ cost: 100, costInc: 2, varBase: 1.1 }),
       new Variable({ cost: 20, costInc: 200, value: 1, stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: 100, costInc: 2, varBase: 1.1 }),
-      new Variable({ cost: 2000, costInc: 2 ** 2.2, value: 1, stepwisePowerSum: { default: true } }),
+      new Variable({ cost: 2000, costInc: 2 ** 2.2, value: 1, stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: 500, costInc: 2 ** 2.2, value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
       new Variable({ cost: 500, costInc: 2 ** 2.2, varBase: 2 })
     ];

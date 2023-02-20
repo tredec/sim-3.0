@@ -16,7 +16,7 @@ event(clear, "pointerdown", () => {
 event(copyImage, "pointerdown", () => createImage(""));
 event(downloadImage, "pointerdown", () => createImage("download"));
 function createImage(mode) {
-    html2canvas(qs("table")).then((canvas) => canvas.toBlob((blob) => {
+    html2canvas(qs(".simTable")).then((canvas) => canvas.toBlob((blob) => {
         if (mode === "download") {
             const a = document.createElement("a");
             a.href = canvas.toDataURL("image/png");

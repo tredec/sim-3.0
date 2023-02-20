@@ -13,7 +13,7 @@ const hardCap = <HTMLInputElement>qs(".hardCap");
 
 //Outputs
 const output = qs(".output");
-const table = qs("table");
+const table = qs(".simTable");
 
 //Setting Inputs
 const dtOtp = qs(".dtOtp");

@@ -11,7 +11,7 @@ const modeInput = qs("textarea");
 const hardCap = qs(".hardCap");
 //Outputs
 const output = qs(".output");
-const table = qs("table");
+const table = qs(".simTable");
 //Setting Inputs
 const dtOtp = qs(".dtOtp");
 const ddtOtp = qs(".ddtOtp");

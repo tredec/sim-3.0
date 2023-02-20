@@ -105,7 +105,10 @@ function parseData(data) {
                 throw "Cap value cannot be empty.";
         }
     }
+    //parsing mode input if needed
     if (data.mode !== "Single sim" && data.mode !== "Chain") {
+        if (data.mode === "Time diff.")
+            data.modeInput = JSON.stringify(data.timeDiffInputs);
         parsedDataObj.modeInput = parseModeInput(data.modeInput, data.mode);
     }
     return parsedDataObj;

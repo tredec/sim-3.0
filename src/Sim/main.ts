@@ -48,6 +48,7 @@ export interface inputData {
   hardCap: boolean;
   modeInput: string;
   simAllInputs: Array<boolean>;
+  timeDiffInputs: Array<string>;
 }
 interface parsedData {
   theory: string;
@@ -58,7 +59,7 @@ interface parsedData {
   mode: string;
   simAllInputs?: Array<boolean>;
   hardCap?: boolean;
-  modeInput?: string | Array<number> | number;
+  modeInput?: string | Array<number> | Array<Array<Array<number>>> | number;
   recovery?: null | { value: number; time: number; recoveryTime: boolean };
 }
 
@@ -122,7 +123,9 @@ function parseData(data: inputData): parsedData {
       else throw "Cap value cannot be empty.";
     }
   }
+  //parsing mode input if needed
   if (data.mode !== "Single sim" && data.mode !== "Chain") {
+    if (data.mode === "Time diff.") data.modeInput = JSON.stringify(data.timeDiffInputs);
     parsedDataObj.modeInput = parseModeInput(data.modeInput, data.mode);
   }
 

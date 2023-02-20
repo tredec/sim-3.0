@@ -29,9 +29,9 @@
 .button-wrapper button:hover {
   transform: scale(1.1);
 }
-.content-wrapper table,
-.content-wrapper th,
-.content-wrapper td {
+.simTable table,
+.simTable th,
+.simTable td {
   position: relative;
   background: white;
   color: black;
@@ -55,7 +55,7 @@
   padding-inline: 0.3em;
   font-size: 0.7rem;
 }
-table {
+.simTable {
   margin-block-start: 2.5rem;
 }
 .inputMode::before {
@@ -137,19 +137,25 @@ textarea::placeholder {
 }
 .boughtVars table,
 .boughtVars tr,
-.boughtVars td {
+.boughtVars td,
+.timeDiffTable,
+.timeDiffTable tr,
+.timeDiffTable td {
   border-collapse: collapse;
   padding: 0.3rem;
   text-align: center;
   font-size: 0.9rem;
 }
-.boughtVars > div > table > thead > tr {
+.boughtVars > div > table > thead > tr,
+.timeDiffTable > thead > tr {
   border-bottom: 2px solid white;
 }
-.boughtVars tr ~ tr {
+.boughtVars tr ~ tr,
+.timeDiffTable tr ~ tr {
   border-top: 2px solid white;
 }
-.boughtVars td ~ td {
+.boughtVars td ~ td,
+.timeDiffTable td ~ td {
   border-left: 1px solid white;
 }
 .boughtVarsCloseBtn {

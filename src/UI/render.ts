@@ -1,5 +1,6 @@
 import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
 import data from "../Sim/data.json" assert { type: "json" };
+import { updateTimeDiffTable } from "../Sim/Components/parsers.js";
 
 //Inputs
 const theory = <HTMLSelectElement>qs(".theory");
@@ -12,6 +13,7 @@ const modeInput = <HTMLInputElement>qs("textarea");
 const hardCap = qs(".hardCap");
 const semi_idle = <HTMLInputElement>qs(".semi-idle");
 const hard_active = <HTMLInputElement>qs(".hard-active");
+const timeDiffInputs = <Array<HTMLInputElement>>(<unknown>qsa(".timeDiffInput"));
 
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
@@ -42,9 +44,21 @@ window.onload = () => {
     mode.appendChild(option);
   }
   modeUpdate();
-};
 
-event(mode, "input", modeUpdate);
+  event(mode, "input", modeUpdate);
+
+  event(theory, "change", theoryUpdate);
+
+  const simAllSettings: Array<boolean> = JSON.parse(localStorage.getItem("simAllSettings") ?? "[true, false]");
+  semi_idle.checked = simAllSettings[0];
+  hard_active.checked = simAllSettings[1];
+
+  for (const elem of timeDiffInputs) {
+    event(elem, "input", () => {
+      updateTimeDiffTable();
+    });
+  }
+};
 
 export function modeUpdate(): void {
   singleInput.style.display = "none";
@@ -75,8 +89,6 @@ export function modeUpdate(): void {
   modeInputDescription.textContent = data.modeInputDescriptions[findIndex(data.modes, mode.value)];
 }
 
-event(theory, "change", theoryUpdate);
-
 export function theoryUpdate(): void {
   while (strat.firstChild) strat.firstChild.remove();
   const defaultStrats: Array<string> = ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"];
@@ -94,7 +106,3 @@ export function theoryUpdate(): void {
     strat.appendChild(option);
   }
 }
-
-const simAllSettings: Array<boolean> = JSON.parse(localStorage.getItem("simAllSettings") ?? "[true, false]");
-semi_idle.checked = simAllSettings[0];
-hard_active.checked = simAllSettings[1];

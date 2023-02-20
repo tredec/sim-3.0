@@ -5,6 +5,7 @@ import { findIndex, sleep } from "../../Utils/helperFunctions.js";
 import { variableInterface } from "../../Utils/simHelpers.js";
 import Variable from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
+import { varBuys } from "../../UI/simEvents.js";
 
 export default async function wsp(data: theoryData): Promise<simResult> {
   let sim = new wspSim(data);
@@ -39,6 +40,15 @@ class wspSim {
   //initialize variables
   variables: Array<variableInterface>;
   S: number;
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -153,6 +163,7 @@ class wspSim {
       new Variable({ cost: 1e10, costInc: 2 ** (3.38 * 10), varBase: 2 })
     ];
     this.S = 0;
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -182,6 +193,10 @@ class wspSim {
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
     this.result = createResult(this, "");
+    if (this.stratIndex === 2) {
+      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
+      global.varBuy.push([this.result[7], this.boughtVars]);
+    }
     return this.result;
   }
   tick() {
@@ -211,6 +226,10 @@ class wspSim {
       while (true) {
         if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
           this.rho = subtract(this.rho, this.variables[i].cost);
+          if (this.maxRho + 5 > this.lastPub) {
+            let vars = ["q1", "q2", "n", "c1", "c2"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+          }
           this.variables[i].buy();
           if (i === 2 || i === 4) updateS_flag = true;
         } else break;

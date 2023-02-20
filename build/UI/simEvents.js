@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { simulate, global } from "../Sim/main.js";
-import { qs, event, sleep, ce } from "../Utils/helperFunctions.js";
+import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
 import { convertTime, logToExp } from "../Utils/simHelpers.js";
 import { getSimState, setSimState } from "./simState.js";
 //Inputs
@@ -19,14 +19,15 @@ const input = qs(".input");
 const cap = qs(".cap");
 const mode = qs(".mode");
 const modeInput = qs("textarea");
+const timeDiffInputs = qsa(".timeDiffInput");
 const hardCap = qs(".hardCap");
 const semi_idle = qs(".semi-idle");
 const hard_active = qs(".hard-active");
 //Outputs
 const output = qs(".output");
-let table = qs("table");
-let thead = qs("thead");
-let tbody = qs("tbody");
+let table = qs(".simTable");
+let thead = qs(".simTable > thead");
+let tbody = qs(".simTable > tbody");
 //Buttons
 const simulateButton = qs(".simulate");
 //Setting Inputs
@@ -60,8 +61,12 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         mode: mode.value,
         modeInput: modeInput.value,
         simAllInputs: [semi_idle.checked, hard_active.checked],
+        timeDiffInputs: [],
         hardCap: hardCap.checked
     };
+    for (let element of timeDiffInputs) {
+        data.timeDiffInputs.push(element.value);
+    }
     output.textContent = "";
     simulateButton.textContent = "Stop simulating";
     yield sleep();
@@ -80,9 +85,9 @@ function updateTable(arr) {
     if (prevMode !== mode.value)
         clearTable();
     prevMode = mode.value;
-    table = qs("table");
-    thead = qs("thead");
-    tbody = qs("tbody");
+    table = qs(".simTable");
+    thead = qs(".simTable > thead");
+    tbody = qs(".simTable > tbody");
     if (mode.value === "All") {
         table.classList.add("big");
         table.classList.remove("small");
@@ -109,7 +114,7 @@ function updateTable(arr) {
     resetVarBuy();
 }
 function resetVarBuy() {
-    tbody = qs("tbody");
+    tbody = qs(".simTable > tbody");
     for (let i = 0; i < global.varBuy.length; i++) {
         for (let j = 0; j < (tbody === null || tbody === void 0 ? void 0 : tbody.children.length); j++) {
             const row = tbody === null || tbody === void 0 ? void 0 : tbody.children[j];

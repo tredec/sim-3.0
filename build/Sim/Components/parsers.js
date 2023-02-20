@@ -1,6 +1,7 @@
-import { log10 } from "../../Utils/simHelpers";
-import { getTauFactor, getTheoryFromIndex } from "./helpers";
+import { log10 } from "../../Utils/simHelpers.js";
+import { getTauFactor, getTheoryFromIndex } from "./helpers.js";
 import jsonData from ".././data.json" assert { type: "json" };
+import { qs, qsa } from "../../Utils/helperFunctions.js";
 export function parseCurrencyValue(value, theory, sigma, defaultConv = "r") {
     if (typeof value === "string") {
         const lastChar = value.charAt(value.length - 1);
@@ -112,6 +113,8 @@ export function parseModeInput(input, mode) {
     //All and Time diff. mode has it's own parser export functions
     if (mode === "All")
         return parseSimAll(input);
+    if (mode === "Time diff.")
+        return parseTimeDiff(input);
     if (mode === "Time diff." || mode === "Single sim" || mode === "Chain")
         return input;
     throw `Couldnt parse mode ${mode}. Please contact the author of the sim.`;
@@ -151,4 +154,53 @@ function parseSimAll(input) {
         res.push(parseCurrencyValue(split[i], getTheoryFromIndex(i - 1), res[0], "t"));
     }
     return res;
+}
+function parseTimeDiff(input) {
+    const inputSplit = JSON.parse(input);
+    const settings = { sigma: [0, 0], ct: false };
+    //parsing settings input
+    let temp = 0;
+    inputSplit[2] = inputSplit[2].split(" ");
+    for (let i = 0; i < inputSplit[2].length; i++) {
+        if (inputSplit[2][i].length === 0)
+            continue;
+        if (temp < 2)
+            settings.sigma[temp] = Math.max(0, parseInt(inputSplit[2][i]));
+        else
+            settings.ct = inputSplit[2][i] === "y";
+        temp++;
+    }
+    //parsing theory
+    const distributions = [];
+    for (let i = 0; i < 2; i++) {
+        const theories = inputSplit[i].split(",");
+        const parsedInput = [];
+        for (let j = 0; j < theories.length; j++) {
+            const values = theories[j].split(" ");
+            const temp = [];
+            for (let k = 0; k < values.length; k++) {
+                if (values[k].length === 0)
+                    continue;
+                temp.push(parseCurrencyValue(values[k], getTheoryFromIndex(j + Number(settings.ct) * 8), settings.sigma[i], "t"));
+            }
+            parsedInput.push(temp);
+        }
+        distributions.push(parsedInput);
+    }
+    return distributions;
+}
+export function updateTimeDiffTable() {
+    const timeDiffInputs = qsa(".timeDiffInput");
+    const timeDiffTable = qs(".timeDiffTable");
+    const str = [];
+    for (const elem of timeDiffInputs)
+        str.push(elem.value);
+    let parsedValues = parseTimeDiff(JSON.stringify(str));
+    while (timeDiffTable.firstChild)
+        timeDiffTable.firstChild.remove();
+    const tr = document.createElement("th");
+    const td = document.createElement("td");
+    td.innerHTML = "Hello world";
+    tr.appendChild(td);
+    timeDiffTable.appendChild(tr);
 }

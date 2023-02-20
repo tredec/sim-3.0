@@ -1,6 +1,6 @@
-var _a;
 import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
 import data from "../Sim/data.json" assert { type: "json" };
+import { updateTimeDiffTable } from "../Sim/Components/parsers.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -12,6 +12,7 @@ const modeInput = qs("textarea");
 const hardCap = qs(".hardCap");
 const semi_idle = qs(".semi-idle");
 const hard_active = qs(".hard-active");
+const timeDiffInputs = qsa(".timeDiffInput");
 //Other containers/elements
 const extraInputs = qs(".extraInputs");
 const timeDiffWrapper = qs(".timeDiffWrapper");
@@ -20,6 +21,7 @@ const simAllInputs = qs(".simAllInputs");
 const modeInputDescription = qs(".extraInputDescription");
 //Renders theories, strats and modes options on page load
 window.onload = () => {
+    var _a;
     for (let i = 0; i < data.theories.length; i++) {
         const option = ce("option");
         option.value = data.theories[i];
@@ -39,8 +41,17 @@ window.onload = () => {
         mode.appendChild(option);
     }
     modeUpdate();
+    event(mode, "input", modeUpdate);
+    event(theory, "change", theoryUpdate);
+    const simAllSettings = JSON.parse((_a = localStorage.getItem("simAllSettings")) !== null && _a !== void 0 ? _a : "[true, false]");
+    semi_idle.checked = simAllSettings[0];
+    hard_active.checked = simAllSettings[1];
+    for (const elem of timeDiffInputs) {
+        event(elem, "input", () => {
+            updateTimeDiffTable();
+        });
+    }
 };
-event(mode, "input", modeUpdate);
 export function modeUpdate() {
     singleInput.style.display = "none";
     extraInputs.style.display = "none";
@@ -72,7 +83,6 @@ export function modeUpdate() {
     modeInput.placeholder = data.modeInputPlaceholder[findIndex(data.modes, mode.value)];
     modeInputDescription.textContent = data.modeInputDescriptions[findIndex(data.modes, mode.value)];
 }
-event(theory, "change", theoryUpdate);
 export function theoryUpdate() {
     while (strat.firstChild)
         strat.firstChild.remove();
@@ -91,6 +101,3 @@ export function theoryUpdate() {
         strat.appendChild(option);
     }
 }
-const simAllSettings = JSON.parse((_a = localStorage.getItem("simAllSettings")) !== null && _a !== void 0 ? _a : "[true, false]");
-semi_idle.checked = simAllSettings[0];
-hard_active.checked = simAllSettings[1];
