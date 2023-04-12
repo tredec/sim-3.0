@@ -20,7 +20,7 @@ export default class Variable {
         }
     }
     buy() {
-        if ((this.lvl + 1) % this.stepwiseCost)
+        if ((this.lvl + 1) % this.stepwiseCost === 0)
             this.cost += this.costInc;
         if (this.stepwisePowerSum.base !== 0) {
             this.value =

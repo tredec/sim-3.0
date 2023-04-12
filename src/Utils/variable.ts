@@ -39,7 +39,7 @@ export default class Variable {
     }
   }
   buy(): void {
-    if ((this.lvl + 1) % this.stepwiseCost) this.cost += this.costInc;
+    if ((this.lvl + 1) % this.stepwiseCost === 0) this.cost += this.costInc;
     if (this.stepwisePowerSum.base !== 0) {
       this.value =
         this.value === ZERO
