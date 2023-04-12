@@ -4,6 +4,7 @@ interface variableData {
   lvl?: number;
   cost: number | string;
   costInc: number;
+  stepwiseCost?: number;
   varBase?: number;
   value?: number | string;
   stepwisePowerSum?: { default?: boolean; length?: number; base?: number };
@@ -14,6 +15,7 @@ export default class Variable {
   lvl: number;
   cost: number;
   costInc: number;
+  stepwiseCost: number;
   value: number;
   stepwisePowerSum: { default?: boolean; length: number; base: number };
   varBase: number;
@@ -22,6 +24,7 @@ export default class Variable {
     this.lvl = data.lvl ?? 0;
     this.cost = parseValue(String(data.cost));
     this.costInc = Math.log10(data.costInc);
+    this.stepwiseCost = data.stepwiseCost ?? 1;
     this.value = typeof data.value === "number" || typeof data.value === "string" ? parseValue(String(data.value)) : 0;
     this.stepwisePowerSum =
       data.stepwisePowerSum?.default === true
@@ -36,7 +39,7 @@ export default class Variable {
     }
   }
   buy(): void {
-    this.cost += this.costInc;
+    if ((this.lvl + 1) % this.stepwiseCost) this.cost += this.costInc;
     if (this.stepwisePowerSum.base !== 0) {
       this.value =
         this.value === ZERO
