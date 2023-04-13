@@ -42,7 +42,7 @@ const tableHeaders = {
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
 
-// if (localStorage.getItem("autoSave") === "true") setTimeout(() => getSimState(), 500);
+if (localStorage.getItem("autoSave") === "true") setTimeout(() => getSimState(), 500);
 
 event(simulateButton, "click", async () => {
   global.dt = parseFloat(dtOtp.textContent ?? "1.5");

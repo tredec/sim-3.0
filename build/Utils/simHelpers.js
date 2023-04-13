@@ -31,7 +31,10 @@ export function decimals(val, def = 5) {
     if (val >= 1e6)
         return logToExp(Math.log10(val), 3);
     const l = Math.floor(Math.log10(Math.abs(val)));
-    return round(val, def - l);
+    let num = round(val, def - l).toString();
+    while (num.split(".")[1].length < def - l)
+        num += "0";
+    return num;
 }
 export function round(number, decimals) {
     return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);

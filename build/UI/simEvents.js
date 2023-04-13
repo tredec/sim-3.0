@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { simulate, global } from "../Sim/main.js";
 import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
 import { convertTime, logToExp } from "../Utils/simHelpers.js";
-import { setSimState } from "./simState.js";
+import { getSimState, setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
@@ -43,7 +43,8 @@ const tableHeaders = {
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
-// if (localStorage.getItem("autoSave") === "true") setTimeout(() => getSimState(), 500);
+if (localStorage.getItem("autoSave") === "true")
+    setTimeout(() => getSimState(), 500);
 event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     global.dt = parseFloat((_a = dtOtp.textContent) !== null && _a !== void 0 ? _a : "1.5");

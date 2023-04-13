@@ -30,7 +30,9 @@ export function convertTime(secs: number): string {
 export function decimals(val: number, def: number = 5): number | string {
   if (val >= 1e6) return logToExp(Math.log10(val), 3);
   const l: number = Math.floor(Math.log10(Math.abs(val)));
-  return round(val, def - l);
+  let num = round(val, def - l).toString();
+  while (num.split(".")[1].length < def - l) num += "0";
+  return num;
 }
 
 export function round(number: number, decimals: number): number {
@@ -118,7 +120,7 @@ export function createResult(data: simResultInterface, stratExtra: null | string
     decimals(data.pubMulti),
     data.strat + stratExtra,
     decimals(data.maxTauH * getTauFactor(data.theory)),
-    convertTime(Math.max(0, data.pubT - data.recovery.time )),
+    convertTime(Math.max(0, data.pubT - data.recovery.time)),
     [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
   ];
 }
