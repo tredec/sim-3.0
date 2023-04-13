@@ -14,6 +14,7 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
+import rz from "../Theories/Unofficial-CTs/RZ.js";
 import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
 import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 
@@ -26,7 +27,7 @@ export const global = {
   simulating: false,
   forcedPubTime: Infinity,
   showA23: false,
-  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
+  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
 };
 
 interface cacheInterface {
@@ -35,7 +36,7 @@ interface cacheInterface {
 }
 const cache: cacheInterface = {
   lastStrat: null,
-  simEndTimestamp: 0
+  simEndTimestamp: 0,
 };
 
 export interface inputData {
@@ -105,7 +106,7 @@ function parseData(data: inputData): parsedData {
     sigma: 0,
     rho: 0,
     cap: Infinity,
-    recovery: null
+    recovery: null,
   };
 
   if (data.mode !== "All" && data.mode !== "Time diff.") {
@@ -140,7 +141,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
     rho: data.rho,
     recursionValue: null,
     recovery: data.recovery ?? { value: 0, time: 0, recoveryTime: false },
-    cap: data.hardCap ? data.cap : null
+    cap: data.hardCap ? data.cap : null,
   };
   switch (data.theory) {
     case "T1":
@@ -167,6 +168,8 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await ef(sendData);
     case "CSR2":
       return await csr2(sendData);
+    case "RZ":
+      return await rz(sendData);
   }
   throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
 }
@@ -240,7 +243,7 @@ async function simAll(data: parsedData): Promise<Array<simResult>> {
         sigma,
         rho: values[i],
         cap: Infinity,
-        mode: "Single Sim"
+        mode: "Single Sim",
       };
       temp.push(await singleSim(sendData));
     }
@@ -271,7 +274,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850, //T1C34
         type !== "Best Overall" && type !== "Best Active" && rho > 625, //T1C4
         type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250), //T1Ratio
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
       ];
       break;
     case "T2":
@@ -279,7 +282,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25, //T2
         type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250), //T2mc
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250, //T2ms
-        type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
+        type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250, //T2qs
       ];
       break;
     case "T3":
@@ -298,7 +301,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175, //T3noC13C32C33d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225, //T3noC13C33d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375, //T3Play
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250, //T3Play2
       ];
       break;
     case "T4":
@@ -314,14 +317,14 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200, //T4C456dC12rcvMS
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300, //T4C356dC12rcv
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275, // T4C56d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240, //T4C3d66
       ];
       break;
     case "T5":
       conditions = [
         rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"), //T5
         type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle", //T5Idle
-        type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
+        type !== "Best Idle" && type !== "Best Semi-Idle", //T5AI2
       ];
       break;
     case "T6":
@@ -338,7 +341,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234", //T6noC34d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234", //T6noC345d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800, //T6noC1234d
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100, //T6AI
       ];
       break;
     case "T7":
@@ -351,7 +354,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Overall" && type !== "Best Active" && rho > 525, //T7noC1234
         type !== "Best Semi-Idle" && type !== "Best Idle" && (rho < 25 || (rho >= 75 && rho < 150)), //T7C12d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 75, //T7C3
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 //T7PlaySpqcey
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100, //T7PlaySpqcey
       ];
       break;
     case "T8":
@@ -366,7 +369,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 && rho < 160, //T8noC35d
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 40 && rho < 100, //T8d
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 220, //T8Play (It is best strat in e40-e60 range, but i dont want it to appear at that low rho. d strats are almost as good)
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T8PlaySolarswap
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T8PlaySolarswap
       ];
 
       break;
@@ -374,7 +377,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       conditions = [
         type !== "Best Overall" && type !== "Best Active" && rho < 525, //WSP
         type !== "Best Overall" && type !== "Best Active" && rho > 475, //WSPstopC1
-        type !== "Best Semi-Idle" && type !== "Best Idle" //WSPdstopC1
+        type !== "Best Semi-Idle" && type !== "Best Idle", //WSPdstopC1
       ];
       break;
     case "SL":
@@ -383,7 +386,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 300, //SLStopA
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 300, //SLStopAd
         type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho < 300, //SLMS
-        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300 //SLMSd
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300, //SLMSd
       ];
       break;
     case "EF":
@@ -391,15 +394,18 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho < 10 || type === "Best Idle", //EF
         type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle", //EFsnax
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 10, //EFd
-        type !== "Best Semi-Idle" && type !== "Best Idle" //EFAI
+        type !== "Best Semi-Idle" && type !== "Best Idle", //EFAI
       ];
       break;
     case "CSR2":
       conditions = [
         rho < 10 || type === "Best Idle" || type === "Best Semi-Idle", //CSR2
         type === "Best Active" && rho < 500, //CSR2d
-        (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10 //CSR2XL
+        (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10, //CSR2XL
       ];
+      break;
+    case "RZ":
+      conditions = [true];
       break;
   }
   let requirements: Array<boolean> = [];
@@ -410,7 +416,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 25, //T1C34
         rho >= 50, //T1C4
         true, //T1Ratio
-        true //T1SolarXLII
+        true, //T1SolarXLII
       ];
       break;
     case "T2":
@@ -418,7 +424,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //T2
         true, //T2mc
         true, //T2ms,
-        true //T2qs
+        true, //T2qs
       ];
       break;
     case "T3":
@@ -437,7 +443,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //T3noC13C32C33d
         true, //T3noC13C33d
         true, //T3Play
-        true //T3Play2
+        true, //T3Play2
       ];
       break;
     case "T4":
@@ -453,14 +459,14 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 25, //T4C456dC12rcvMS
         rho >= 75, //T4C356dC12rcv
         rho >= 50, //T4C56d
-        true //T4C3d66
+        true, //T4C3d66
       ];
       break;
     case "T5":
       requirements = [
         true, //T5
         true, //T5Idle
-        true //T5AI2
+        true, //T5AI2
       ];
       break;
     case "T6":
@@ -477,7 +483,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //T6noC34d
         true, //T6noC345d
         rho >= 125, //T6noC1234d
-        true //T6AI
+        true, //T6AI
       ];
       break;
 
@@ -491,7 +497,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         rho >= 75, //T7noc1234
         true, //T7C12d
         rho >= 25, //T7C3d
-        rho >= 100 //T7PlaySpqcey
+        rho >= 100, //T7PlaySpqcey
       ];
       break;
     case "T8":
@@ -506,14 +512,14 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //T8noC35d
         true, //T8d
         true, //T8Play
-        true //T8PlaySolarswap
+        true, //T8PlaySolarswap
       ];
       break;
     case "WSP":
       requirements = [
         true, //WSP
         true, //WSPstopC1
-        true //WSPdstopC1
+        true, //WSPdstopC1
       ];
       break;
     case "SL":
@@ -522,7 +528,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //SLstopA
         true, //SlstopAd
         true, //SLMS
-        true //SLMSd
+        true, //SLMSd
       ];
       break;
     case "EF":
@@ -530,15 +536,18 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
         true, //EF
         true, //EFsnax
         true, //EFd
-        true //EFAI
+        true, //EFAI
       ];
       break;
     case "CSR2":
       requirements = [
         true, //CSR2
         true, //CSR2d
-        true //CSR2XL
+        true, //CSR2XL
       ];
+      break;
+    case "RZ":
+      requirements = [true];
       break;
   }
   if (conditions.length === 0) throw "No strats found";

@@ -53,3 +53,23 @@ event(saveDist, "pointerdown", () => {
 event(getDist, "pointerdown", () => {
   modeInput.value = localStorage.getItem("savedDistribution") ?? modeInput.value;
 });
+
+const ctDev = <HTMLInputElement>qs(".ctDev");
+event(ctDev, "input", () => {
+  if (ctDev.checked) ctc();
+});
+
+function ctc(index = 7) {
+  (<HTMLTableElement>document.querySelector("table")).addEventListener("click", () => {
+    const table = <HTMLTableElement>qs("tbody");
+    let res = "";
+    for (let i = 0; i < table.children.length; i++) {
+      let val = (<any>table.children[i].children[index]).innerText;
+      if (isNaN(Number(val))) break;
+      res += val + "\n";
+    }
+    navigator.clipboard.writeText(res);
+    console.log(`Copied ${table.children.length - 1} values to clipboard.`);
+  });
+  console.log("Click on table to copy tau/h values to clipboard.");
+}

@@ -23,6 +23,7 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
+import rz from "../Theories/Unofficial-CTs/RZ.js";
 import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
 import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 const output = qs(".output");
@@ -33,11 +34,11 @@ export const global = {
     simulating: false,
     forcedPubTime: Infinity,
     showA23: false,
-    varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
+    varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
 };
 const cache = {
     lastStrat: null,
-    simEndTimestamp: 0
+    simEndTimestamp: 0,
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -84,7 +85,7 @@ function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null
+        recovery: null,
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
@@ -125,7 +126,7 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false },
-            cap: data.hardCap ? data.cap : null
+            cap: data.hardCap ? data.cap : null,
         };
         switch (data.theory) {
             case "T1":
@@ -152,6 +153,8 @@ function singleSim(data) {
                 return yield ef(sendData);
             case "CSR2":
                 return yield csr2(sendData);
+            case "RZ":
+                return yield rz(sendData);
         }
         throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
     });
@@ -238,7 +241,7 @@ function simAll(data) {
                     sigma,
                     rho: values[i],
                     cap: Infinity,
-                    mode: "Single Sim"
+                    mode: "Single Sim",
                 };
                 temp.push(yield singleSim(sendData));
             }
@@ -273,7 +276,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850,
                 type !== "Best Overall" && type !== "Best Active" && rho > 625,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T1SolarXLII
             ];
             break;
         case "T2":
@@ -281,7 +284,7 @@ function getStrats(theory, rho, type) {
                 (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25,
                 type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250),
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250,
-                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
+                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250, //T2qs
             ];
             break;
         case "T3":
@@ -300,7 +303,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250, //T3Play2
             ];
             break;
         case "T4":
@@ -316,14 +319,14 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240, //T4C3d66
             ];
             break;
         case "T5":
             conditions = [
                 rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"),
                 type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
-                type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
+                type !== "Best Idle" && type !== "Best Semi-Idle", //T5AI2
             ];
             break;
         case "T6":
@@ -340,7 +343,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100, //T6AI
             ];
             break;
         case "T7":
@@ -353,7 +356,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Overall" && type !== "Best Active" && rho > 525,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && (rho < 25 || (rho >= 75 && rho < 150)),
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 75,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 //T7PlaySpqcey
+                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100, //T7PlaySpqcey
             ];
             break;
         case "T8":
@@ -368,14 +371,14 @@ function getStrats(theory, rho, type) {
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 && rho < 160,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 40 && rho < 100,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 220,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T8PlaySolarswap
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active", //T8PlaySolarswap
             ];
             break;
         case "WSP":
             conditions = [
                 type !== "Best Overall" && type !== "Best Active" && rho < 525,
                 type !== "Best Overall" && type !== "Best Active" && rho > 475,
-                type !== "Best Semi-Idle" && type !== "Best Idle" //WSPdstopC1
+                type !== "Best Semi-Idle" && type !== "Best Idle", //WSPdstopC1
             ];
             break;
         case "SL":
@@ -384,7 +387,7 @@ function getStrats(theory, rho, type) {
                 type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 300,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 300,
                 type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho < 300,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300 //SLMSd
+                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300, //SLMSd
             ];
             break;
         case "EF":
@@ -392,15 +395,18 @@ function getStrats(theory, rho, type) {
                 rho < 10 || type === "Best Idle",
                 type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
                 type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 10,
-                type !== "Best Semi-Idle" && type !== "Best Idle" //EFAI
+                type !== "Best Semi-Idle" && type !== "Best Idle", //EFAI
             ];
             break;
         case "CSR2":
             conditions = [
                 rho < 10 || type === "Best Idle" || type === "Best Semi-Idle",
                 type === "Best Active" && rho < 500,
-                (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10 //CSR2XL
+                (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10, //CSR2XL
             ];
+            break;
+        case "RZ":
+            conditions = [true];
             break;
     }
     let requirements = [];
@@ -411,7 +417,7 @@ function getStrats(theory, rho, type) {
                 rho >= 25,
                 rho >= 50,
                 true,
-                true //T1SolarXLII
+                true, //T1SolarXLII
             ];
             break;
         case "T2":
@@ -419,7 +425,7 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 true,
-                true //T2qs
+                true, //T2qs
             ];
             break;
         case "T3":
@@ -438,7 +444,7 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 true,
-                true //T3Play2
+                true, //T3Play2
             ];
             break;
         case "T4":
@@ -454,14 +460,14 @@ function getStrats(theory, rho, type) {
                 rho >= 25,
                 rho >= 75,
                 rho >= 50,
-                true //T4C3d66
+                true, //T4C3d66
             ];
             break;
         case "T5":
             requirements = [
                 true,
                 true,
-                true //T5AI2
+                true, //T5AI2
             ];
             break;
         case "T6":
@@ -478,7 +484,7 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 rho >= 125,
-                true //T6AI
+                true, //T6AI
             ];
             break;
         case "T7":
@@ -491,7 +497,7 @@ function getStrats(theory, rho, type) {
                 rho >= 75,
                 true,
                 rho >= 25,
-                rho >= 100 //T7PlaySpqcey
+                rho >= 100, //T7PlaySpqcey
             ];
             break;
         case "T8":
@@ -506,14 +512,14 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 true,
-                true //T8PlaySolarswap
+                true, //T8PlaySolarswap
             ];
             break;
         case "WSP":
             requirements = [
                 true,
                 true,
-                true //WSPdstopC1
+                true, //WSPdstopC1
             ];
             break;
         case "SL":
@@ -522,7 +528,7 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 true,
-                true //SLMSd
+                true, //SLMSd
             ];
             break;
         case "EF":
@@ -530,15 +536,18 @@ function getStrats(theory, rho, type) {
                 true,
                 true,
                 true,
-                true //EFAI
+                true, //EFAI
             ];
             break;
         case "CSR2":
             requirements = [
                 true,
                 true,
-                true //CSR2XL
+                true, //CSR2XL
             ];
+            break;
+        case "RZ":
+            requirements = [true];
             break;
     }
     if (conditions.length === 0)

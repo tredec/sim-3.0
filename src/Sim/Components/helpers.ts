@@ -18,6 +18,7 @@ export function getTauFactor(theory: string): number {
     case "WSP":
     case "SL":
     case "CSR2":
+    case "RZ":
       return 0.1;
     case "EF":
       return 0.4;

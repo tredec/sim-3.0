@@ -118,7 +118,7 @@ export function createResult(data: simResultInterface, stratExtra: null | string
     decimals(data.pubMulti),
     data.strat + stratExtra,
     decimals(data.maxTauH * getTauFactor(data.theory)),
-    convertTime(Math.max(0, data.pubT - data.recovery.time)),
+    convertTime(Math.max(0, data.pubT - data.recovery.time )),
     [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
   ];
 }
