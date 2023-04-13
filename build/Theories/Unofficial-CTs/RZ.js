@@ -20,7 +20,7 @@ export default function rz(data) {
     });
 }
 const resolution = 4;
-const getBlackholeSpeed = (z) => Math.min(Math.pow(z, 2) + 0.02, 1 / resolution);
+const getBlackholeSpeed = (z) => Math.min(Math.pow(z, 2) + 0.004, 1 / resolution);
 const getb = (level) => 1 + level / 4;
 const getbMarginTerm = (level) => Math.pow(10, -getb(level));
 const c1Exp = [1, 1.14, 1.21, 1.25];
@@ -70,7 +70,7 @@ const zeta01Table = [
     [0.091070056261173163, -0.76464549549431216],
     [0.10966862939766708, -0.750339936434268],
     [0.12726948615366909, -0.73615035542727014],
-    [0.14393642707718907, -0.722099743531673],
+    [0.14393642707718907, -0.722099743531673]
 ];
 // Linear interpolation lol
 let zetaSmall = (t) => {
@@ -225,7 +225,7 @@ let riemannSiegelZeta = (t, n) => {
     let p = fullN - N;
     let th = theta(t);
     for (let j = 1; j <= N; ++j) {
-        if (typeof logLookup[j] === "undefined") {
+        if (logLookup[j] === undefined) {
             logLookup[j] = Math.log(j);
             sqrtLookup[j] = Math.sqrt(j);
         }
@@ -279,34 +279,34 @@ class rzSim {
                 costInc: Math.pow(2, 0.7),
                 stepwisePowerSum: {
                     base: 2,
-                    length: 8,
-                },
+                    length: 8
+                }
             }),
             new Variable({
                 cost: 1400,
                 costInc: Math.pow(2, 2.8),
-                varBase: 2,
+                varBase: 2
             }),
             new Variable({
                 cost: 1e6,
-                costInc: 1e12,
+                costInc: 1e12
                 // power: use outside method
             }),
             new Variable({
                 stepwiseCost: 6,
                 cost: 120000,
-                costInc: Math.pow(100, (1 / 3)),
+                costInc: Math.pow(100, 1 / 3),
                 value: 1,
                 stepwisePowerSum: {
                     base: 2,
-                    length: 8,
-                },
+                    length: 8
+                }
             }),
             new Variable({
                 cost: 1,
                 costInc: 10,
-                varBase: 2,
-            }),
+                varBase: 2
+            })
         ];
         this.tauH = 0;
         this.maxTauH = 0;
@@ -322,7 +322,16 @@ class rzSim {
         this.updateMilestones();
     }
     getBuyingConditions() {
-        let conditions = [new Array(5).fill(true)];
+        let conditions = [
+            new Array(5).fill(true),
+            ...new Array(2).fill([
+                () => this.variables[0].lvl < this.variables[1].lvl * 4 + (this.milestones[0] ? 2 : 1),
+                true,
+                true,
+                () => (this.milestones[2] ? this.variables[3].cost + l10(4 + 0.5 * (this.variables[3].lvl % 8) + 0.0001) < this.variables[4].cost : true),
+                true
+            ]) // RZd, RZdBH
+        ];
         conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
         return conditions;
     }
@@ -334,12 +343,30 @@ class rzSim {
             [
                 [0, 0, 0, 0],
                 [0, 1, 0, 0],
-                [1, 1, 0, 0],
+                [0, 1, 1, 0],
                 [1, 1, 1, 0],
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 1], // black hole on at all times
+                [3, 1, 1, 1] // black hole
             ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+                [1, 1, 1, 0],
+                [2, 1, 1, 0],
+                [3, 1, 1, 0],
+                [3, 1, 1, 0] // RZd
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 1, 1, 0],
+                [1, 1, 1, 0],
+                [2, 1, 1, 0],
+                [3, 1, 1, 0],
+                [3, 1, 1, 1] // RZdBH
+            ]
         ];
     }
     getTotMult(val) {
@@ -378,9 +405,8 @@ class rzSim {
         });
     }
     tick() {
-        this.t += this.dt / 1.5;
         let t_dot = this.milestones[3] ? getBlackholeSpeed(this.zTerm) : 1 / resolution;
-        this.t_var += this.dt * t_dot;
+        this.t_var += (this.dt * t_dot) / 1.5;
         let tTerm = l10(this.t_var);
         let bonus = l10(this.dt) + this.totMult;
         let w1Term = this.milestones[1] ? this.variables[3].value : 0;

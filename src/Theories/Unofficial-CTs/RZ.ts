@@ -11,21 +11,16 @@ export default async function rz(data: theoryData): Promise<simResult> {
   let res = await sim.simulate();
   return res;
 }
-
 const resolution = 4;
-const getBlackholeSpeed = (z: number) => Math.min(z ** 2 + 0.02, 1 / resolution);
-
+const getBlackholeSpeed = (z: number) => Math.min(Math.pow(z, 2) + 0.004, 1 / resolution);
 const getb = (level: number) => 1 + level / 4;
 const getbMarginTerm = (level: number) => Math.pow(10, -getb(level));
-
 const c1Exp = [1, 1.14, 1.21, 1.25];
-
 let interpolate = (t: number) => {
   let v1 = t * t;
   let v2 = 1 - (1 - t) * (1 - t);
   return v1 * (1 - t) + v2 * t;
 };
-
 const zeta01Table = [
   [-1.4603545088095868, 0],
   [-1.4553643660270397, -0.097816768303847834],
@@ -67,9 +62,8 @@ const zeta01Table = [
   [0.091070056261173163, -0.76464549549431216],
   [0.10966862939766708, -0.750339936434268],
   [0.12726948615366909, -0.73615035542727014],
-  [0.14393642707718907, -0.722099743531673],
+  [0.14393642707718907, -0.722099743531673]
 ];
-
 // Linear interpolation lol
 let zetaSmall = (t: number) => {
   let fullIndex = t * (zeta01Table.length - 1);
@@ -79,16 +73,13 @@ let zetaSmall = (t: number) => {
   let im = zeta01Table[index][1] * (1 - offset) + zeta01Table[index + 1][1] * offset;
   return [re, im, re * re + im * im];
 };
-
 let even = (n: number) => {
   if (n % 2 == 0) return 1;
   else return -1;
 };
-
 let theta = (t: number) => {
   return (t / 2) * Math.log(t / 2 / Math.PI) - t / 2 - Math.PI / 8 + 1 / 48 / t + 7 / 5760 / t / t / t;
 };
-
 let C = (n: number, z: number) => {
   if (n == 0)
     return (
@@ -224,10 +215,8 @@ let C = (n: number, z: number) => {
       0.00000000000000000004 * Math.pow(z, 48.0)
     );
 };
-
 let logLookup: Array<number> = [];
 let sqrtLookup: Array<number> = [];
-
 let riemannSiegelZeta = (t: number, n: number) => {
   let Z = 0;
   let R = 0;
@@ -235,25 +224,21 @@ let riemannSiegelZeta = (t: number, n: number) => {
   let N = Math.floor(fullN);
   let p = fullN - N;
   let th = theta(t);
-
   for (let j = 1; j <= N; ++j) {
-    if (typeof logLookup[j] === "undefined") {
+    if (logLookup[j] === undefined) {
       logLookup[j] = Math.log(j);
       sqrtLookup[j] = Math.sqrt(j);
     }
     Z += Math.cos(th - t * logLookup[j]) / sqrtLookup[j];
   }
   Z *= 2;
-
   for (let k = 0; k <= n; ++k) {
     R += C(k, 2 * p - 1) * Math.pow((2 * Math.PI) / t, k * 0.5);
   }
   R *= even(N - 1) * Math.pow((2 * Math.PI) / t, 0.25);
-
   Z += R;
   return [Z * Math.cos(th), -Z * Math.sin(th), Z];
 };
-
 let zeta = (t: number) => {
   if (t > 1) return riemannSiegelZeta(t, 4);
   if (t < 0.1) return zetaSmall(t);
@@ -262,7 +247,6 @@ let zeta = (t: number) => {
   let b = riemannSiegelZeta(t, 4);
   return [a[0] * (1 - offset) + b[0] * offset, a[1] * (1 - offset) + b[1] * offset, a[2] * (1 - offset) + Math.abs(b[2]) * offset];
 };
-
 class rzSim {
   conditions: Array<Array<boolean | Function>>;
   milestoneConditions: Array<Function>;
@@ -306,7 +290,6 @@ class rzSim {
     this.strat = data.strat;
     this.theory = "RZ";
     this.tauFactor = getTauFactor(this.theory);
-
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
     this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
     this.lastPub = data.rho;
@@ -317,51 +300,48 @@ class rzSim {
     this.ddt = global.ddt;
     this.t = 0;
     this.ticks = 0;
-
     this.currencies = [0, 0];
     this.maxRho = 0;
     this.t_var = 0;
     this.zTerm = 0;
     this.rCoord = -1.4603545088095868;
     this.iCoord = 0;
-
     this.variables = [
       new Variable({
         firstFreeCost: true,
         cost: 220,
-        costInc: 2 ** 0.7,
+        costInc: Math.pow(2, 0.7),
         stepwisePowerSum: {
           base: 2,
-          length: 8,
-        },
+          length: 8
+        }
       }),
       new Variable({
         cost: 1400,
-        costInc: 2 ** 2.8,
-        varBase: 2,
+        costInc: Math.pow(2, 2.8),
+        varBase: 2
       }),
       new Variable({
         cost: 1e6,
-        costInc: 1e12,
+        costInc: 1e12
         // power: use outside method
       }),
       new Variable({
         stepwiseCost: 6,
         cost: 120000,
-        costInc: 100 ** (1 / 3),
+        costInc: Math.pow(100, 1 / 3),
         value: 1,
         stepwisePowerSum: {
           base: 2,
-          length: 8,
-        },
+          length: 8
+        }
       }),
       new Variable({
         cost: 1,
         costInc: 10,
-        varBase: 2,
-      }),
+        varBase: 2
+      })
     ];
-
     this.tauH = 0;
     this.maxTauH = 0;
     this.pubT = 0;
@@ -375,9 +355,17 @@ class rzSim {
     this.milestoneTree = this.getMilestoneTree();
     this.updateMilestones();
   }
-
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [new Array(5).fill(true)];
+    let conditions: Array<Array<boolean | Function>> = [
+      new Array(5).fill(true),
+      ...new Array(2).fill([
+        () => this.variables[0].lvl < this.variables[1].lvl * 4 + (this.milestones[0] ? 2 : 1),
+        true,
+        true,
+        () => (this.milestones[2] ? this.variables[3].cost + l10(4 + 0.5 * (this.variables[3].lvl % 8) + 0.0001) < this.variables[4].cost : true),
+        true
+      ]) // RZd, RZdBH
+    ];
     conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
     return conditions;
   }
@@ -389,12 +377,30 @@ class rzSim {
       [
         [0, 0, 0, 0],
         [0, 1, 0, 0],
-        [1, 1, 0, 0],
+        [0, 1, 1, 0],
         [1, 1, 1, 0],
         [2, 1, 1, 0],
         [3, 1, 1, 0],
-        [3, 1, 1, 1], // black hole on at all times
+        [3, 1, 1, 1] // black hole
       ],
+      [
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [1, 1, 1, 0],
+        [2, 1, 1, 0],
+        [3, 1, 1, 0],
+        [3, 1, 1, 0] // RZd
+      ],
+      [
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [1, 1, 1, 0],
+        [2, 1, 1, 0],
+        [3, 1, 1, 0],
+        [3, 1, 1, 1] // RZdBH
+      ]
     ];
   }
   getTotMult(val: number) {
@@ -418,7 +424,7 @@ class rzSim {
       if (this.lastPub < 350) this.updateMilestones();
       this.curMult = Math.pow(10, this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
-      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 8 ;
+      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 8;
       this.ticks++;
     }
     this.pubMulti = Math.pow(10, this.getTotMult(this.pubRho) - this.totMult);
@@ -426,10 +432,8 @@ class rzSim {
     return this.result;
   }
   tick() {
-    this.t += this.dt / 1.5;
     let t_dot = this.milestones[3] ? getBlackholeSpeed(this.zTerm) : 1 / resolution;
-    this.t_var += this.dt * t_dot;
-
+    this.t_var += (this.dt * t_dot) / 1.5;
     let tTerm = l10(this.t_var);
     let bonus = l10(this.dt) + this.totMult;
     let w1Term = this.milestones[1] ? this.variables[3].value : 0;
@@ -453,7 +457,6 @@ class rzSim {
     this.t += this.dt / 1.5;
     this.dt *= this.ddt;
     if (this.maxRho < this.recovery.value) this.recovery.time = this.t;
-
     this.tauH = (this.maxRho - this.lastPub) / (this.t / 3600);
     if (this.maxTauH < this.tauH || this.maxRho >= this.cap[0] - this.cap[1] || this.pubRho < 8 || global.forcedPubTime !== Infinity) {
       this.maxTauH = this.tauH;

@@ -29,7 +29,7 @@
     ["SL", "SLStopA", "SLStopAd", "SLMS", "SLMSd"],
     ["EF", "EFsnax", "EFd", "EFAI"],
     ["CSR2", "CSR2d", "CSR2XL"],
-    ["RZ"]
+    ["RZ", "RZd", "RZdBH"]
   ],
   "modes": ["All", "Single sim", "Chain", "Steps", "Amount", "Time", "Time diff."],
   "modeInputDescriptions": ["", "", "", "Step length: ", "Amount of pubs (Chain): ", "Total Time: "],
