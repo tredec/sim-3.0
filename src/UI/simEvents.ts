@@ -118,7 +118,7 @@ function resetVarBuy() {
   for (let i = 0; i < global.varBuy.length; i++) {
     for (let j = 0; j < tbody?.children.length; j++) {
       const row = tbody?.children[j];
-      if (parseFloat(row?.children[7].innerHTML) === global.varBuy[i][0]) {
+      if (parseFloat(row?.children[7].innerHTML) === parseFloat(<any>global.varBuy[i][0])) {
         let val = <Array<varBuys>>global.varBuy[i][1];
         (<HTMLElement>row?.children[8]).onpointerdown = () => {
           openVarModal(val);
