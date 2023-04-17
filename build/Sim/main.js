@@ -70,6 +70,7 @@ export function simulate(simData) {
             return res;
         }
         catch (err) {
+            console.log(err);
             return String(err);
         }
     });

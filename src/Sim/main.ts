@@ -91,6 +91,7 @@ export async function simulate(simData: inputData): Promise<string | null | Arra
     cache.simEndTimestamp = performance.now();
     return res;
   } catch (err) {
+    console.log(err);
     return String(err);
   }
 }

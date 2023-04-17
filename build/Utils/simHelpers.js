@@ -32,6 +32,8 @@ export function decimals(val, def = 5) {
         return logToExp(Math.log10(val), 3);
     const l = Math.floor(Math.log10(Math.abs(val)));
     let num = round(val, def - l).toString();
+    if (!/[.]/.test(num))
+        num += ".";
     while (num.split(".")[1].length < def - l)
         num += "0";
     return num;
