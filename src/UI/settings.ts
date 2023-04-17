@@ -25,7 +25,7 @@ const ddtOtp = qs(".ddtOtp");
 event(
   dtSlider,
   "input",
-  () => (dtOtp.textContent = dtSlider.value === "0" ? "0.1" : dtSlider.value === "10" ? "5" : String(decimals(0.1 + 2 ** parseFloat(dtSlider.value) * (4.9 / (1 + 2 ** parseFloat(dtSlider.max))), 4)))
+  () => (dtOtp.textContent = dtSlider.value === "0" ? "0.15" : dtSlider.value === "10" ? "5" : String(decimals(0.15 + 2 ** parseFloat(dtSlider.value) * (4.9 / (1 + 2 ** parseFloat(dtSlider.max))), 4)))
 );
 
 event(
