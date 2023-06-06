@@ -29,19 +29,34 @@ var __awaiter =
       step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
   };
-import { findIndex } from "./Utils/helperFunctions.js";
-import { log10, logToExp } from "./Utils/simHelpers.js";
+import { findIndex } from "../Utils/helperFunctions.js";
+import { logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
 import jsonData from "./data.json" assert { type: "json" };
-import { qs, sleep } from "./Utils/helperFunctions.js";
-import t4 from "./Theories/T4.js";
-import t1 from "./Theories/T1.js";
+import { qs, sleep } from "../Utils/helperFunctions.js";
+import t1 from "../Theories/T1-T8/T1.js";
+import t2 from "../Theories/T1-T8/T2.js";
+import t3 from "../Theories/T1-T8/T3.js";
+import t4 from "../Theories/T1-T8/T4.js";
+import t5 from "../Theories/T1-T8/T5.js";
+import t6 from "../Theories/T1-T8/T6.js";
+import t7 from "../Theories/T1-T8/T7.js";
+import t8 from "../Theories/T1-T8/T8.js";
+import wsp from "../Theories/CTs/WSP.js";
+import sl from "../Theories/CTs/SL.js";
+import ef from "../Theories/CTs/EF.js";
+import csr2 from "../Theories/CTs/CSR2.js";
+import rz from "../Theories/Unofficial-CTs/RZ.js";
+import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
+import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 const output = qs(".output");
 export const global = {
   dt: 1.5,
   ddt: 1.0001,
   stratFilter: true,
   simulating: false,
-  forcedPubTime: Infinity
+  forcedPubTime: Infinity,
+  showA23: false,
+  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
 };
 const cache = {
   lastStrat: null,
@@ -56,11 +71,21 @@ export function simulate(simData) {
     if ((performance.now() - cache.simEndTimestamp) / 1000 < 1) return null;
     try {
       let pData = parseData(simData);
-      let res;
+      let res = [];
       global.simulating = true;
-      if (pData.mode === "Single sim") res = [yield singleSim(pData)];
-      else {
-        res = yield chainSim(pData);
+      switch (pData.mode) {
+        case "Single sim":
+          res = [yield singleSim(pData)];
+          break;
+        case "Chain":
+          res = yield chainSim(pData);
+          break;
+        case "Steps":
+          res = yield stepSim(pData);
+          break;
+        case "All":
+          res = yield simAll(pData);
+          break;
       }
       cache.simEndTimestamp = performance.now();
       return res;
@@ -76,6 +101,7 @@ function parseData(data) {
     mode: data.mode,
     hardCap: data.hardCap,
     modeInput: data.modeInput,
+    simAllInputs: data.simAllInputs,
     sigma: 0,
     rho: 0,
     cap: Infinity,
@@ -84,7 +110,7 @@ function parseData(data) {
   if (data.mode !== "All" && data.mode !== "Time diff.") {
     //parsing sigma
     if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0) parsedDataObj.sigma = parseInt(data.sigma);
-    else throw "Invalid sigma value. Sigma must be an integer that's > 0";
+    else if (data.theory.charAt(0) === "T") throw "Invalid sigma value. Sigma must be an integer that's >= 0";
     //parsing currency
     if (data.rho.length > 0) parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
     else throw "Input value cannot be empty.";
@@ -94,12 +120,15 @@ function parseData(data) {
       else throw "Cap value cannot be empty.";
     }
   }
+  //parsing mode input if needed
   if (data.mode !== "Single sim" && data.mode !== "Chain") {
+    if (data.mode === "Time diff.") data.modeInput = JSON.stringify(data.timeDiffInputs);
     parsedDataObj.modeInput = parseModeInput(data.modeInput, data.mode);
   }
   return parsedDataObj;
 }
 function singleSim(data) {
+  var _a;
   return __awaiter(this, void 0, void 0, function* () {
     if (findIndex(["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1) return getBestStrat(data);
     const sendData = {
@@ -108,41 +137,127 @@ function singleSim(data) {
       sigma: data.sigma,
       rho: data.rho,
       recursionValue: null,
-      recovery: data.recovery,
+      recovery: (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false },
       cap: data.hardCap ? data.cap : null
     };
     switch (data.theory) {
       case "T1":
         return yield t1(sendData);
+      case "T2":
+        return yield t2(sendData);
+      case "T3":
+        return yield t3(sendData);
       case "T4":
         return yield t4(sendData);
+      case "T5":
+        return yield t5(sendData);
+      case "T6":
+        return yield t6(sendData);
+      case "T7":
+        return yield t7(sendData);
+      case "T8":
+        return yield t8(sendData);
+      case "WSP":
+        return yield wsp(sendData);
+      case "SL":
+        return yield sl(sendData);
+      case "EF":
+        return yield ef(sendData);
+      case "CSR2":
+        return yield csr2(sendData);
+      case "RZ":
+        return yield rz(sendData);
     }
-    throw "Unknown error in singleSim() function. Please contact the author of the sim.";
+    throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
   });
 }
-function chainSim(data) {
+function chainSim(data, amount = Infinity) {
   return __awaiter(this, void 0, void 0, function* () {
     let lastPub = data.rho;
     let time = 0;
+    const start = data.rho;
     const result = [];
     let stopOtp = logToExp(data.cap);
     let lastLog = 0;
     while (lastPub < data.cap) {
-      if (!global.simulating) break;
       let st = performance.now();
-      if (st - lastLog > 100) {
+      if (st - lastLog > 250) {
         lastLog = st;
-        output.textContent = `Simulating ${logToExp(lastPub, 1)}/${stopOtp}`;
+        output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
         yield sleep();
       }
       let res = yield singleSim(Object.assign({}, data));
+      if (!global.simulating) break;
+      if (typeof res[6] === "string") cache.lastStrat = res[6].split(" ")[0];
       result.push(res);
       lastPub = res[res.length - 1][0];
       data.rho = lastPub;
       time += res[res.length - 1][1];
     }
+    cache.lastStrat = null;
+    result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
+    const dtau = (data.rho - start) * getTauFactor(data.theory);
+    result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
     return result;
   });
+}
+function stepSim(data) {
+  return __awaiter(this, void 0, void 0, function* () {
+    let time = 0;
+    const start = data.rho;
+    const result = [];
+    let stopOtp = logToExp(data.cap);
+    let lastLog = 0;
+    while (data.rho < data.cap + 0.00001) {
+      let st = performance.now();
+      if (st - lastLog > 250) {
+        lastLog = st;
+        output.textContent = `Simulating ${logToExp(data.rho, 0)}/${stopOtp}`;
+        yield sleep();
+      }
+      let res = yield singleSim(Object.assign({}, data));
+      if (!global.simulating) break;
+      if (typeof res[6] === "string") cache.lastStrat = res[6].split(" ")[0];
+      result.push(res);
+      data.rho += data.modeInput;
+      time += res[res.length - 1][1];
+    }
+    cache.lastStrat = null;
+    return result;
+  });
+}
+function simAll(data) {
+  return __awaiter(this, void 0, void 0, function* () {
+    const sigma = data.modeInput[0];
+    const values = data.modeInput.slice(1, data.modeInput.length);
+    let res = [];
+    for (let i = 0; i < values.length; i++) {
+      if (values[i] === 0) continue;
+      output.innerText = `Simulating ${getTheoryFromIndex(i)}/${getTheoryFromIndex(values.length - 1)}`;
+      yield sleep();
+      if (!global.simulating) break;
+      let modes = ["Best Semi-Idle", "Best Overall"];
+      if (data.simAllInputs != null) modes = [data.simAllInputs[0] ? "Best Semi-Idle" : "Best Idle", data.simAllInputs[1] ? "Best Overall" : "Best Active"];
+      let temp = [];
+      for (let j = 0; j < modes.length; j++) {
+        let sendData = {
+          theory: getTheoryFromIndex(i),
+          strat: modes[j],
+          sigma,
+          rho: values[i],
+          cap: Infinity,
+          mode: "Single Sim"
+        };
+        temp.push(yield singleSim(sendData));
+      }
+      res.push(createSimAllOutput(temp));
+    }
+    res.push([sigma]);
+    return res;
+  });
+}
+function createSimAllOutput(arr) {
+  return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], decimals(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
 }
 function getBestStrat(data) {
   return __awaiter(this, void 0, void 0, function* () {
@@ -157,7 +272,6 @@ function getBestStrat(data) {
   });
 }
 function getStrats(theory, rho, type) {
-  if (!global.stratFilter) return jsonData.strats[getIndexFromTheory(theory)];
   let conditions = [];
   switch (theory) {
     case "T1":
@@ -170,176 +284,278 @@ function getStrats(theory, rho, type) {
       ];
       break;
     case "T2":
-      conditions = [];
+      conditions = [
+        (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25,
+        type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250),
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250,
+        type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
+      ];
       break;
     case "T3":
-      conditions = [];
+      conditions = [
+        rho < 25,
+        type !== "Best Overall" && type !== "Best Active" && rho < 150,
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 175,
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 260 && (rho < 500 || type !== "Best Semi-Idle"),
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 150,
+        type !== "Best Overall" && type !== "Best Idle" && type !== "Best Semi-Idle" && rho >= 275,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
+      ];
       break;
     case "T4":
       conditions = [
         rho < 30,
-        type !== "Best Overall" && type !== "Best Active" && rho < 600 && (cache.lastStrat === "T4C12" || cache.lastStrat === null || rho < 225),
+        type !== "Best Overall" && type !== "Best Active" && rho < 600 && cache.lastStrat !== "T4C3",
         type !== "Best Overall" && type !== "Best Active" && rho > 200,
         type !== "Best Overall" && type !== "Best Active" && rho < 125,
         type !== "Best Overall" && type !== "Best Active" && rho < 150,
         type !== "Best Overall" && type !== "Best Active" && rho < 275,
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat === "T4C12d" || cache.lastStrat === null || rho < 225),
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && cache.lastStrat !== "T4C3d66" && cache.lastStrat !== "T4C123d",
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && rho > 175 && (cache.lastStrat !== "T4C3d66" || rho < 225),
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 125,
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300,
         type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && (cache.lastStrat !== "T4C3d66" || rho < 300),
-        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 225 //T4C3d66
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
       ];
       break;
     case "T5":
-      conditions = [];
+      conditions = [
+        rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"),
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+        type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
+      ];
       break;
     case "T6":
-      conditions = [];
+      conditions = [
+        rho < 25,
+        type !== "Best Overall" && type !== "Best Active" && rho < 25,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 100,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+        type !== "Best Overall" && type !== "Best Active" && rho > 800,
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho > 400,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 25,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 100,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
+      ];
       break;
     case "T7":
-      conditions = [];
+      conditions = [
+        false,
+        type !== "Best Overall" && type !== "Best Active" && (rho < 25 || (rho >= 75 && rho < 100)),
+        type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 75,
+        type !== "Best Overall" && type !== "Best Active" && rho < 550 && rho >= 100,
+        type !== "Best Overall" && type !== "Best Active" && rho < 625 && rho > 500,
+        type !== "Best Overall" && type !== "Best Active" && rho > 525,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && (rho < 25 || (rho >= 75 && rho < 150)),
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 75,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 //T7PlaySpqcey
+      ];
       break;
     case "T8":
-      conditions = [];
+      conditions = [
+        type !== "Best Overall" && type !== "Best Active" && (type !== "Best Semi-Idle" || rho < 100),
+        type !== "Best Overall" && type !== "Best Active" && rho < 25,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 160 && rho < 220,
+        type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 160,
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 60,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 160 && rho < 220,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 && rho < 160,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 40 && rho < 100,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 220,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T8PlaySolarswap
+      ];
       break;
     case "WSP":
-      conditions = [];
+      conditions = [
+        type !== "Best Overall" && type !== "Best Active" && rho < 525,
+        type !== "Best Overall" && type !== "Best Active" && rho > 475,
+        type !== "Best Semi-Idle" && type !== "Best Idle" //WSPdstopC1
+      ];
       break;
     case "SL":
-      conditions = [];
+      conditions = [
+        rho < 25 || type === "Best Idle",
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 300,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 300,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho < 300,
+        type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300 //SLMSd
+      ];
       break;
     case "EF":
-      conditions = [];
+      conditions = [
+        rho < 10 || type === "Best Idle",
+        type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
+        type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 10,
+        type !== "Best Semi-Idle" && type !== "Best Idle" //EFAI
+      ];
       break;
     case "CSR2":
-      conditions = [];
+      conditions = [
+        rho < 10 || type === "Best Idle" || type === "Best Semi-Idle",
+        type === "Best Active" && rho < 500,
+        (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10 //CSR2XL
+      ];
       break;
-    case "PD":
-      conditions = [];
+    case "RZ":
+      conditions = [true, true, true, true];
       break;
-    case "FI":
-      conditions = [];
+  }
+  let requirements = [];
+  switch (theory) {
+    case "T1":
+      requirements = [
+        true,
+        rho >= 25,
+        rho >= 50,
+        true,
+        true //T1SolarXLII
+      ];
       break;
-    case "BP":
-      conditions = [];
+    case "T2":
+      requirements = [
+        true,
+        true,
+        true,
+        true //T2qs
+      ];
+      break;
+    case "T3":
+      requirements = [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true //T3Play2
+      ];
+      break;
+    case "T4":
+      requirements = [
+        true,
+        true,
+        true,
+        rho >= 25,
+        rho >= 50,
+        rho >= 50,
+        true,
+        true,
+        rho >= 25,
+        rho >= 75,
+        rho >= 50,
+        true //T4C3d66
+      ];
+      break;
+    case "T5":
+      requirements = [
+        true,
+        true,
+        true //T5AI2
+      ];
+      break;
+    case "T6":
+      requirements = [
+        true,
+        true,
+        true,
+        true,
+        true,
+        rho >= 125,
+        true,
+        true,
+        true,
+        true,
+        true,
+        rho >= 125,
+        true //T6AI
+      ];
+      break;
+    case "T7":
+      requirements = [
+        true,
+        true,
+        rho >= 25,
+        rho >= 25,
+        rho >= 75,
+        rho >= 75,
+        true,
+        rho >= 25,
+        rho >= 100 //T7PlaySpqcey
+      ];
+      break;
+    case "T8":
+      requirements = [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true //T8PlaySolarswap
+      ];
+      break;
+    case "WSP":
+      requirements = [
+        true,
+        true,
+        true //WSPdstopC1
+      ];
+      break;
+    case "SL":
+      requirements = [
+        true,
+        true,
+        true,
+        true,
+        true //SLMSd
+      ];
+      break;
+    case "EF":
+      requirements = [
+        true,
+        true,
+        true,
+        true //EFAI
+      ];
+      break;
+    case "CSR2":
+      requirements = [
+        true,
+        true,
+        true //CSR2XL
+      ];
+      break;
+    case "RZ":
+      requirements = [true, true, true, true];
       break;
   }
   if (conditions.length === 0) throw "No strats found";
   let res = [];
-  for (let i = 0; i < conditions.length; i++) if (conditions[i]) res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
+  for (let i = 0; i < conditions.length; i++) if ((conditions[i] || !global.stratFilter) && requirements[i]) res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
   return res;
-}
-function getTauFactor(theory) {
-  switch (theory) {
-    case "T1":
-    case "T2":
-    case "T3":
-    case "T4":
-    case "T5":
-    case "T6":
-    case "T7":
-    case "T8":
-      return 1;
-    case "WSP":
-    case "SL":
-    case "CSR2":
-    case "FI":
-    case "PD":
-      return 0.1;
-    case "BP":
-      return 0.15;
-    case "EF":
-      return 0.4;
-  }
-  throw `Invalid theory ${theory}. Please contact the author of the sim.`;
-}
-function parseCurrencyValue(value, theory, sigma, defaultConv = "r") {
-  if (typeof value === "string") {
-    const lastChar = value.charAt(value.length - 1);
-    //checks if last character is not valid currency character. If not, throw error
-    if (lastChar.match(/[r/t/m]/) !== null) {
-      value = value.slice(0, -1);
-      if (isValidCurrency(value)) value = [value, lastChar];
-    } else if (lastChar.match(/[0-9]/)) {
-      if (isValidCurrency(value)) value = [value, defaultConv];
-    } else {
-      throw `Invalid currency value ${value}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-    }
-  }
-  //Parses currency value if it is still a string.
-  if (typeof value[0] === "string" && Array.isArray(value)) value[0] = parseValue(value[0]);
-  //failsafe in case value is not parsed currectly.
-  if (typeof value[0] !== "number") throw `Cannot parse value ${value[0]}. Please contact the author of the sim.`;
-  //returns value if last character is r.
-  if (value[1] === "r") return value[0];
-  //returns value with correct tau factor if last character is t.
-  if (value[1] === "t") return value[0] / getTauFactor(theory);
-  //returns value converted to rho from current multiplier if last character is r.
-  if (value[1] === "m") return reverseMulti(theory, value[0], sigma);
-  throw `Cannot parse value ${value[0]} and ${value[1]}. Please contact the author of the sim.`;
-}
-function isValidCurrency(val) {
-  //if currency contains any other characters than 0-9 or e, throw error for invalid currency.
-  if (val.match(/^[0-9/e]+$/) === null) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-  //if amount of e's in currency are more than 1, throw error for invalid currency.
-  let es = 0;
-  for (let i = 0; i < val.length; i++) if (val[i] === "e") es++;
-  if (es > 1) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
-  //if currency is valid, return true.
-  return true;
-}
-function getIndexFromTheory(theory) {
-  return findIndex(jsonData.theories, theory);
-}
-function parseValue(val) {
-  if (/[e]/.test(val)) return log10(val);
-  return parseFloat(val);
-}
-function reverseMulti(theory, value, sigma) {
-  let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
-  let divSigmaMulti = (exp, div) => (value - Math.log10(Math.pow(sigma / 20, getR9Exp())) + Math.log10(div)) * (1 / exp);
-  let multSigmaMulti = (exp, mult) => (value - Math.log10(Math.pow(sigma / 20, getR9Exp())) - Math.log10(mult)) * (1 / exp);
-  let sigmaMulti = (exp) => (value - Math.log10(Math.pow(sigma / 20, getR9Exp()))) * (1 / exp);
-  switch (theory) {
-    case "T1":
-      return divSigmaMulti(0.164, 3);
-    case "T2":
-      return divSigmaMulti(0.198, 100);
-    case "T3":
-      return multSigmaMulti(0.147, 3);
-    case "T4":
-      return divSigmaMulti(0.165, 4);
-    case "T5":
-      return sigmaMulti(0.159);
-    case "T6":
-      return divSigmaMulti(0.196, 50);
-    case "T7":
-      return sigmaMulti(0.152);
-    case "T8":
-      return sigmaMulti(0.15);
-    case "WSP":
-    case "SL":
-      return value / 0.15;
-    case "EF":
-      return value * (1 / 0.387) * 2.5;
-    case "CSR2":
-      return (value + Math.log10(200)) * (1 / 2.203) * 10;
-  }
-  throw `Failed parsing multiplier. Please contact the author of the sim.`;
-}
-function parseModeInput(input, mode) {
-  //Parsing Step mode input
-  if (mode === "Steps" && typeof input === "string") {
-    if (isValidCurrency(input)) return parseValue(input);
-  }
-  //Parsing Time and Amount input
-  if ((mode === "Time" || mode === "Amount") && typeof input === "string") {
-    if (input.match(/[0-9]/) !== null) return parseFloat(input);
-    throw mode + " input must be a number.";
-  }
-  //All and Time diff. mode has it's own parser functions
-  if (mode === "Time diff." || mode === "All" || mode === "Single sim" || mode === "Chain") return input;
-  throw `Couldnt parse mode ${mode}. Please contact the author of the sim.`;
 }

@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t5(data: theoryData): Promise<simResult> {
@@ -36,7 +35,7 @@ class t5Sim {
   maxRho: number;
   q: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   c2worth: boolean;
   boughtVars: (
     | number
@@ -129,11 +128,11 @@ class t5Sim {
     this.q = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 10, costInc: 1.61328, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 15, costInc: 64, varBase: 2 }),
-      new Variable({ cost: 1e6, costInc: 1.18099, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 75, costInc: 4.53725, varBase: 2 }),
-      new Variable({ cost: 1e3, costInc: 8.85507e7, varBase: 2 })
+      new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(15, 64), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e6, 1.18099), value: 1, stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(75, 4.53725), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e3, 8.85507e7), varBase: 2 })
     ];
     this.c2worth = true;
     this.boughtVars = [];

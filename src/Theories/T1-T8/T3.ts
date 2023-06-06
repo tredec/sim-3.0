@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t3(data: theoryData): Promise<simResult> {
@@ -35,7 +34,7 @@ class t3Sim {
   currencies: Array<number>;
   maxRho: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   boughtVars: (
     | number
     | {
@@ -252,18 +251,18 @@ class t3Sim {
     this.maxRho = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 10, costInc: 1.18099, value: 1, stepwisePowerSum: { default: true } }), //b1
-      new Variable({ cost: 10, costInc: 1.308, stepwisePowerSum: { default: true } }), //b2
-      new Variable({ cost: 3000, costInc: 1.675, stepwisePowerSum: { default: true } }), //b3
-      new Variable({ cost: 20, costInc: 6.3496, varBase: 2 }), //c11
-      new Variable({ cost: 10, costInc: 2.74, varBase: 2 }), //c12
-      new Variable({ cost: 1000, costInc: 1.965, varBase: 2 }), //c13
-      new Variable({ cost: 500, costInc: 18.8343, varBase: 2 }), //c21
-      new Variable({ cost: 1e5, costInc: 3.65, varBase: 2 }), //c22
-      new Variable({ cost: 1e5, costInc: 2.27, varBase: 2 }), //c23
-      new Variable({ cost: 1e4, costInc: 1248.27, varBase: 2 }), //c31
-      new Variable({ cost: 1e3, costInc: 6.81744, varBase: 2 }), //c32
-      new Variable({ cost: 1e5, costInc: 2.98, varBase: 2 }) //c33
+      new Variable({ cost: new ExponentialCost(10, 1.18099), stepwisePowerSum: { default: true }, firstFreeCost: true }), //b1
+      new Variable({ cost: new ExponentialCost(10, 1.308), stepwisePowerSum: { default: true } }), //b2
+      new Variable({ cost: new ExponentialCost(3000, 1.675), stepwisePowerSum: { default: true } }), //b3
+      new Variable({ cost: new ExponentialCost(20, 6.3496), varBase: 2 }), //c11
+      new Variable({ cost: new ExponentialCost(10, 2.74), varBase: 2 }), //c12
+      new Variable({ cost: new ExponentialCost(1000, 1.965), varBase: 2 }), //c13
+      new Variable({ cost: new ExponentialCost(500, 18.8343), varBase: 2 }), //c21
+      new Variable({ cost: new ExponentialCost(1e5, 3.65), varBase: 2 }), //c22
+      new Variable({ cost: new ExponentialCost(1e5, 2.27), varBase: 2 }), //c23
+      new Variable({ cost: new ExponentialCost(1e4, 1248.27), varBase: 2 }), //c31
+      new Variable({ cost: new ExponentialCost(1e3, 6.81744), varBase: 2 }), //c32
+      new Variable({ cost: new ExponentialCost(1e5, 2.98), varBase: 2 }) //c33
     ];
     this.boughtVars = [];
     //pub values

@@ -23,7 +23,6 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
-import rz from "../Theories/Unofficial-CTs/RZ.js";
 import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
 import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
 const output = qs(".output");
@@ -34,7 +33,8 @@ export const global = {
     simulating: false,
     forcedPubTime: Infinity,
     showA23: false,
-    varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
+    varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
+    customVal: null
 };
 const cache = {
     lastStrat: null,
@@ -70,7 +70,6 @@ export function simulate(simData) {
             return res;
         }
         catch (err) {
-            console.log(err);
             return String(err);
         }
     });
@@ -154,13 +153,15 @@ function singleSim(data) {
                 return yield ef(sendData);
             case "CSR2":
                 return yield csr2(sendData);
-            case "RZ":
-                return yield rz(sendData);
+            // case "RZ":
+            //   return await rz(sendData);
+            // case "FP":
+            //   return await fp(sendData);
         }
         throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
     });
 }
-function chainSim(data, amount = Infinity) {
+function chainSim(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let lastPub = data.rho;
         let time = 0;
@@ -407,7 +408,7 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "RZ":
-            conditions = [true, true, true];
+            conditions = [true, true, true, true];
             break;
     }
     let requirements = [];
@@ -548,7 +549,7 @@ function getStrats(theory, rho, type) {
             ];
             break;
         case "RZ":
-            requirements = [true, true, true];
+            requirements = [true, true, true, true];
             break;
     }
     if (conditions.length === 0)

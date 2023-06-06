@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t8(data: theoryData): Promise<simResult> {
   let sim = new t8Sim(data);
@@ -34,7 +33,7 @@ class t8Sim {
   rho: number;
   maxRho: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -240,11 +239,11 @@ class t8Sim {
     this.maxRho = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 10, costInc: 1.5172, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 20, costInc: 64, varBase: 2 }),
-      new Variable({ cost: 1e2, costInc: 2 ** (1.15 * Math.log2(3)), varBase: 3 }),
-      new Variable({ cost: 1e2, costInc: 2 ** (1.15 * Math.log2(5)), varBase: 5 }),
-      new Variable({ cost: 1e2, costInc: 2 ** (1.15 * Math.log2(7)), varBase: 7 })
+      new Variable({ cost: new ExponentialCost(10, 1.5172), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(20, 64), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(3), true), varBase: 3 }),
+      new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(5), true), varBase: 5 }),
+      new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(7), true), varBase: 7 })
     ];
     //pub values
     this.tauH = 0;

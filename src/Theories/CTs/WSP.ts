@@ -1,9 +1,8 @@
 import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
+import { simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 import { varBuys } from "../../UI/simEvents.js";
 
@@ -38,7 +37,7 @@ class wspSim {
   maxRho: number;
   q: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   S: number;
   boughtVars: (
     | number
@@ -156,11 +155,11 @@ class wspSim {
     this.q = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 10, costInc: 2 ** (3.38 / 4), value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 1000, costInc: 2 ** (3.38 * 3), varBase: 2 }),
-      new Variable({ cost: 20, costInc: 2 ** 3.38 }),
-      new Variable({ cost: 50, costInc: 2 ** (3.38 / 1.5), stepwisePowerSum: { base: 2, length: 50 } }),
-      new Variable({ cost: 1e10, costInc: 2 ** (3.38 * 10), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(10, 3.38 / 4, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(1000, 3.38 * 3, true), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(20, 3.38, true) }),
+      new Variable({ cost: new ExponentialCost(50, 3.38 / 1.5, true), stepwisePowerSum: { base: 2, length: 50 } }),
+      new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 })
     ];
     this.S = 0;
     this.boughtVars = [];

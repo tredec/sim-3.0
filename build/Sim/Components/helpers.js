@@ -21,6 +21,8 @@ export function getTauFactor(theory) {
             return 0.1;
         case "EF":
             return 0.4;
+        case "FP":
+            return 0.075;
     }
     throw `Invalid theory ${theory}. Please contact the author of the sim.`;
 }

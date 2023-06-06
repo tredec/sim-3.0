@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function wsp(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -55,11 +55,11 @@ class wspSim {
         this.q = 0;
         //initialize variables
         this.variables = [
-            new Variable({ lvl: 1, cost: 10, costInc: Math.pow(2, (3.38 / 4)), value: 1, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 1000, costInc: Math.pow(2, (3.38 * 3)), varBase: 2 }),
-            new Variable({ cost: 20, costInc: Math.pow(2, 3.38) }),
-            new Variable({ cost: 50, costInc: Math.pow(2, (3.38 / 1.5)), stepwisePowerSum: { base: 2, length: 50 } }),
-            new Variable({ cost: 1e10, costInc: Math.pow(2, (3.38 * 10)), varBase: 2 })
+            new Variable({ cost: new ExponentialCost(10, 3.38 / 4, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(1000, 3.38 * 3, true), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(20, 3.38, true) }),
+            new Variable({ cost: new ExponentialCost(50, 3.38 / 1.5, true), stepwisePowerSum: { base: 2, length: 50 } }),
+            new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 })
         ];
         this.S = 0;
         this.boughtVars = [];

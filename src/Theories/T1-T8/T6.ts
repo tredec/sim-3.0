@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t6(data: theoryData): Promise<simResult> {
@@ -37,9 +36,9 @@ class t6Sim {
   q: number;
   r: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   k: number;
-  stopC12: Array<number | boolean>;
+  stopC12: [number, number, boolean];
   boughtVars: (
     | number
     | {
@@ -184,15 +183,15 @@ class t6Sim {
     this.r = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 15, costInc: 3, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 500, costInc: 100, varBase: 2 }),
-      new Variable({ cost: 1e25, costInc: 1e5, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 1e30, costInc: 1e10, varBase: 2 }),
-      new Variable({ cost: 10, costInc: 2, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 100, costInc: 5, varBase: 2 }),
-      new Variable({ cost: 1e7, costInc: 1.255, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 1e25, costInc: 5e5, varBase: 2 }),
-      new Variable({ cost: 15, costInc: 3.9, varBase: 2 })
+      new Variable({ cost: new ExponentialCost(15, 3), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(500, 100), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e25, 1e5), stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(1e30, 1e10), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(10, 2), value: 1, stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(100, 5), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e7, 1.255), stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(1e25, 5e5), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(15, 3.9), varBase: 2 })
     ];
     this.k = 0;
     this.stopC12 = [0, 0, true];

@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t7(data: theoryData): Promise<simResult> {
   let sim = new t7Sim(data);
@@ -35,7 +34,7 @@ class t7Sim {
   maxRho: number;
   rho2: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   drho13: number;
   drho23: number;
   c2ratio: number;
@@ -174,13 +173,13 @@ class t7Sim {
     this.rho2 = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 500, costInc: 1.51572, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 10, costInc: 1.275, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 40, costInc: 8, varBase: 2 }),
-      new Variable({ cost: 1e5, costInc: 63, varBase: 2 }),
-      new Variable({ cost: 10, costInc: 2.82, varBase: 2 }),
-      new Variable({ cost: 1e8, costInc: 60, varBase: 2 }),
-      new Variable({ cost: 1e2, costInc: 2.81, varBase: 2 })
+      new Variable({ cost: new ExponentialCost(500, 1.51572), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(10, 1.275), value: 1, stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(40, 8), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e5, 63), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(10, 2.82), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e8, 60), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e2, 2.81), varBase: 2 })
     ];
     this.drho13 = 0;
     this.drho23 = 0;

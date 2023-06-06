@@ -14,6 +14,7 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
+import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ.js";
 import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
 import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
@@ -27,7 +28,8 @@ export const global = {
   simulating: false,
   forcedPubTime: Infinity,
   showA23: false,
-  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]]
+  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
+  customVal: null
 };
 
 interface cacheInterface {
@@ -91,7 +93,6 @@ export async function simulate(simData: inputData): Promise<string | null | Arra
     cache.simEndTimestamp = performance.now();
     return res;
   } catch (err) {
-    console.log(err);
     return String(err);
   }
 }
@@ -169,12 +170,14 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await ef(sendData);
     case "CSR2":
       return await csr2(sendData);
-    case "RZ":
-      return await rz(sendData);
+    // case "RZ":
+    //   return await rz(sendData);
+    // case "FP":
+    //   return await fp(sendData);
   }
   throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
 }
-async function chainSim(data: parsedData, amount: number = Infinity): Promise<Array<simResult>> {
+async function chainSim(data: parsedData): Promise<Array<simResult>> {
   let lastPub: number = data.rho;
   let time: number = 0;
   const start = data.rho;
@@ -406,7 +409,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       ];
       break;
     case "RZ":
-      conditions = [true, true, true];
+      conditions = [true, true, true, true];
       break;
   }
   let requirements: Array<boolean> = [];
@@ -548,7 +551,7 @@ function getStrats(theory: string, rho: number, type: string): Array<string> {
       ];
       break;
     case "RZ":
-      requirements = [true, true, true];
+      requirements = [true, true, true, true];
       break;
   }
   if (conditions.length === 0) throw "No strats found";

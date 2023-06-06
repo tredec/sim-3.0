@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./Styles/main.css" />
     <link rel="stylesheet" href="./Styles/simStyles.css" />
     <link rel="stylesheet" href="./Styles/navbar.css" />
+    <link rel="stylesheet" href="./Styles/terminal.css" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7TELWBF6QQ"></script>
     <script>
       if (window.location.href === "https://tredec.github.io/sim-3.0/") {
@@ -28,6 +29,7 @@
     <script defer type="module" src="./build/UI/buttonEvents.js"></script>
     <script defer type="module" src="./build/UI/settings.js"></script>
     <script defer type="module" src="./build/UI/simState.js"></script>
+    <script defer type="module" src="./build/Sim/Terminal/main.js"></script>
     <script>
       let ab1 = false;
       function ctc(index = 7) {
@@ -173,5 +175,11 @@
         </table>
       </div>
     </dialog>
+    <div class="terminal">
+      <div class="terminalOutputWrapper">
+        <div class="terminalOutputs"></div>
+      </div>
+      <input type="text" class="terminalInput" />
+    </div>
   </body>
 </html>

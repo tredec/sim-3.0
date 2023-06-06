@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 
 export default async function sl(data: theoryData): Promise<simResult> {
@@ -38,7 +37,7 @@ class slSim {
   rho3: number;
   q: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   inverseE_Gamma: number;
   //pub values
   tauH: number;
@@ -161,10 +160,10 @@ class slSim {
     this.q = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 1, costInc: 2 ** (0.369 * Math.log2(10)), value: 1, stepwisePowerSum: { base: 3.5, length: 3 } }),
-      new Variable({ cost: 175, costInc: 10, varBase: 2 }),
-      new Variable({ cost: 500, costInc: 2 ** (0.649 * Math.log2(10)), stepwisePowerSum: { base: 6.5, length: 4 } }),
-      new Variable({ cost: 1000, costInc: 2 ** (0.926 * Math.log2(10)), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(1, 0.369 * Math.log2(10), true), stepwisePowerSum: { base: 3.5, length: 3 }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(175, 10), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(500, 0.649 * Math.log2(10), true), stepwisePowerSum: { base: 6.5, length: 4 } }),
+      new Variable({ cost: new ExponentialCost(1000, 0.926 * Math.log2(10), true), varBase: 2 })
     ];
     this.inverseE_Gamma = 0;
     //pub values

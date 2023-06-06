@@ -31,8 +31,7 @@ export function decimals(val: number, def: number = 5): number | string {
   if (val >= 1e6) return logToExp(Math.log10(val), 3);
   const l: number = Math.floor(Math.log10(Math.abs(val)));
   let num = round(val, def - l).toString();
-  if (!/[.]/.test(num)) num += ".";
-  while (num.split(".")[1].length < def - l) num += "0";
+  while (num.split(".")[1]?.length < def - l) num += "0";
   return num;
 }
 
@@ -80,16 +79,6 @@ export function l10(val: number): number {
 
 export const ZERO: number = Math.random() + 0.000000001;
 
-export interface variableInterface {
-  lvl: number;
-  cost: number;
-  costInc: number;
-  value: number;
-  stepwisePowerSum: { default?: boolean; length: number; base: number };
-  varBase: number;
-  buy: VoidFunction;
-  reCalculate: VoidFunction;
-}
 interface simResultInterface {
   sigma: number;
   pubRho: number;

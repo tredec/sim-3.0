@@ -28,13 +28,12 @@ export function convertTime(secs) {
     return result;
 }
 export function decimals(val, def = 5) {
+    var _a;
     if (val >= 1e6)
         return logToExp(Math.log10(val), 3);
     const l = Math.floor(Math.log10(Math.abs(val)));
     let num = round(val, def - l).toString();
-    if (!/[.]/.test(num))
-        num += ".";
-    while (num.split(".")[1].length < def - l)
+    while (((_a = num.split(".")[1]) === null || _a === void 0 ? void 0 : _a.length) < def - l)
         num += "0";
     return num;
 }

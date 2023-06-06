@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, arr, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t1(data: theoryData): Promise<simResult> {
   let sim = new t1Sim(data);
@@ -34,7 +33,7 @@ class t1Sim {
   rho: number;
   maxRho: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   term1: number;
   term2: number;
   term3: number;
@@ -132,12 +131,12 @@ class t1Sim {
     this.maxRho = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 5, costInc: 2, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 100, costInc: 10, varBase: 2 }),
-      new Variable({ cost: 15, costInc: 2, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 3000, costInc: 10, varBase: 2 }),
-      new Variable({ cost: 1e4, costInc: 2 ** (4.5 * Math.log2(10)), varBase: 10 }),
-      new Variable({ cost: 1e10, costInc: 2 ** (8 * Math.log2(10)), varBase: 10 })
+      new Variable({ cost: new ExponentialCost(5, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(100, 10), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(15, 2), stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(3000, 10), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e4, 4.5 * Math.log2(10), true), varBase: 10 }),
+      new Variable({ cost: new ExponentialCost(1e10, 8 * Math.log2(10), true), varBase: 10 })
     ];
     //values of the different terms, so they are accesible for variable buying conditions
     this.term1 = 0;

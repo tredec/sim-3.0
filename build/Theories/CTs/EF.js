@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function ef(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -44,16 +44,16 @@ class efSim {
         this.t_var = 0;
         //initialize variables
         this.variables = [
-            new Variable({ cost: 1e6, costInc: 1e6 }),
-            new Variable({ cost: 10, costInc: 1.61328, stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: 5, costInc: 60, varBase: 2 }),
-            new Variable({ cost: 20, costInc: 200, value: 1, stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: 100, costInc: 2, varBase: 1.1 }),
-            new Variable({ cost: 20, costInc: 200, value: 1, stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: 100, costInc: 2, varBase: 1.1 }),
-            new Variable({ cost: 2000, costInc: Math.pow(2, 2.2), value: 1, stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: 500, costInc: Math.pow(2, 2.2), value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
-            new Variable({ cost: 500, costInc: Math.pow(2, 2.2), varBase: 2 })
+            new Variable({ cost: new ExponentialCost(1e6, 1e6) }),
+            new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(5, 60), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
+            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
+            new Variable({ cost: new ExponentialCost(2000, 2.2, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(500, 2.2, true), value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
+            new Variable({ cost: new ExponentialCost(500, 2.2, true), varBase: 2 })
         ];
         this.recursionValue = (_b = data.recursionValue) !== null && _b !== void 0 ? _b : [Infinity, 0];
         this.lastA23 = [0, 0];

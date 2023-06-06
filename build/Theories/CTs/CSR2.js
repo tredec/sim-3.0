@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function csr2(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -44,11 +44,11 @@ class csr2Sim {
         this.t_var = 0;
         //initialize variables
         this.variables = [
-            new Variable({ cost: 10, costInc: 5, stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: 15, costInc: 128, varBase: 2 }),
-            new Variable({ cost: 1e6, costInc: 16, value: 1, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 50, costInc: Math.pow(2, (Math.log2(256) * 3.346)) }),
-            new Variable({ cost: 1e3, costInc: Math.pow(10, 5.65), varBase: 2 })
+            new Variable({ cost: new ExponentialCost(10, 5), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(15, 128), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e6, 16), value: 1, stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(50, Math.pow(2, (Math.log2(256) * 3.346))) }),
+            new Variable({ cost: new ExponentialCost(1e3, Math.pow(10, 5.65)), varBase: 2 })
         ];
         this.recursionValue = (_b = data.recursionValue) !== null && _b !== void 0 ? _b : [Infinity, 0];
         this.bestCoast = [0, 0];
@@ -216,7 +216,8 @@ class csr2Sim {
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
             let lastBuy = 0;
             for (let i = 0; i < this.variables.length; i++) {
-                lastBuy = Math.max(lastBuy, this.variables[i].cost - this.variables[i].costInc);
+                const costIncs = [5, 128, 16, Math.pow(2, (Math.log2(256) * 3.346)), Math.pow(10, 5.65)];
+                lastBuy = Math.max(lastBuy, this.variables[i].cost - costIncs[i]);
             }
             this.result = createResult(this, this.stratIndex === 2 ? " " + Math.min(this.pubMulti, Math.pow(10, (this.getTotMult(lastBuy) - this.totMult))).toFixed(2) : "");
             if (this.recursionValue[1] === 1 && this.stratIndex === 2) {

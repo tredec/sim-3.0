@@ -1,19 +1,18 @@
 import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
+import { add, createResult, l10, subtract, theoryData } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost, StepwiseCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
+import { varBuys } from "../../UI/simEvents.js";
 
-export default async function rz(data: theoryData): Promise<simResult> {
+export default async function rz(data: theoryData) {
   let sim = new rzSim(data);
   let res = await sim.simulate();
   return res;
 }
 const resolution = 4;
 const getBlackholeSpeed = (z: number) => Math.min(Math.pow(z, 2) + 0.004, 1 / resolution);
-const getb = (level: number) => 1 + level / 4;
+const getb = (level: number) => 1 << level;
 const getbMarginTerm = (level: number) => Math.pow(10, -getb(level));
 const c1Exp = [1, 1.14, 1.21, 1.25];
 let interpolate = (t: number) => {
@@ -71,7 +70,7 @@ let zetaSmall = (t: number) => {
   let offset = fullIndex - index;
   let re = zeta01Table[index][0] * (1 - offset) + zeta01Table[index + 1][0] * offset;
   let im = zeta01Table[index][1] * (1 - offset) + zeta01Table[index + 1][1] * offset;
-  return [re, im, re * re + im * im];
+  return [re, im, Math.sqrt(re * re + im * im)];
 };
 let even = (n: number) => {
   if (n % 2 == 0) return 1;
@@ -239,13 +238,37 @@ let riemannSiegelZeta = (t: number, n: number) => {
   Z += R;
   return [Z * Math.cos(th), -Z * Math.sin(th), Z];
 };
-let zeta = (t: number) => {
-  if (t > 1) return riemannSiegelZeta(t, 4);
-  if (t < 0.1) return zetaSmall(t);
-  let offset = interpolate(((t - 0.1) * 10) / 9);
-  let a = zetaSmall(t);
-  let b = riemannSiegelZeta(t, 4);
-  return [a[0] * (1 - offset) + b[0] * offset, a[1] * (1 - offset) + b[1] * offset, a[2] * (1 - offset) + Math.abs(b[2]) * offset];
+
+// The lookup table only works before black hole is enabled in a pub, because then the time values would get misaligned.
+let zetaLookup: Array<Array<number>> = [];
+let zetaDerivLookup: Array<Array<number>> = [];
+let prevDt = 1.5;
+let prevDdt = 1.0001;
+let zeta = (T: number, ticks: number, offGrid: boolean, cache: Array<Array<number>>) => {
+  if (!offGrid && cache[ticks]) return cache[ticks];
+  let t = Math.abs(T);
+  let z;
+  if (t >= 1) z = riemannSiegelZeta(t, 1);
+  else if (t < 0.1) z = zetaSmall(t);
+  else {
+    let offset = interpolate(((t - 0.1) * 10) / 9);
+    let a = zetaSmall(t);
+    let b = riemannSiegelZeta(t, 1);
+    z = [a[0] * (1 - offset) + b[0] * offset, a[1] * (1 - offset) + b[1] * offset, a[2] * (1 - offset) + Math.abs(b[2]) * offset];
+  }
+  if (T < 0) z[1] = -z[1];
+  if (!offGrid) cache[ticks] = z;
+  return z;
+};
+let binarySearch = (arr: Array<number>, target: number) => {
+  let l = 0;
+  let r = arr.length - 1;
+  while (l < r) {
+    let m = Math.ceil((l + r) / 2);
+    if (arr[m] <= target) l = m;
+    else r = m - 1;
+  }
+  return l;
 };
 class rzSim {
   conditions: Array<Array<boolean | Function>>;
@@ -270,12 +293,24 @@ class rzSim {
   //currencies
   currencies: Array<number>;
   maxRho: number;
-  //initialize variables
-  variables: Array<variableInterface>;
+  //things
   t_var: number;
   zTerm: number;
   rCoord: number;
   iCoord: number;
+  offGrid: boolean;
+  //initialize variables
+  varNames: Array<string>;
+  variables: Array<Variable>;
+  boughtVars: (
+    | number
+    | {
+        variable: string;
+        level: number;
+        cost: number;
+        timeStamp: number;
+      }
+  )[];
   //pub values
   tauH: number;
   maxTauH: number;
@@ -286,12 +321,13 @@ class rzSim {
   pubMulti: number;
   result: Array<any>;
   constructor(data: theoryData) {
+    var _a;
     this.stratIndex = findIndex(data.strats, data.strat);
     this.strat = data.strat;
     this.theory = "RZ";
     this.tauFactor = getTauFactor(this.theory);
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
+    this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
     this.lastPub = data.rho;
     this.sigma = data.sigma;
     this.totMult = this.getTotMult(data.rho);
@@ -306,30 +342,26 @@ class rzSim {
     this.zTerm = 0;
     this.rCoord = -1.4603545088095868;
     this.iCoord = 0;
+    this.offGrid = false;
     this.variables = [
       new Variable({
         firstFreeCost: true,
-        cost: 220,
-        costInc: Math.pow(2, 0.7),
+        cost: new ExponentialCost(225, Math.pow(2, 0.699)),
         stepwisePowerSum: {
           base: 2,
           length: 8
         }
       }),
       new Variable({
-        cost: 1400,
-        costInc: Math.pow(2, 2.8),
+        cost: new ExponentialCost(1500, Math.pow(2, 0.699 * 4)),
         varBase: 2
       }),
       new Variable({
-        cost: 1e6,
-        costInc: 1e12
+        cost: new ExponentialCost(1e21, 1e79)
         // power: use outside method
       }),
       new Variable({
-        stepwiseCost: 6,
-        cost: 120000,
-        costInc: Math.pow(100, 1 / 3),
+        cost: new StepwiseCost(6, new ExponentialCost(120000, Math.pow(100, 1 / 3))),
         value: 1,
         stepwisePowerSum: {
           base: 2,
@@ -337,16 +369,25 @@ class rzSim {
         }
       }),
       new Variable({
-        cost: 1,
-        costInc: 10,
+        cost: new ExponentialCost(1e5, 10),
         varBase: 2
+      }),
+      new Variable({
+        cost: new ExponentialCost("3.16227766017e599", 1e30),
+        varBase: 2
+      }),
+      new Variable({
+        cost: new ExponentialCost("1e600", "1e300")
+        // b (2nd layer)
       })
     ];
+    this.varNames = ["c1", "c2", "b", "w1", "w2", "w3", "b+"];
+    this.boughtVars = [];
     this.tauH = 0;
     this.maxTauH = 0;
     this.pubT = 0;
     this.pubRho = 0;
-    //c1exp some-symbol w2term black-hole
+    //c1exp delta w2term black-hole
     this.milestones = [0, 0, 0, 0];
     this.result = [];
     this.pubMulti = 0;
@@ -354,23 +395,37 @@ class rzSim {
     this.milestoneConditions = this.getMilestoneConditions();
     this.milestoneTree = this.getMilestoneTree();
     this.updateMilestones();
+
+    // this.output = document.querySelector(".varOutput");
+    // this.outputResults = "time,t,rho,delta<br>";
   }
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [
-      new Array(5).fill(true),
-      ...new Array(2).fill([
+    let conditions = [
+      new Array(7).fill(true),
+      ...new Array(4).fill([
         () => this.variables[0].lvl < this.variables[1].lvl * 4 + (this.milestones[0] ? 2 : 1),
         true,
         true,
         () => (this.milestones[2] ? this.variables[3].cost + l10(4 + 0.5 * (this.variables[3].lvl % 8) + 0.0001) < this.variables[4].cost : true),
-        true
-      ]) // RZd, RZdBH
+        true,
+        true, // b2
+        true // b3
+      ]), // RZd, RZdBH, RZSpiralswap, RZMS
+      [true, true, false, true, true, false, false]
     ];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
+    conditions = conditions.map((elem) => elem.map((i: any) => (typeof i === "function" ? i : () => i)));
     return conditions;
   }
   getMilestoneConditions() {
-    return [() => true, () => true, () => this.variables[2].lvl < 8, () => this.milestones[1] == 1, () => this.milestones[2] == 1];
+    return [
+      () => true,
+      () => true,
+      () => this.variables[2].lvl < 1,
+      () => this.milestones[1] == 1,
+      () => this.milestones[2] == 1,
+      () => this.milestones[2] == 1,
+      () => this.variables[6].lvl < 2 // b3
+    ];
   }
   getMilestoneTree() {
     return [
@@ -381,7 +436,7 @@ class rzSim {
         [1, 1, 1, 0],
         [2, 1, 1, 0],
         [3, 1, 1, 0],
-        [3, 1, 1, 1] // black hole
+        [3, 1, 1, 0] // RZ (idle)
       ],
       [
         [0, 0, 0, 0],
@@ -400,60 +455,165 @@ class rzSim {
         [2, 1, 1, 0],
         [3, 1, 1, 0],
         [3, 1, 1, 1] // RZdBH
+      ],
+      [
+        [0, 0, 0, 0], // 0
+        [0, 1, 0, 0], // delta
+        [1, 1, 0, 0], // 1/3 <-> w2
+        [2, 1, 0, 0], // 2/3 <-> w2
+        [3, 1, 0, 0], // 3/3 <-> w2
+        [3, 1, 1, 0], // 3/3 && w2
+        [3, 1, 1, 0], // RZSpiralswap
+        [3, 1, 1, 1] // Dummy line
+      ],
+      [
+        [0, 0, 0, 0], // 0
+        [0, 1, 0, 0], // delta
+        [0, 1, 1, 0], // w2 <-> 1/3
+        [1, 1, 1, 0], // w2 <-> 2/3
+        [2, 1, 1, 0], // w2 <-> 3/3
+        [3, 1, 1, 0], // w2 && 3/3
+        [3, 1, 1, 0], // RZMS
+        [3, 1, 1, 1] // Dummy line
+      ],
+      [
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [1, 1, 1, 0],
+        [2, 1, 1, 0],
+        [3, 1, 1, 0],
+        [3, 1, 1, 0] // RZnob
       ]
     ];
   }
   getTotMult(val: number) {
-    return Math.max(0, val * this.tauFactor * 2.1 + l10(4));
+    return Math.max(0, val * this.tauFactor * 2.102 + l10(2));
   }
   updateMilestones() {
-    let stage = 0;
-    let points = [21, 50, 125, 200, 275, 350];
-    for (let i = 0; i < points.length; i++) {
-      if (Math.max(this.lastPub, this.maxRho) >= points[i]) stage = i + 1;
-    }
-    this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+    const points = [0, 25, 50, 125, 250, 400, 600];
+    let stage = binarySearch(points, Math.max(this.lastPub, this.maxRho));
+    const max = [3, 1, 1, 1];
+    const originPriority = [2, 1, 3];
+    const peripheryPriority = [2, 3, 1];
+
+    if (this.stratIndex == 3) {
+      // RZSS
+      if (stage <= 1 || stage == 5) {
+        this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+      } else if (stage <= 4) {
+        // Spiralswap
+        let priority = originPriority;
+        if (
+          /*this.maxRho < this.lastPub + 2 &&*/ this.t_var <= 1.25 ||
+          (this.t_var >= 15 && this.t_var <= 20) ||
+          (this.t_var >= 26 && this.t_var <= 30) ||
+          (this.t_var >= 34 && this.t_var <= 37) ||
+          (this.t_var >= 44 && this.t_var <= 47) ||
+          (this.t_var >= 53.5 && this.t_var <= 56) ||
+          (this.t_var >= 61.5 && this.t_var <= 64.5) ||
+          (this.t_var >= 72.5 && this.t_var <= 75.5) ||
+          (this.t_var >= 89 && this.t_var <= 92) ||
+          (this.t_var >= 96.5 && this.t_var <= 98.5) ||
+          (this.t_var >= 107.5 && this.t_var <= 110.5) ||
+          (this.t_var >= 124.5 && this.t_var <= 127.25) ||
+          (this.t_var >= 135 && this.t_var <= 137.75)
+        )
+          priority = peripheryPriority;
+
+        let milestoneCount = stage;
+        this.milestones = [0, 0, 0, 0];
+        for (let i = 0; i < priority.length; i++) {
+          while (this.milestones[priority[i] - 1] < max[priority[i] - 1] && milestoneCount > 0) {
+            this.milestones[priority[i] - 1]++;
+            milestoneCount--;
+          }
+        }
+      } else {
+        // Black hole coasting
+        if (this.maxRho < this.lastPub) this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+        else this.milestones = this.milestoneTree[this.stratIndex][stage + 1];
+      }
+    } else if (this.stratIndex == 4) {
+      // RZMS
+      if (stage <= 1 || stage == 5) {
+        this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+      } else if (stage <= 4) {
+        let priority = peripheryPriority;
+        if (this.maxRho > this.lastPub) priority = originPriority;
+
+        let milestoneCount = stage;
+        this.milestones = [0, 0, 0, 0];
+        for (let i = 0; i < priority.length; i++) {
+          while (this.milestones[priority[i] - 1] < max[priority[i] - 1] && milestoneCount > 0) {
+            this.milestones[priority[i] - 1]++;
+            milestoneCount--;
+          }
+        }
+      } else {
+        // Black hole coasting
+        if (this.maxRho < this.lastPub) this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+        else this.milestones = this.milestoneTree[this.stratIndex][stage + 1];
+      }
+    } else this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
   }
   async simulate() {
     let pubCondition = false;
     while (!pubCondition) {
       if (!global.simulating) break;
+      // Prevent lookup table from retrieving values from wrong sim settings
+      if (!this.ticks && (this.dt != prevDt || this.ddt != prevDdt)) {
+        prevDt = this.dt;
+        prevDdt = this.ddt;
+        zetaLookup = [];
+        zetaDerivLookup = [];
+      }
       if ((this.ticks + 1) % 500000 === 0) await sleep();
       this.tick();
       if (this.currencies[0] > this.maxRho) this.maxRho = this.currencies[0];
-      if (this.lastPub < 350) this.updateMilestones();
+      // Eternal milestone swapping
+      this.updateMilestones();
       this.curMult = Math.pow(10, this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
-      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 8;
+      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 9;
       this.ticks++;
     }
+    // Printing
+    // this.output.innerHTML = this.outputResults;
+    // this.outputResults = '';
     this.pubMulti = Math.pow(10, this.getTotMult(this.pubRho) - this.totMult);
     this.result = createResult(this, "");
+    while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([this.result[7], this.boughtVars]);
     return this.result;
   }
   tick() {
-    let t_dot = this.milestones[3] ? getBlackholeSpeed(this.zTerm) : 1 / resolution;
+    let t_dot;
+    if (this.milestones[3]) {
+      t_dot = getBlackholeSpeed(this.zTerm);
+      this.offGrid = true;
+    } else t_dot = 1 / resolution;
     this.t_var += (this.dt * t_dot) / 1.5;
     let tTerm = l10(this.t_var);
     let bonus = l10(this.dt) + this.totMult;
     let w1Term = this.milestones[1] ? this.variables[3].value : 0;
     let w2Term = this.milestones[2] ? this.variables[4].value : 0;
+    let w3Term = this.milestones[2] ? this.variables[5].value : 0;
     let c1Term = this.variables[0].value * c1Exp[this.milestones[0]];
     let c2Term = this.variables[1].value;
-    let bTerm = getb(this.variables[2].lvl);
-    let z = zeta(this.t_var);
+    let bTerm = getb(this.variables[2].lvl + this.variables[6].lvl);
+    let z = zeta(this.t_var, this.ticks, this.offGrid, zetaLookup);
     if (this.milestones[1]) {
-      let dr = z[0] - this.rCoord;
-      let di = z[1] - this.iCoord;
-      let derivTerm = l10(Math.sqrt(dr * dr + di * di)) - l10(this.dt * t_dot);
-      this.currencies[1] = add(this.currencies[1], derivTerm * bTerm + w1Term + w2Term + bonus);
+      let tmpZ = zeta(this.t_var + 0.0001, this.ticks, this.offGrid, zetaDerivLookup);
+      let dr = tmpZ[0] - z[0];
+      let di = tmpZ[1] - z[1];
+      let derivTerm = l10(Math.sqrt(dr * dr + di * di)) + 4;
+      this.currencies[1] = add(this.currencies[1], derivTerm + l10(Math.pow(2, bTerm)) + w1Term + w2Term + w3Term + bonus);
     }
     this.rCoord = z[0];
     this.iCoord = z[1];
     this.zTerm = Math.abs(z[2]);
-    let bMTerm = getbMarginTerm(this.variables[2].lvl);
-    this.currencies[0] = add(this.currencies[0], tTerm + c1Term + c2Term + w1Term + bonus - l10(this.zTerm / bTerm + bMTerm));
-
+    this.currencies[0] = add(this.currencies[0], tTerm + c1Term + c2Term + w1Term + bonus - l10(this.zTerm / bTerm + 0.01));
     this.t += this.dt / 1.5;
     this.dt *= this.ddt;
     if (this.maxRho < this.recovery.value) this.recovery.time = this.t;
@@ -463,13 +623,22 @@ class rzSim {
       this.pubT = this.t;
       this.pubRho = this.maxRho;
     }
+    // this.outputResults += `${this.t},${this.t_var},${this.currencies[0]},${this.currencies[1]}<br>`;
   }
   buyVariables() {
-    let currencyIndices = [0, 0, 0, 1, 1];
+    let currencyIndices = [0, 0, 0, 1, 1, 1, 0];
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
         if (this.currencies[currencyIndices[i]] > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
           this.currencies[currencyIndices[i]] = subtract(this.currencies[currencyIndices[i]], this.variables[i].cost);
+          if (this.maxRho + 5 > this.lastPub) {
+            this.boughtVars.push({
+              variable: this.varNames[i],
+              level: this.variables[i].lvl + 1,
+              cost: this.variables[i].cost,
+              timeStamp: this.t
+            });
+          }
           this.variables[i].buy();
         } else break;
       }

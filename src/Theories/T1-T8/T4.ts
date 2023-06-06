@@ -2,8 +2,7 @@ import { global } from "../../Sim/main.js";
 import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
 import { add, createResult, l10, subtract, arr } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import { variableInterface } from "../../Utils/simHelpers.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t4(data: theoryData): Promise<simResult> {
   let sim = new t4Sim(data);
@@ -36,7 +35,7 @@ class t4Sim {
   maxRho: number;
   q: number;
   //initialize variables
-  variables: Array<variableInterface>;
+  variables: Array<Variable>;
   variableSum: number;
   // minCost
   //pub values
@@ -227,14 +226,14 @@ class t4Sim {
     this.q = 0;
     //initialize variables
     this.variables = [
-      new Variable({ lvl: 1, cost: 5, costInc: 1.305, value: 1, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 20, costInc: 3.75, varBase: 2 }),
-      new Variable({ cost: 2000, costInc: 2.468, varBase: 2 }),
-      new Variable({ cost: 1e4, costInc: 4.85, varBase: 3 }),
-      new Variable({ cost: 1e8, costInc: 12.5, varBase: 5 }),
-      new Variable({ cost: 1e10, costInc: 58, varBase: 10 }),
-      new Variable({ cost: 1e3, costInc: 100, stepwisePowerSum: { default: true } }),
-      new Variable({ cost: 1e4, costInc: 1000, varBase: 2 })
+      new Variable({ cost: new ExponentialCost(5, 1.305), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(20, 3.75), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(2000, 2.468), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(1e4, 4.85), varBase: 3 }),
+      new Variable({ cost: new ExponentialCost(1e8, 12.5), varBase: 5 }),
+      new Variable({ cost: new ExponentialCost(1e10, 58), varBase: 10 }),
+      new Variable({ cost: new ExponentialCost(1e3, 100), stepwisePowerSum: { default: true } }),
+      new Variable({ cost: new ExponentialCost(1e4, 1000), varBase: 2 })
     ];
     this.variableSum = 0;
     //pub values

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function sl(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -49,10 +49,10 @@ class slSim {
         this.q = 0;
         //initialize variables
         this.variables = [
-            new Variable({ lvl: 1, cost: 1, costInc: Math.pow(2, (0.369 * Math.log2(10))), value: 1, stepwisePowerSum: { base: 3.5, length: 3 } }),
-            new Variable({ cost: 175, costInc: 10, varBase: 2 }),
-            new Variable({ cost: 500, costInc: Math.pow(2, (0.649 * Math.log2(10))), stepwisePowerSum: { base: 6.5, length: 4 } }),
-            new Variable({ cost: 1000, costInc: Math.pow(2, (0.926 * Math.log2(10))), varBase: 2 })
+            new Variable({ cost: new ExponentialCost(1, 0.369 * Math.log2(10), true), stepwisePowerSum: { base: 3.5, length: 3 }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(175, 10), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(500, 0.649 * Math.log2(10), true), stepwisePowerSum: { base: 6.5, length: 4 } }),
+            new Variable({ cost: new ExponentialCost(1000, 0.926 * Math.log2(10), true), varBase: 2 })
         ];
         this.inverseE_Gamma = 0;
         //pub values

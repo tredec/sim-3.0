@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
 import { findIndex, sleep } from "../../Utils/helperFunctions.js";
-import Variable from "../../Utils/variable.js";
+import Variable, { ExponentialCost } from "../../Utils/variable.js";
 export default function t2(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new t2Sim(data);
@@ -48,14 +48,14 @@ class t2Sim {
         this.r4 = 0;
         //initialize variables
         this.variables = [
-            new Variable({ lvl: 1, cost: 10, costInc: 2, value: 1, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 5000, costInc: 2, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 3e25, costInc: 3, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 8e50, costInc: 4, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 2e6, costInc: 2, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 3e9, costInc: 2, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 4e25, costInc: 3, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: 5e50, costInc: 4, stepwisePowerSum: { default: true } })
+            new Variable({ cost: new ExponentialCost(10, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(5000, 2), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(3e25, 3), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(8e50, 4), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(2e6, 2), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(3e9, 2), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(4e25, 3), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(5e50, 4), stepwisePowerSum: { default: true } })
         ];
         //pub values
         this.tauH = 0;

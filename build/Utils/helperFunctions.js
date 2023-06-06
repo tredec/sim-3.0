@@ -1,7 +1,7 @@
 export const qs = (name) => document.querySelector(name);
 export const qsa = (name) => document.querySelectorAll(name);
 export const ce = (type) => document.createElement(type);
-export const event = (element, eventType, callback) => element.addEventListener(eventType, () => callback());
+export const event = (element, eventType, callback) => element.addEventListener(eventType, e => callback(e));
 export function findIndex(arr, val) {
     for (let i = 0; i < arr.length; i++)
         if (val === arr[i])
