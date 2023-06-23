@@ -1,7 +1,5 @@
-import { findIndex } from "../Utils/helperFunctions.js";
-import { theoryData, simResult, logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
-import jsonData from "./data.json" assert { type: "json" };
-import { qs, sleep } from "../Utils/helperFunctions.js";
+import jsonData from "../Data/data.json" assert { type: "json" };
+import { qs, sleep, findIndex, getIndexFromTheory, getTauFactor, getTheoryFromIndex, theoryData, simResult, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
 import t1 from "../Theories/T1-T8/T1.js";
 import t2 from "../Theories/T1-T8/T2.js";
 import t3 from "../Theories/T1-T8/T3.js";
@@ -16,8 +14,7 @@ import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ.js";
-import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
-import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
+import { parseCurrencyValue, parseModeInput } from "./parsers.js";
 
 const output = qs(".output");
 
@@ -28,9 +25,16 @@ export const global = {
   simulating: false,
   forcedPubTime: Infinity,
   showA23: false,
-  varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
+  varBuy: <Array<[number, Array<varBuy>]>>[[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
   customVal: null
 };
+
+export interface varBuy {
+  variable: string;
+  level: number;
+  cost: number;
+  timeStamp: number;
+}
 
 interface cacheInterface {
   lastStrat: string | null;
@@ -200,9 +204,11 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
     time += (<Array<any>>res[res.length - 1])[1];
   }
   cache.lastStrat = null;
+  // @ts-expect-error
   result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
   const dtau = (data.rho - start) * getTauFactor(data.theory);
-  result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
+  // @ts-expect-error
+  result.push(["", "", "", "", logToExp(dtau, 2), "", "", formatNumber(dtau / (time / 3600), 5), convertTime(time)]);
   return result;
 }
 async function stepSim(data: parsedData): Promise<Array<simResult>> {
@@ -253,15 +259,18 @@ async function simAll(data: parsedData): Promise<Array<simResult>> {
     }
     res.push(createSimAllOutput(temp));
   }
+  //@ts-expect-error
   res.push([sigma]);
   return res;
 }
 function createSimAllOutput(arr: Array<simResult>): simResult {
-  return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], decimals(<number>arr[1][7] / <number>arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
+  //@ts-expect-error
+  return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(<number>arr[1][7] / <number>arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
 }
 async function getBestStrat(data: parsedData): Promise<simResult> {
   const strats: Array<string> = getStrats(data.theory, data.rho, data.strat);
-  let bestSim: Array<number | string | Array<number>> = new Array(9).fill(0);
+  //@ts-expect-error
+  let bestSim: simResult = new Array(9).fill(0);
   for (let i = 0; i < strats.length; i++) {
     data.strat = strats[i];
     let sim = await singleSim(data);

@@ -1,4 +1,4 @@
-import { qs, qsa } from "../Utils/helperFunctions.js";
+import { qs, qsa } from "../Utils/helpers.js";
 import { modeUpdate } from "./render.js";
 
 //Inputs

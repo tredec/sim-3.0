@@ -1,4 +1,4 @@
-import { qs, event, ce } from "../Utils/helperFunctions.js";
+import { qs, event, ce } from "../Utils/helpers.js";
 declare var html2canvas: any;
 //Buttons
 const clear = qs(".clear");
@@ -57,4 +57,3 @@ event(getDist, "pointerdown", () => {
 // const ctDev = <HTMLInputElement>qs(".ctDev");
 // event(ctDev, "input", () => {
 // });
-

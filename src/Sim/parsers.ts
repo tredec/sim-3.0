@@ -1,7 +1,6 @@
-import { log10 } from "../../Utils/simHelpers.js";
-import { getTauFactor, getTheoryFromIndex } from "./helpers.js";
-import jsonData from ".././data.json" assert { type: "json" };
-import { qs, qsa } from "../../Utils/helperFunctions.js";
+import { getTauFactor, getTheoryFromIndex, log10 } from "../Utils/helpers.js";
+import jsonData from "../Data/data.json" assert { type: "json" };
+import { qs, qsa } from "../Utils/helpers.js";
 
 export function parseCurrencyValue(value: string | Array<number | string>, theory: string, sigma: number, defaultConv: string = "r"): number {
   if (typeof value === "string") {

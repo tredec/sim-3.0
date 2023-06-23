@@ -1,6 +1,5 @@
-import { simulate, inputData, global } from "../Sim/main.js";
-import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
-import { convertTime, logToExp, simResult } from "../Utils/simHelpers.js";
+import { simulate, inputData, global, varBuy } from "../Sim/main.js";
+import { qs, event, sleep, ce, qsa, convertTime, logToExp, simResult } from "../Utils/helpers.js";
 import { getSimState, setSimState } from "./simState.js";
 
 //Inputs
@@ -107,20 +106,14 @@ function updateTable(arr: Array<simResult>): void {
   }
   resetVarBuy();
 }
-export interface varBuys {
-  variable: string;
-  level: number;
-  cost: number;
-  timeStamp: number;
-}
 function resetVarBuy() {
   tbody = qs(".simTable > tbody");
   for (let i = 0; i < global.varBuy.length; i++) {
     for (let j = 0; j < tbody?.children.length; j++) {
       const row = tbody?.children[j];
       if (parseFloat(row?.children[7].innerHTML) === parseFloat(<any>global.varBuy[i][0])) {
-        let val = <Array<varBuys>>global.varBuy[i][1];
-        (<HTMLElement>row?.children[8]).onpointerdown = () => {
+        let val = <Array<varBuy>>global.varBuy[i][1];
+        (<HTMLElement>row?.children[8]).onclick = () => {
           openVarModal(val);
         };
         (<HTMLElement>row?.children[8]).style.cursor = "pointer";
@@ -129,7 +122,7 @@ function resetVarBuy() {
   }
   global.varBuy = [];
 }
-function openVarModal(arr: Array<varBuys>) {
+function openVarModal(arr: Array<varBuy>) {
   document.body.style.overflow = "hidden";
   (<HTMLDialogElement>qs(".boughtVars")).showModal();
   const tbody = qs(".boughtVarsOtp");

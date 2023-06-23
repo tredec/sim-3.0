@@ -1,4 +1,4 @@
-import { qs, ce } from "../../Utils/helperFunctions.js";
+import { qs, ce } from "../../Utils/helpers.js";
 
 export default class Terminal {
   terminal_element: HTMLElement;
@@ -29,7 +29,10 @@ export default class Terminal {
     return input;
   }
   writeLine(value: string, inp: boolean = false) {
-    value = value.replace(/script/g, "");
+    value = value.replace(/script/g, "/script/");
+    value = value.replace(/[(]/g, "/(/");
+    value = value.replace(/[)]/g, "/)/");
+
     if (value.length === 0) return;
     value = value.replace(/<r>/g, '<span style="color:red; font-weight:bold">');
     value = value.replace(/<\/r>/g, "</span>");

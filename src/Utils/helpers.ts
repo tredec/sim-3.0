@@ -1,12 +1,56 @@
-import { getTauFactor } from "../Sim/Components/helpers.js";
+import jsonData from "../Data/data.json" assert { type: "json" };
 
-export function log10(num: string): number {
-  const split: Array<string> = String(num).split("e");
-  const result: number = Number(split[1]) + Math.log10(Math.max(1, Number(split[0])));
+export const qs = (name: string): HTMLElement => document.querySelector(name)!;
+export const qsa = (name: string) => document.querySelectorAll(name)!;
+export const ce = (type: string) => document.createElement(type)!;
+
+export const event = (element: HTMLElement, eventType: string, callback: Function) => element.addEventListener(eventType, (e) => callback(e));
+
+export function findIndex(arr: Array<string | number | boolean>, val: string | number | boolean) {
+  for (let i = 0; i < arr.length; i++) if (val === arr[i]) return i;
+  return -1;
+}
+export function sleep(time: number = 0) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+export function getIndexFromTheory(theory: string) {
+  return findIndex(jsonData.theories, theory);
+}
+export function getTauFactor(theory: string) {
+  switch (theory) {
+    case "T1":
+    case "T2":
+    case "T3":
+    case "T4":
+    case "T5":
+    case "T6":
+    case "T7":
+    case "T8":
+      return 1;
+    case "WSP":
+    case "SL":
+    case "CSR2":
+    case "RZ":
+      return 0.1;
+    case "EF":
+      return 0.4;
+    case "FP":
+      return 0.075;
+  }
+  throw `Invalid theory ${theory}. Please contact the author of the sim.`;
+}
+export function getTheoryFromIndex(index: number): string {
+  return jsonData.theories[index];
+}
+
+export function log10(num: string) {
+  const split = String(num).split("e");
+  const result = Number(split[1]) + Math.log10(Math.max(1, Number(split[0])));
   return Number(result);
 }
 
-export function logToExp(num: number, dec: number = 3): string {
+export function logToExp(num: number, dec: number = 3) {
   const wholePart: number = Math.floor(num);
   const fractionalPart: number = num - wholePart;
   const frac1: number = round(10 ** fractionalPart, dec);
@@ -27,15 +71,16 @@ export function convertTime(secs: number): string {
   if (years === 0) result += (mins < 10 ? "0" : "") + mins + "m";
   return result;
 }
-export function decimals(val: number, def: number = 5): number | string {
-  if (val >= 1e6) return logToExp(Math.log10(val), 3);
-  const l: number = Math.floor(Math.log10(Math.abs(val)));
-  let num = round(val, def - l).toString();
-  while (num.split(".")[1]?.length < def - l) num += "0";
-  return num;
+export function formatNumber(value: number, precision: number = 6) {
+  return value.toPrecision(precision).replace(/[+]/, "");
+  // if (value >= 1e6) return logToExp(Math.log10(value), 3);
+  // const l: number = Math.floor(Math.log10(Math.abs(value)));
+  // let num = round(value, precision - l).toString();
+  // while (num.split(".")[1]?.length < precision - l) num += "0";
+  // return num;
 }
 
-export function round(number: number, decimals: number): number {
+export function round(number: number, decimals: number) {
   return Math.round(number * 10 ** decimals) / 10 ** decimals;
 }
 
@@ -58,26 +103,19 @@ export function subtract(value1: number, value2: number) {
   return wholePart1 + Math.log10(fractionalPart1 - fractionalPart2 / 10 ** (wholePart1 - wholePart2));
 }
 
-export function arr(i: number, b: number | boolean | Array<any>): Array<any> {
-  let arr: Array<any> = new Array(i).fill(b);
-  let res: Array<any> = [];
-  if (!Array.isArray(b)) return arr;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[0][0].constructor === Array) {
-      const d2a: boolean = arr[0][0][0].constructor === Array;
-      if (d2a) {
-        res.push(...arr[i]);
-      } else res.push(arr[i]);
-    } else res.push(arr[i]);
-  }
-  return res;
-}
-
-export function l10(val: number): number {
+export function l10(val: number) {
   return Math.log10(val);
 }
+export function l2(val: number) {
+  return Math.log2(val);
+}
 
-export const ZERO: number = Math.random() + 0.000000001;
+export const ZERO = (() => {
+  let r = Math.random();
+  //dont ask pls ik this is dumb
+  while (r === 0) r = Math.random();
+  return r;
+})();
 
 interface simResultInterface {
   sigma: number;
@@ -99,17 +137,17 @@ export interface theoryData {
   cap: null | number;
   recursionValue: null | number | Array<number>;
 }
-export type simResult = Array<number | string | Array<number>>;
-export function createResult(data: simResultInterface, stratExtra: null | string) {
+export type simResult = [string, number, string, string, string, string, string, number, string, [number, number]];
+export function createResult(data: simResultInterface, stratExtra: null | string): simResult {
   return [
     data.theory,
     data.sigma,
     logToExp(data.lastPub, 2),
     logToExp(data.pubRho, 2),
     logToExp((data.pubRho - data.lastPub) * getTauFactor(data.theory), 2),
-    decimals(data.pubMulti),
+    formatNumber(data.pubMulti),
     data.strat + stratExtra,
-    decimals(data.maxTauH * getTauFactor(data.theory)),
+    data.maxTauH === 0 ? 0 : Number(formatNumber(data.maxTauH * getTauFactor(data.theory))),
     convertTime(Math.max(0, data.pubT - data.recovery.time)),
     [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
   ];

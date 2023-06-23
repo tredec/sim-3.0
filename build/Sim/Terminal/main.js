@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { event, qs, sleep } from "../../Utils/helperFunctions.js";
+import { event, qs, sleep } from "../../Utils/helpers.js";
 import { global, simulate } from "../main.js";
 import { parseSimParams } from "./parsers.js";
 import Terminal from "./terminal.js";

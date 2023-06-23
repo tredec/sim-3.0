@@ -1,9 +1,7 @@
-import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData, logToExp } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t5(data: theoryData): Promise<simResult> {
   let sim = new t5Sim(data);
@@ -37,15 +35,7 @@ class t5Sim {
   //initialize variables
   variables: Array<Variable>;
   c2worth: boolean;
-  boughtVars: (
-    | number
-    | {
-        variable: string;
-        level: number;
-        cost: number;
-        timeStamp: number;
-      }
-  )[];
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -54,7 +44,6 @@ class t5Sim {
   //milestones  [dimensions, b1exp, b2exp, b3exp]
   milestones: Array<number>;
   pubMulti: number;
-  result: Array<any>;
 
   getBuyingConditions() {
     let conditions: Array<Array<boolean | Function>> = [
@@ -143,7 +132,6 @@ class t5Sim {
     this.pubRho = 0;
     //milestones  [q1exp,c3term,c3exp]
     this.milestones = [0, 0, 0];
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -164,12 +152,12 @@ class t5Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, this.stratIndex === 1 ? " " + logToExp(this.variables[2].cost, 1) : "");
-    if (this.stratIndex === 2) {
-      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
-      global.varBuy.push([this.result[7], this.boughtVars]);
-    }
-    return this.result;
+    let result = createResult(this, this.stratIndex === 1 ? " " + logToExp(this.variables[2].cost, 1) : "");
+
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+
+    return result;
   }
   tick() {
     let vq1 = this.variables[0].value * (1 + 0.05 * this.milestones[0]);
@@ -198,7 +186,7 @@ class t5Sim {
     for (let i = this.variables.length - 1; i >= 0; i--) {
       while (true) {
         if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
-          if (this.maxRho + 5 > this.lastPub && this.stratIndex === 2) {
+          if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "q2", "c1", "c2", "c3"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }

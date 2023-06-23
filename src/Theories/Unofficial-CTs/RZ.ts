@@ -1,9 +1,6 @@
-import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, theoryData } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost, StepwiseCost } from "../../Utils/variable.js";
-import { getTauFactor } from "../../Sim/Components/helpers.js";
-import { varBuys } from "../../UI/simEvents.js";
 
 export default async function rz(data: theoryData) {
   let sim = new rzSim(data);
@@ -302,15 +299,7 @@ class rzSim {
   //initialize variables
   varNames: Array<string>;
   variables: Array<Variable>;
-  boughtVars: (
-    | number
-    | {
-        variable: string;
-        level: number;
-        cost: number;
-        timeStamp: number;
-      }
-  )[];
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -319,15 +308,14 @@ class rzSim {
   //milestones  [dimensions, b1exp, b2exp, b3exp]
   milestones: Array<number>;
   pubMulti: number;
-  result: Array<any>;
+
   constructor(data: theoryData) {
-    var _a;
     this.stratIndex = findIndex(data.strats, data.strat);
     this.strat = data.strat;
     this.theory = "RZ";
     this.tauFactor = getTauFactor(this.theory);
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
+    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
     this.lastPub = data.rho;
     this.sigma = data.sigma;
     this.totMult = this.getTotMult(data.rho);
@@ -389,7 +377,6 @@ class rzSim {
     this.pubRho = 0;
     //c1exp delta w2term black-hole
     this.milestones = [0, 0, 0, 0];
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -582,10 +569,12 @@ class rzSim {
     // this.output.innerHTML = this.outputResults;
     // this.outputResults = '';
     this.pubMulti = Math.pow(10, this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, "");
-    while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
-    global.varBuy.push([this.result[7], this.boughtVars]);
-    return this.result;
+    let result = createResult(this, "");
+
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+
+    return result;
   }
   tick() {
     let t_dot;

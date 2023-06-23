@@ -1,5 +1,4 @@
-import { event, qs, sleep } from "../../Utils/helperFunctions.js";
-import { simResult } from "../../Utils/simHelpers.js";
+import { simResult, event, qs, sleep } from "../../Utils/helpers.js";
 import { global, inputData, simulate } from "../main.js";
 import { parseSimParams } from "./parsers.js";
 import Terminal from "./terminal.js";

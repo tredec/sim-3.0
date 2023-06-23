@@ -1,4 +1,4 @@
-import { qs } from "../Utils/helperFunctions.js";
+import { qs } from "../Utils/helpers.js";
 import { modeUpdate } from "./render.js";
 //Inputs
 const theory = qs(".theory");

@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { add, createResult, l10, subtract } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 export default function t7(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -52,6 +52,7 @@ class t7Sim {
         this.drho13 = 0;
         this.drho23 = 0;
         this.c2ratio = Infinity;
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -59,7 +60,6 @@ class t7Sim {
         this.pubRho = 0;
         //milestones  [dimensions, c3term, c5term, c6term, c1exp]
         this.milestones = [0, 0, 0, 0, 0];
-        this.result = [];
         this.pubMulti = 0;
         this.conditions = this.getBuyingConditions();
         this.milestoneConditions = this.getMilestoneConditions();
@@ -193,8 +193,11 @@ class t7Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            this.result = createResult(this, this.strat === "T7PlaySpqcey" ? (this.c2ratio !== Infinity ? this.c2ratio.toString() : "") : "");
-            return this.result;
+            let result = createResult(this, this.strat === "T7PlaySpqcey" ? (this.c2ratio !== Infinity ? this.c2ratio.toString() : "") : "");
+            while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                this.boughtVars.pop();
+            global.varBuy.push([result[7], this.boughtVars]);
+            return result;
         });
     }
     tick() {
@@ -223,6 +226,10 @@ class t7Sim {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                    if (this.maxRho + 5 > this.lastPub) {
+                        let vars = ["q1", "c1", "c2", "c3", "c4", "c5", "c6"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
                 }

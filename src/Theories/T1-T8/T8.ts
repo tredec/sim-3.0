@@ -1,7 +1,6 @@
-import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t8(data: theoryData): Promise<simResult> {
@@ -34,6 +33,7 @@ class t8Sim {
   maxRho: number;
   //initialize variables
   variables: Array<Variable>;
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -52,7 +52,6 @@ class t8Sim {
   dz: number;
   msTimer: number;
   pubMulti: number;
-  result: Array<any>;
 
   getBuyingConditions() {
     let conditions: Array<Array<boolean | Function>> = [
@@ -245,6 +244,7 @@ class t8Sim {
       new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(5), true), varBase: 5 }),
       new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(7), true), varBase: 7 })
     ];
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -283,7 +283,6 @@ class t8Sim {
     this.dy = 0;
     this.dz = 0;
     this.msTimer = 0;
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -304,8 +303,12 @@ class t8Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, "");
-    return this.result;
+    let result = createResult(this, "");
+
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+
+    return result;
   }
   tick() {
     this.dn();
@@ -371,6 +374,10 @@ class t8Sim {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
         if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+          if (this.maxRho + 5 > this.lastPub) {
+            let vars = ["c1", "c2", "c3", "c4", "c5"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+          }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();
         } else break;

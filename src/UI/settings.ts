@@ -1,5 +1,4 @@
-import { qs, event } from "../Utils/helperFunctions.js";
-import { decimals, round } from "../Utils/simHelpers.js";
+import { formatNumber, round, qs, event } from "../Utils/helpers.js";
 import { getSimState, setSimState } from "./simState.js";
 
 const settingsBtn = <HTMLButtonElement>qs(".settingsBtn");
@@ -25,13 +24,14 @@ const ddtOtp = qs(".ddtOtp");
 event(
   dtSlider,
   "input",
-  () => (dtOtp.textContent = dtSlider.value === "0" ? "0.15" : dtSlider.value === "10" ? "5" : String(decimals(0.15 + 2 ** parseFloat(dtSlider.value) * (4.9 / (1 + 2 ** parseFloat(dtSlider.max))), 4)))
+  () => (dtOtp.textContent = dtSlider.value === "0" ? "0.15" : dtSlider.value === "10" ? "5" : String(formatNumber(0.15 + 2 ** parseFloat(dtSlider.value) * (4.9 / (1 + 2 ** parseFloat(dtSlider.max))), 4)))
 );
 
 event(
   ddtSlider,
   "input",
-  () => (ddtOtp.textContent = ddtSlider.value === "0" ? "1" : ddtSlider.value === "10" ? "1.3" : String(round(1 + Number(decimals(3 ** parseFloat(ddtSlider.value) * (0.3 / 3 ** parseFloat(ddtSlider.max)), 2)), 7)))
+  () =>
+    (ddtOtp.textContent = ddtSlider.value === "0" ? "1" : ddtSlider.value === "10" ? "1.3" : String(round(1 + Number(formatNumber(3 ** parseFloat(ddtSlider.value) * (0.3 / 3 ** parseFloat(ddtSlider.max)), 2)), 7)))
 );
 
 const setState = qs(".setState");

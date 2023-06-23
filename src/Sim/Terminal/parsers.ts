@@ -1,5 +1,5 @@
-import jsonData from ".././data.json" assert { type: "json" };
-import { getTheoryFromIndex } from "../Components/helpers.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
+import { getTheoryFromIndex } from "../../Utils/helpers.js";
 import { inputData } from "../main.js";
 
 export function parseSimParams(params: Array<string>) {

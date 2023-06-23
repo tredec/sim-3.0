@@ -1,6 +1,6 @@
-import { qs, qsa, event, ce, findIndex } from "../Utils/helperFunctions.js";
-import data from "../Sim/data.json" assert { type: "json" };
-import { updateTimeDiffTable } from "../Sim/Components/parsers.js";
+import { qs, qsa, event, ce, findIndex } from "../Utils/helpers.js";
+import data from "../Data/data.json" assert { type: "json" };
+import { updateTimeDiffTable } from "../Sim/parsers.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");

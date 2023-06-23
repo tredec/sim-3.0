@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, arr } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { add, createResult, l10, subtract } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 export default function t4(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -52,6 +52,7 @@ class t4Sim {
             new Variable({ cost: new ExponentialCost(1e4, 1000), varBase: 2 })
         ];
         this.variableSum = 0;
+        this.boughtVars = [];
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -59,7 +60,6 @@ class t4Sim {
         this.pubRho = 0;
         //milestones  [terms, c1exp, multQdot]
         this.milestones = [0, 0, 0];
-        this.result = [];
         this.pubMulti = 0;
         this.conditions = this.getBuyingConditions();
         this.milestoneConditions = this.getMilestoneConditions();
@@ -68,22 +68,22 @@ class t4Sim {
     }
     getBuyingConditions() {
         let conditions = [
-            [...arr(8, true)],
-            [true, true, ...arr(6, false)],
-            [false, false, true, ...arr(3, false), true, true],
-            [...arr(3, false), true, false, false, true, true],
-            [...arr(4, false), true, false, true, true],
-            [...arr(4, false), true, true, true, true],
+            [...new Array(8).fill(true)],
+            [true, true, ...new Array(6).fill(false)],
+            [false, false, true, ...new Array(3).fill(false), true, true],
+            [...new Array(3).fill(false), true, false, false, true, true],
+            [...new Array(4).fill(false), true, false, true, true],
+            [...new Array(4).fill(false), true, true, true, true],
             [() => this.variables[0].cost + 1 < this.variables[1].cost, true, false, false, false, false, false, false],
             [() => this.variables[0].cost + 1 < Math.min(this.variables[1].cost), true, true, false, false, false, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
             [() => this.variables[0].cost + 1 < this.variables[1].cost && this.maxRho < this.lastPub, () => this.maxRho < this.lastPub, false, true, true, true, true, true],
             [() => this.variables[0].cost + 1 < this.variables[1].cost && this.maxRho < this.lastPub, () => this.maxRho < this.lastPub, true, false, true, true, true, true],
-            [...arr(4, false), true, true, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
+            [...new Array(4).fill(false), true, true, () => this.variables[6].cost + 1 < this.variables[7].cost, true],
             [
                 false,
                 false,
                 () => { var _a; return this.variables[2].cost + 0.1 < ((_a = this.recursionValue) !== null && _a !== void 0 ? _a : Infinity); },
-                ...arr(3, false),
+                ...new Array(3).fill(false),
                 () => {
                     var _a;
                     return this.variables[6].cost + l10(10 + (this.variables[6].lvl % 10)) <= Math.min(this.variables[7].cost, this.variables[2].cost) &&
@@ -246,8 +246,11 @@ class t4Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            this.result = createResult(this, this.stratIndex === 11 ? ` q1:${this.variables[6].lvl} q2:${this.variables[7].lvl}` : "");
-            return this.result;
+            let result = createResult(this, this.stratIndex === 11 ? ` q1:${this.variables[6].lvl} q2:${this.variables[7].lvl}` : "");
+            while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                this.boughtVars.pop();
+            global.varBuy.push([result[7], this.boughtVars]);
+            return result;
         });
     }
     tick() {
@@ -272,6 +275,10 @@ class t4Sim {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                    if (this.maxRho + 5 > this.lastPub) {
+                        let vars = ["c1", "c2", "c3", "c4", "c5", "c6", "q1", "q2"];
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                    }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
                 }

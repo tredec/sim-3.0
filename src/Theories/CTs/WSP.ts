@@ -1,10 +1,6 @@
-import { global } from "../../Sim/main.js";
-import { simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import { getTauFactor } from "../../Sim/Components/helpers.js";
-import { varBuys } from "../../UI/simEvents.js";
 
 export default async function wsp(data: theoryData): Promise<simResult> {
   let sim = new wspSim(data);
@@ -39,15 +35,7 @@ class wspSim {
   //initialize variables
   variables: Array<Variable>;
   S: number;
-  boughtVars: (
-    | number
-    | {
-        variable: string;
-        level: number;
-        cost: number;
-        timeStamp: number;
-      }
-  )[];
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -56,7 +44,6 @@ class wspSim {
   //milestones  [dimensions, b1exp, b2exp, b3exp]
   milestones: Array<number>;
   pubMulti: number;
-  result: Array<any>;
 
   getBuyingConditions() {
     let c1weight = 0;
@@ -170,7 +157,6 @@ class wspSim {
     this.pubRho = 0;
     //milestones  [q1exp, c2term, nboost]
     this.milestones = [0, 0, 0];
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -191,12 +177,12 @@ class wspSim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, "");
-    if (this.stratIndex === 2) {
-      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
-      global.varBuy.push([this.result[7], this.boughtVars]);
-    }
-    return this.result;
+    let result = createResult(this, "");
+
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+
+    return result;
   }
   tick() {
     let vq1 = this.variables[0].value * (1 + 0.01 * this.milestones[0]);

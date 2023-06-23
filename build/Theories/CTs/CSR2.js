@@ -8,10 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { add, createResult, l10, subtract, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function csr2(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new csr2Sim(data);
@@ -62,7 +60,6 @@ class csr2Sim {
         this.pubRho = 0;
         //milestones  [q1exp, c2term,c2exp]
         this.milestones = [0, 0, 0];
-        this.result = [];
         this.pubMulti = 0;
         this.conditions = this.getBuyingConditions();
         this.milestoneConditions = this.getMilestoneConditions();
@@ -217,13 +214,15 @@ class csr2Sim {
             let lastBuy = 0;
             for (let i = 0; i < this.variables.length; i++) {
                 const costIncs = [5, 128, 16, Math.pow(2, (Math.log2(256) * 3.346)), Math.pow(10, 5.65)];
-                lastBuy = Math.max(lastBuy, this.variables[i].cost - costIncs[i]);
+                lastBuy = Math.max(lastBuy, this.variables[i].cost - l10(costIncs[i]));
             }
-            this.result = createResult(this, this.stratIndex === 2 ? " " + Math.min(this.pubMulti, Math.pow(10, (this.getTotMult(lastBuy) - this.totMult))).toFixed(2) : "");
-            if (this.recursionValue[1] === 1 && this.stratIndex === 2) {
-                global.varBuy.push([this.result[7], this.boughtVars]);
+            let result = createResult(this, this.stratIndex === 2 ? " " + Math.min(this.pubMulti, Math.pow(10, (this.getTotMult(lastBuy) - this.totMult))).toFixed(2) : "");
+            if (this.recursionValue[1] === 1 || this.stratIndex !== 2) {
+                while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
+                    this.boughtVars.pop();
+                global.varBuy.push([result[7], this.boughtVars]);
             }
-            return this.result;
+            return result;
         });
     }
     tick() {
@@ -257,7 +256,7 @@ class csr2Sim {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
-                    if (this.maxRho + 5 > this.lastPub && this.stratIndex === 2) {
+                    if (this.maxRho + 5 > this.lastPub || this.stratIndex !== 2) {
                         let vars = ["q1", "q2", "c1", "n", "c2"];
                         this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }

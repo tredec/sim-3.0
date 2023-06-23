@@ -8,8 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { simulate, global } from "../Sim/main.js";
-import { qs, event, sleep, ce, qsa } from "../Utils/helperFunctions.js";
-import { convertTime, logToExp } from "../Utils/simHelpers.js";
+import { qs, event, sleep, ce, qsa, convertTime, logToExp } from "../Utils/helpers.js";
 import { getSimState, setSimState } from "./simState.js";
 //Inputs
 const theory = qs(".theory");
@@ -120,7 +119,7 @@ function resetVarBuy() {
             const row = tbody === null || tbody === void 0 ? void 0 : tbody.children[j];
             if (parseFloat(row === null || row === void 0 ? void 0 : row.children[7].innerHTML) === parseFloat(global.varBuy[i][0])) {
                 let val = global.varBuy[i][1];
-                (row === null || row === void 0 ? void 0 : row.children[8]).onpointerdown = () => {
+                (row === null || row === void 0 ? void 0 : row.children[8]).onclick = () => {
                     openVarModal(val);
                 };
                 (row === null || row === void 0 ? void 0 : row.children[8]).style.cursor = "pointer";

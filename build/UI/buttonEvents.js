@@ -1,4 +1,4 @@
-import { qs, event } from "../Utils/helperFunctions.js";
+import { qs, event } from "../Utils/helpers.js";
 //Buttons
 const clear = qs(".clear");
 const copyImage = qs(".imageC");

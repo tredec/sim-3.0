@@ -1,4 +1,4 @@
-import jsonData from ".././data.json" assert { type: "json" };
+import jsonData from "../../Data/data.json" assert { type: "json" };
 export function parseSimParams(params) {
     if (params.length < 3)
         throw "At least 3 parameters [strat, sigma, start rho] required.";

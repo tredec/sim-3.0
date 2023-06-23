@@ -29,7 +29,7 @@
     ["SL", "SLStopA", "SLStopAd", "SLMS", "SLMSd"],
     ["EF", "EFsnax", "EFd", "EFAI"],
     ["CSR2", "CSR2d", "CSR2XL"],
-    ["RZ", "RZd", "RZSpiralswap", "RZMS"],
+    ["RZ", "RZd", "RZdBH","RZSpiralswap", "RZMS","RZnoB"],
     ["FP"]
   ],
   "modes": ["All", "Single sim", "Chain", "Steps", "Amount", "Time", "Time diff."],

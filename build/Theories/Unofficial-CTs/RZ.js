@@ -8,10 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { add, createResult, l10, subtract, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost, StepwiseCost } from "../../Utils/variable.js";
-import { getTauFactor } from "../../Sim/Components/helpers.js";
 export default function rz(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new rzSim(data);
@@ -347,7 +345,6 @@ class rzSim {
         this.pubRho = 0;
         //c1exp delta w2term black-hole
         this.milestones = [0, 0, 0, 0];
-        this.result = [];
         this.pubMulti = 0;
         this.conditions = this.getBuyingConditions();
         this.milestoneConditions = this.getMilestoneConditions();
@@ -551,11 +548,11 @@ class rzSim {
             // this.output.innerHTML = this.outputResults;
             // this.outputResults = '';
             this.pubMulti = Math.pow(10, this.getTotMult(this.pubRho) - this.totMult);
-            this.result = createResult(this, "");
+            let result = createResult(this, "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
-            global.varBuy.push([this.result[7], this.boughtVars]);
-            return this.result;
+            global.varBuy.push([result[7], this.boughtVars]);
+            return result;
         });
     }
     tick() {

@@ -1,9 +1,7 @@
-import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import { varBuys } from "../../UI/simEvents.js";
 
 export default async function t3(data: theoryData): Promise<simResult> {
   let sim = new t3Sim(data);
@@ -35,15 +33,7 @@ class t3Sim {
   maxRho: number;
   //initialize variables
   variables: Array<Variable>;
-  boughtVars: (
-    | number
-    | {
-        variable: string;
-        level: number;
-        cost: number;
-        timeStamp: number;
-      }
-  )[];
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -52,7 +42,6 @@ class t3Sim {
   //milestones  [dimensions, b1exp, b2exp, b3exp]
   milestones: Array<number>;
   pubMulti: number;
-  result: Array<any>;
 
   getBuyingConditions() {
     let conditions: Array<Array<boolean | Function>> = [
@@ -272,7 +261,6 @@ class t3Sim {
     this.pubRho = 0;
     //milestones  [dimensions, b1exp, b2exp, b3exp]
     this.milestones = [0, 0, 0, 0];
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -293,12 +281,12 @@ class t3Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, "");
-    if (this.stratIndex === 14) {
-      while ((<varBuys>this.boughtVars[this.boughtVars.length - 1]).timeStamp > this.pubT) this.boughtVars.pop();
-      global.varBuy.push([this.result[7], this.boughtVars]);
-    }
-    return this.result;
+    let result = createResult(this, "");
+
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+
+    return result;
   }
   tick() {
     let vb1 = this.variables[0].value * (1 + 0.05 * this.milestones[1]);
@@ -330,7 +318,7 @@ class t3Sim {
       let currencyIndex = i % 3;
       while (true) {
         if (this.currencies[currencyIndex] > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
-          if (this.maxRho + 5 > this.lastPub && this.stratIndex === 14) {
+          if (this.maxRho + 5 > this.lastPub) {
             let vars = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }

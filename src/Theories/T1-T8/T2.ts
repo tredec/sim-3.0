@@ -1,7 +1,6 @@
-import { global } from "../../Sim/main.js";
-import { logToExp, simResult, theoryData } from "../../Utils/simHelpers.js";
-import { add, createResult, l10, subtract } from "../../Utils/simHelpers.js";
-import { findIndex, sleep } from "../../Utils/helperFunctions.js";
+import { global, varBuy } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
+import { findIndex, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 
 export default async function t2(data: theoryData): Promise<simResult> {
@@ -42,6 +41,7 @@ class t2Sim {
   r4: number;
   //initialize variables
   variables: Array<Variable>;
+  boughtVars: Array<varBuy>;
   //pub values
   tauH: number;
   maxTauH: number;
@@ -50,7 +50,6 @@ class t2Sim {
   //milestones  [terms, c1exp, multQdot]
   milestones: Array<number>;
   pubMulti: number;
-  result: Array<any>;
 
   getBuyingConditions() {
     let conditions: Array<Array<boolean | Function>> = [
@@ -169,6 +168,7 @@ class t2Sim {
       new Variable({ cost: new ExponentialCost(4e25, 3), stepwisePowerSum: { default: true } }),
       new Variable({ cost: new ExponentialCost(5e50, 4), stepwisePowerSum: { default: true } })
     ];
+    this.boughtVars = [];
     //pub values
     this.tauH = 0;
     this.maxTauH = 0;
@@ -176,7 +176,6 @@ class t2Sim {
     this.pubRho = 0;
     //milestones  [qterm, rterm, q1exp, r1exp]
     this.milestones = [0, 0, 0, 0];
-    this.result = [];
     this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
@@ -197,8 +196,10 @@ class t2Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    this.result = createResult(this, "");
-    return this.result;
+    let result = createResult(this, "");
+    while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
+    global.varBuy.push([result[7], this.boughtVars]);
+    return result;
   }
   tick() {
     let logdt = l10(this.dt);
@@ -231,6 +232,10 @@ class t2Sim {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
         if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+          if (this.maxRho + 5 > this.lastPub) {
+            let vars = ["q1", "q2", "q3", "q4", "r1", "r2", "r3", "r4"];
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+          }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();
         } else break;

@@ -7,10 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { findIndex } from "../Utils/helperFunctions.js";
-import { logToExp, convertTime, decimals } from "../Utils/simHelpers.js";
-import jsonData from "./data.json" assert { type: "json" };
-import { qs, sleep } from "../Utils/helperFunctions.js";
+import jsonData from "../Data/data.json" assert { type: "json" };
+import { qs, sleep, findIndex, getIndexFromTheory, getTauFactor, getTheoryFromIndex, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
 import t1 from "../Theories/T1-T8/T1.js";
 import t2 from "../Theories/T1-T8/T2.js";
 import t3 from "../Theories/T1-T8/T3.js";
@@ -23,8 +21,7 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
-import { parseCurrencyValue, parseModeInput } from "./Components/parsers.js";
-import { getIndexFromTheory, getTauFactor, getTheoryFromIndex } from "./Components/helpers.js";
+import { parseCurrencyValue, parseModeInput } from "./parsers.js";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -187,9 +184,11 @@ function chainSim(data) {
             time += res[res.length - 1][1];
         }
         cache.lastStrat = null;
+        // @ts-expect-error
         result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
         const dtau = (data.rho - start) * getTauFactor(data.theory);
-        result.push(["", "", "", "", logToExp(dtau, 2), "", "", decimals(dtau / (time / 3600), 5), convertTime(time)]);
+        // @ts-expect-error
+        result.push(["", "", "", "", logToExp(dtau, 2), "", "", formatNumber(dtau / (time / 3600), 5), convertTime(time)]);
         return result;
     });
 }
@@ -249,16 +248,19 @@ function simAll(data) {
             }
             res.push(createSimAllOutput(temp));
         }
+        //@ts-expect-error
         res.push([sigma]);
         return res;
     });
 }
 function createSimAllOutput(arr) {
-    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], decimals(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
+    //@ts-expect-error
+    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
 }
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {
         const strats = getStrats(data.theory, data.rho, data.strat);
+        //@ts-expect-error
         let bestSim = new Array(9).fill(0);
         for (let i = 0; i < strats.length; i++) {
             data.strat = strats[i];
