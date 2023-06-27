@@ -1,8 +1,47 @@
-import { getTauFactor, getTheoryFromIndex, log10 } from "../Utils/helpers.js";
+import { getTheoryFromIndex, log10 } from "../Utils/helpers.js";
 import jsonData from "../Data/data.json" assert { type: "json" };
 import { qs, qsa } from "../Utils/helpers.js";
+import { theory, inputData, parsedData } from "./main.js";
 
-export function parseCurrencyValue(value: string | Array<number | string>, theory: string, sigma: number, defaultConv: string = "r"): number {
+export function parseData(data: inputData) {
+  const parsedDataObj: parsedData = {
+    theory: data.theory,
+    strat: data.strat,
+    mode: data.mode,
+    hardCap: data.hardCap,
+    modeInput: data.modeInput,
+    simAllInputs: data.simAllInputs,
+    sigma: 0,
+    rho: 0,
+    cap: Infinity,
+    recovery: null
+  };
+
+  if (data.mode !== "All" && data.mode !== "Time diff.") {
+    //parsing sigma
+    if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0) parsedDataObj.sigma = parseInt(data.sigma);
+    else if (data.theory.charAt(0) === "T") throw "Invalid sigma value. Sigma must be an integer that's >= 0";
+
+    //parsing currency
+    if (data.rho.length > 0) parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
+    else throw "Input value cannot be empty.";
+
+    //parsing cap if needed
+    if (data.mode === "Chain" || data.mode === "Steps") {
+      if (data.cap.length > 0) parsedDataObj.cap = parseCurrencyValue(data.cap, parsedDataObj.theory, parsedDataObj.sigma);
+      else throw "Cap value cannot be empty.";
+    }
+  }
+  //parsing mode input if needed
+  if (data.mode !== "Single sim" && data.mode !== "Chain") {
+    if (data.mode === "Time diff.") data.modeInput = JSON.stringify(data.timeDiffInputs);
+    parsedDataObj.modeInput = parseModeInput(data.modeInput, data.mode);
+  }
+
+  return parsedDataObj;
+}
+
+export function parseCurrencyValue(value: string | Array<number | string>, theory: theory, sigma: number, defaultType: string = "r"): number {
   if (typeof value === "string") {
     const lastChar: string = value.charAt(value.length - 1);
     //checks if last character is not valid currency character. If not, throw error
@@ -10,7 +49,7 @@ export function parseCurrencyValue(value: string | Array<number | string>, theor
       value = value.slice(0, -1);
       if (isValidCurrency(value)) value = [value, lastChar];
     } else if (lastChar.match(/[0-9]/)) {
-      if (isValidCurrency(value)) value = [value, defaultConv];
+      if (isValidCurrency(value)) value = [value, defaultType];
     } else {
       throw `Invalid currency value ${value}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
     }
@@ -22,13 +61,13 @@ export function parseCurrencyValue(value: string | Array<number | string>, theor
   //returns value if last character is r.
   if (value[1] === "r") return value[0];
   //returns value with correct tau factor if last character is t.
-  if (value[1] === "t") return value[0] / getTauFactor(theory);
+  if (value[1] === "t") return value[0] / jsonData.theories[theory].tauFactor;
   //returns value converted to rho from current multiplier if last character is r.
   if (value[1] === "m") return reverseMulti(theory, value[0], sigma);
   throw `Cannot parse value ${value[0]} and ${value[1]}. Please contact the author of the sim.`;
 }
-export function isValidCurrency(val: string): true {
-  //if currency contains any other characters than 0-9 or e, throw error for invalid currency.
+export function isValidCurrency(val: string) {
+  //if currency contains any other characters than 0-9, . or e, throw error for invalid currency.
   if (val.match(/^[0-9/e/.]+$/) === null) throw `Invalid currency value ${val}. Currency value must be in formats <number>, <exxxx> or <xexxxx>.`;
   //if amount of e's in currency are more than 1, throw error for invalid currency. same for dots
   let es = 0;
@@ -40,14 +79,14 @@ export function isValidCurrency(val: string): true {
   //if currency is valid, return true.
   return true;
 }
-export function parseValue(val: string): number {
+export function parseValue(val: string) {
   if (/[e]/.test(val)) return log10(val);
   return parseFloat(val);
 }
 function isInt(str: string) {
   return /^\d+$/.test(str);
 }
-export function reverseMulti(theory: string, value: number, sigma: number): number {
+export function reverseMulti(theory: string, value: number, sigma: number) {
   let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
   let divSigmaMulti = (exp: number, div: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) + Math.log10(div)) * (1 / exp);
   let multSigmaMulti = (exp: number, mult: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) - Math.log10(mult)) * (1 / exp);
@@ -109,7 +148,7 @@ export function parseModeInput(input: string, mode: string): Array<number> | num
 function parseSimAll(input: string): Array<number> {
   //splitting input at every space
   let split = input.split(" ");
-  //removign all leftover spaces and line breaks in every split
+  //removing all leftover spaces and line breaks in every split
   for (let i = 0; i < split.length; i++) {
     split[i] = split[i].replace(" ", "");
     split[i] = split[i].replace("\n", "");
@@ -118,7 +157,7 @@ function parseSimAll(input: string): Array<number> {
   //needs at least two items
   if (split.length < 2) throw "Student count and at least one theory value that is not 0 is required.";
   //dont allow more inputs than students + theories
-  if (split.length - 1 > jsonData.theories.length) throw `Invalid value ${split[jsonData.theories.length + 1]} does not match any theory.`;
+  if (split.length - 1 > Object.keys(jsonData.theories).length) throw `Invalid value ${split[Object.keys(jsonData.theories).length + 1]} does not match any theory.`;
   //parse students
   let res: Array<number> = [];
   if (isInt(split[0])) res.push(parseInt(split[0]));

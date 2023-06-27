@@ -1,7 +1,8 @@
-import { global, varBuy } from "../../Sim/main.js";
+import { global, varBuy, theory } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 
 export default async function t3(data: theoryData): Promise<simResult> {
   let sim = new t3Sim(data);
@@ -9,14 +10,15 @@ export default async function t3(data: theoryData): Promise<simResult> {
   return res;
 }
 
-class t3Sim {
-  conditions: Array<Array<boolean | Function>>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<Array<number>>>;
+type strat = keyof typeof jsonData.theories.T3.strats;
 
-  stratIndex: number;
-  strat: string;
-  theory: string;
+class t3Sim {
+  conditions: Array<Function>;
+  milestoneConditions: Array<Function>;
+  milestoneTree: Array<Array<number>>;
+
+  strat: strat;
+  theory: theory;
   //theory
   cap: Array<number>;
   recovery: { value: number; time: number; recoveryTime: boolean };
@@ -44,14 +46,14 @@ class t3Sim {
   pubMulti: number;
 
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [
-      new Array(12).fill(true), //t3
-      [true, true, false, true, true, false, true, false, false, false, false, false], //T3C11C12C21
-      [true, true, true, false, true, false, false, true, true, true, true, false], //T3noC11C13C21C33
-      [true, true, true, true, true, false, true, true, true, true, false, false], //T3noC13C32C33
-      [true, true, true, true, true, false, true, true, true, true, true, false], //T3noC13C33
-      [false, true, true, false, true, false, false, true, true, false, true, false], //T3noP1C13C33
-      [
+    const conditions: { [key in strat]: Array<boolean | Function> } = {
+      T3: new Array(12).fill(true), //t3
+      T3C11C12C21: [true, true, false, true, true, false, true, false, false, false, false, false],
+      T3noC11C13C21C33: [true, true, true, false, true, false, false, true, true, true, true, false],
+      T3noC13C32C33: [true, true, true, true, true, false, true, true, true, true, false, false],
+      T3noC13C33: [true, true, true, true, true, false, true, true, true, true, true, false],
+      T3noP1C13C33: [false, true, true, false, true, false, false, true, true, false, true, false],
+      T3Snax: [
         () => this.curMult < 1,
         true,
         true,
@@ -64,8 +66,8 @@ class t3Sim {
         () => this.curMult < 1,
         () => this.curMult < 1,
         () => this.curMult < 1
-      ], //T3Snax
-      [
+      ],
+      T3Snax2: [
         () => (this.curMult < 1 ? this.variables[0].cost + 1 < this.currencies[0] : false),
         () => this.variables[1].cost + l10(3) < this.currencies[1],
         () => this.variables[2].cost + l10(5) < this.currencies[2],
@@ -78,8 +80,8 @@ class t3Sim {
         () => this.curMult < 1,
         () => this.curMult < 1,
         () => (this.curMult < 1 ? this.variables[11].cost + 1 < this.currencies[2] : false)
-      ], //T3Snax2
-      [
+      ],
+      T3C11C12C21d: [
         () => this.variables[0].cost + l10(7) < Math.min(this.variables[3].cost, this.variables[6].cost),
         () => this.variables[1].cost + l10(7) < this.variables[4].cost,
         false,
@@ -92,8 +94,8 @@ class t3Sim {
         false,
         false,
         false
-      ], //T3C11C12C21d
-      [
+      ],
+      T3noC11C13C21C33d: [
         () => this.variables[0].cost + l10(8) < this.variables[9].cost,
         () => this.variables[1].cost + l10(5) < Math.min(this.variables[4].cost, this.variables[7].cost, this.variables[10].cost),
         () => this.variables[2].cost + l10(8) < this.variables[8].cost,
@@ -106,8 +108,8 @@ class t3Sim {
         true,
         true,
         false
-      ], //T3noC11C13C21C33d
-      [
+      ],
+      T3noC11C13C33d: [
         () => this.variables[0].cost + l10(10) < Math.min(this.variables[6].cost, this.variables[9].cost),
         () => this.variables[1].cost + l10(4) < Math.min(this.variables[4].cost, this.variables[7].cost, this.variables[10].cost),
         () => this.variables[2].cost + l10(10) < this.variables[8].cost,
@@ -120,8 +122,8 @@ class t3Sim {
         true,
         true,
         false
-      ], //T3noC11C13C33d
-      [
+      ],
+      T3noC13C32C33d: [
         () => this.variables[0].cost + l10(8) < Math.min(this.variables[3].cost, this.variables[6].cost, this.variables[9].cost),
         () => this.variables[1].cost + l10(5) < Math.min(this.variables[4].cost, this.variables[7].cost),
         () => this.variables[2].cost + l10(8) < this.variables[8].cost,
@@ -134,8 +136,8 @@ class t3Sim {
         true,
         false,
         false
-      ], //T3noC13C32C33d
-      [
+      ],
+      T3noC13C33d: [
         () => this.variables[0].cost + l10(10) < Math.min(this.variables[3].cost, this.variables[6].cost, this.variables[9].cost),
         () => this.variables[1].cost + l10(4) < Math.min(this.variables[4].cost, this.variables[7].cost, this.variables[10].cost),
         () => this.variables[2].cost + l10(10) < this.variables[8].cost,
@@ -148,8 +150,8 @@ class t3Sim {
         true,
         true,
         false
-      ], //T3noC13C33d
-      [
+      ],
+      T3Play: [
         () => (this.curMult < 2 ? this.variables[0].cost + l10(8) < this.variables[9].cost : false),
         () => (this.curMult < 2 ? this.variables[1].cost + l10(4) < Math.min(this.variables[4].cost, this.variables[10].cost) && this.variables[1].cost + l10(2) < this.variables[7].cost : true),
         () => this.variables[2].cost + l10(8) < this.variables[8].cost && this.variables[2].cost + l10(2) < this.variables[11].cost,
@@ -162,8 +164,8 @@ class t3Sim {
         () => this.curMult < 2,
         true,
         () => this.variables[11].cost + l10(4) < this.variables[8].cost
-      ], //T3Play
-      [
+      ],
+      T3Play2: [
         () => (this.lastPub - this.maxRho > 1 ? this.variables[0].cost + l10(8) < this.variables[9].cost : false),
         () => (this.curMult < 1.2 ? this.variables[1].cost + l10(5) < this.variables[10].cost : this.variables[1].cost + l10(8) < this.variables[4].cost) || this.curMult > 2.4,
         () => (this.curMult < 2.4 ? this.variables[2].cost + l10(8) < this.variables[8].cost : true),
@@ -176,10 +178,10 @@ class t3Sim {
         () => this.lastPub - this.maxRho > 1,
         () => (this.curMult < 1.2 ? true : this.curMult < 2.4 ? this.variables[10].cost + l10(8) < this.variables[4].cost : false),
         () => (this.curMult < 1.2 ? this.variables[11].cost + l10(10) < this.variables[8].cost : false)
-      ] //T3Play2
-    ];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-    return conditions;
+      ]
+    };
+    const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+    return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [
@@ -199,30 +201,44 @@ class t3Sim {
     return conditions;
   }
   getMilestoneTree() {
-    let tree: Array<Array<Array<number>>> = [
-      ...new Array(15).fill([
-        [0, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 2, 0, 0],
-        [0, 2, 1, 0],
-        [0, 2, 2, 0],
-        [1, 2, 2, 0],
-        [1, 2, 2, 1],
-        [1, 2, 2, 2]
-      ])
+    const globalOptimalRoute = [
+      [0, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 2, 0, 0],
+      [0, 2, 1, 0],
+      [0, 2, 2, 0],
+      [1, 2, 2, 0],
+      [1, 2, 2, 1],
+      [1, 2, 2, 2]
     ];
-    return tree;
+    const tree: { [key in strat]: Array<Array<number>> } = {
+      T3: globalOptimalRoute,
+      T3C11C12C21: globalOptimalRoute,
+      T3noC11C13C21C33: globalOptimalRoute,
+      T3noC13C32C33: globalOptimalRoute,
+      T3noC13C33: globalOptimalRoute,
+      T3noP1C13C33: globalOptimalRoute,
+      T3Snax: globalOptimalRoute,
+      T3Snax2: globalOptimalRoute,
+      T3C11C12C21d: globalOptimalRoute,
+      T3noC11C13C21C33d: globalOptimalRoute,
+      T3noC11C13C33d: globalOptimalRoute,
+      T3noC13C32C33d: globalOptimalRoute,
+      T3noC13C33d: globalOptimalRoute,
+      T3Play: globalOptimalRoute,
+      T3Play2: globalOptimalRoute
+    };
+    return tree[this.strat];
   }
   getTotMult(val: number) {
     return Math.max(0, val * 0.147 + l10(3)) + l10((this.sigma / 20) ** (this.sigma < 65 ? 0 : this.sigma < 75 ? 1 : this.sigma < 85 ? 2 : 3));
   }
-  updateMilestones(): void {
+  updateMilestones() {
     const stage = Math.min(7, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
-    this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+    this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
   constructor(data: theoryData) {
-    this.stratIndex = findIndex(data.strats, data.strat);
-    this.strat = data.strat;
+    this.strat = data.strat as strat;
     this.theory = "T3";
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
@@ -317,7 +333,7 @@ class t3Sim {
     for (let i = this.variables.length - 1; i >= 0; i--) {
       let currencyIndex = i % 3;
       while (true) {
-        if (this.currencies[currencyIndex] > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+        if (this.currencies[currencyIndex] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

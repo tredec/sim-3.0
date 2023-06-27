@@ -1,7 +1,8 @@
-import { global, varBuy } from "../../Sim/main.js";
+import { global, varBuy, theory } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 
 export default async function t7(data: theoryData): Promise<simResult> {
   let sim = new t7Sim(data);
@@ -9,14 +10,15 @@ export default async function t7(data: theoryData): Promise<simResult> {
   return res;
 }
 
-class t7Sim {
-  conditions: Array<Array<boolean | Function>>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<Array<number>>>;
+type strat = keyof typeof jsonData.theories.T7.strats;
 
-  stratIndex: number;
-  strat: string;
-  theory: string;
+class t7Sim {
+  conditions: Array<Function>;
+  milestoneConditions: Array<Function>;
+  milestoneTree: Array<Array<number>>;
+
+  strat: strat;
+  theory: theory;
   //theory
   cap: Array<number>;
   recovery: { value: number; time: number; recoveryTime: boolean };
@@ -53,16 +55,16 @@ class t7Sim {
     if (this.lastPub >= 250) this.c2ratio = 20;
     if (this.lastPub >= 275) this.c2ratio = 50;
     if (this.lastPub >= 300) this.c2ratio = Infinity;
-    let conditions: Array<Array<boolean | Function>> = [
-      [true, true, true, true, true, true, true], //T7
-      [true, true, true, false, false, false, false], //T7C12
-      [true, false, false, true, false, false, false], //T7C3
-      [true, false, false, true, true, true, true], //T7noC12
-      [true, false, false, false, true, true, true], //T7noC123
-      [true, false, false, false, false, true, true], //T7noC1234
-      [() => this.variables[0].cost + 1 < this.variables[2].cost, () => this.variables[1].cost + l10(8) < this.variables[2].cost, true, false, false, false, false], //T7C12d
-      [() => this.variables[0].cost + 1 < this.variables[3].cost, false, false, true, false, false, false], //T7C3d
-      [
+    const conditions: { [key in strat]: Array<boolean | Function> } = {
+      T7: [true, true, true, true, true, true, true],
+      T7C12: [true, true, true, false, false, false, false],
+      T7C3: [true, false, false, true, false, false, false],
+      T7noC12: [true, false, false, true, true, true, true],
+      T7noC123: [true, false, false, false, true, true, true],
+      T7noC1234: [true, false, false, false, false, true, true],
+      T7C12d: [() => this.variables[0].cost + 1 < this.variables[2].cost, () => this.variables[1].cost + l10(8) < this.variables[2].cost, true, false, false, false, false],
+      T7C3d: [() => this.variables[0].cost + 1 < this.variables[3].cost, false, false, true, false, false, false],
+      T7PlaySpqcey: [
         () => this.variables[0].cost + l10(4) < this.variables[6].cost,
         () => this.variables[1].cost + l10(10 + this.variables[2].lvl) < this.variables[2].cost,
         () => this.variables[2].cost + l10(this.c2ratio) < this.variables[6].cost,
@@ -70,18 +72,18 @@ class t7Sim {
         () => this.variables[4].cost + 1 < this.variables[6].cost,
         () => this.variables[5].cost + l10(4) < this.variables[6].cost,
         true
-      ] //T7PlaySpqcey
-    ];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-    return conditions;
+      ]
+    };
+    const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+    return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [() => true, () => true, () => true, () => this.milestones[1] > 0, () => this.milestones[0] > 0, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
     return conditions;
   }
   getMilestoneTree() {
-    let tree: Array<Array<Array<number>>> = [
-      [
+    const tree: { [key in strat]: Array<Array<number>> } = {
+      T7: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
         [1, 1, 0, 0, 0],
@@ -90,47 +92,47 @@ class t7Sim {
         [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 2],
         [1, 1, 1, 1, 3]
-      ], //T7
-      [
+      ],
+      T7C12: [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 2],
         [0, 0, 0, 0, 3]
-      ], //T7C12
-      [
+      ],
+      T7C3: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0]
-      ], //T7C3
-      [
+      ],
+      T7noC12: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
         [1, 1, 0, 0, 0],
         [1, 1, 1, 0, 0],
         [1, 1, 1, 1, 0]
-      ], //T7noC12
-      [
+      ],
+      T7noC123: [
         [0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 0, 1, 0, 0],
         [1, 0, 1, 1, 0]
-      ], //T7noC123
-      [
+      ],
+      T7noC1234: [
         [0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 0, 1, 0, 0],
         [1, 0, 1, 1, 0]
-      ], //T7noC1234
-      [
+      ],
+      T7C12d: [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 2],
         [0, 0, 0, 0, 3]
-      ], //T7C12d
-      [
+      ],
+      T7C3d: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0]
-      ], //T7C3d
-      [
+      ],
+      T7PlaySpqcey: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
         [1, 1, 0, 0, 0],
@@ -139,9 +141,9 @@ class t7Sim {
         [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 2],
         [1, 1, 1, 1, 3]
-      ] //T7PlaySpqcey
-    ];
-    return tree;
+      ]
+    };
+    return tree[this.strat];
   }
 
   getTotMult(val: number) {
@@ -149,11 +151,10 @@ class t7Sim {
   }
   updateMilestones(): void {
     const stage = Math.min(7, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
-    this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+    this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
   constructor(data: theoryData) {
-    this.stratIndex = findIndex(data.strats, data.strat);
-    this.strat = data.strat;
+    this.strat = data.strat as strat;
     this.theory = "T7";
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
@@ -247,7 +248,7 @@ class t7Sim {
   buyVariables() {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
-        if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+        if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "c1", "c2", "c3", "c4", "c5", "c6"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

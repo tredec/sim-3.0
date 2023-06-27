@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import jsonData from "../Data/data.json" assert { type: "json" };
-import { qs, sleep, findIndex, getIndexFromTheory, getTauFactor, getTheoryFromIndex, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
+import { qs, sleep, getTheoryFromIndex, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
 import t1 from "../Theories/T1-T8/T1.js";
 import t2 from "../Theories/T1-T8/T2.js";
 import t3 from "../Theories/T1-T8/T3.js";
@@ -21,7 +21,10 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
-import { parseCurrencyValue, parseModeInput } from "./parsers.js";
+import fp from "../Theories/Unofficial-CTs/FP.js";
+import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
+import { parseData } from "./parsers.js";
+import { getStrats } from "./strats";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -71,54 +74,13 @@ export function simulate(simData) {
         }
     });
 }
-function parseData(data) {
-    const parsedDataObj = {
-        theory: data.theory,
-        strat: data.strat,
-        mode: data.mode,
-        hardCap: data.hardCap,
-        modeInput: data.modeInput,
-        simAllInputs: data.simAllInputs,
-        sigma: 0,
-        rho: 0,
-        cap: Infinity,
-        recovery: null
-    };
-    if (data.mode !== "All" && data.mode !== "Time diff.") {
-        //parsing sigma
-        if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0)
-            parsedDataObj.sigma = parseInt(data.sigma);
-        else if (data.theory.charAt(0) === "T")
-            throw "Invalid sigma value. Sigma must be an integer that's >= 0";
-        //parsing currency
-        if (data.rho.length > 0)
-            parsedDataObj.rho = parseCurrencyValue(data.rho, parsedDataObj.theory, parsedDataObj.sigma);
-        else
-            throw "Input value cannot be empty.";
-        //parsing cap if needed
-        if (data.mode === "Chain" || data.mode === "Steps") {
-            if (data.cap.length > 0)
-                parsedDataObj.cap = parseCurrencyValue(data.cap, parsedDataObj.theory, parsedDataObj.sigma);
-            else
-                throw "Cap value cannot be empty.";
-        }
-    }
-    //parsing mode input if needed
-    if (data.mode !== "Single sim" && data.mode !== "Chain") {
-        if (data.mode === "Time diff.")
-            data.modeInput = JSON.stringify(data.timeDiffInputs);
-        parsedDataObj.modeInput = parseModeInput(data.modeInput, data.mode);
-    }
-    return parsedDataObj;
-}
 function singleSim(data) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        if (findIndex(["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"], data.strat) !== -1)
+        if (jsonData.stratCategories.includes(data.strat))
             return getBestStrat(data);
         const sendData = {
             strat: data.strat,
-            strats: jsonData.strats[getIndexFromTheory(data.theory)],
             sigma: data.sigma,
             rho: data.rho,
             recursionValue: null,
@@ -150,12 +112,11 @@ function singleSim(data) {
                 return yield ef(sendData);
             case "CSR2":
                 return yield csr2(sendData);
-            // case "RZ":
-            //   return await rz(sendData);
-            // case "FP":
-            //   return await fp(sendData);
+            case "RZ":
+                return yield rz(sendData);
+            case "FP":
+                return yield fp(sendData);
         }
-        throw `Theory ${data.theory} is not defined in singleSim() function. Please contact the author of the sim.`;
     });
 }
 function chainSim(data) {
@@ -186,7 +147,7 @@ function chainSim(data) {
         cache.lastStrat = null;
         // @ts-expect-error
         result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
-        const dtau = (data.rho - start) * getTauFactor(data.theory);
+        const dtau = (data.rho - start) * jsonData.theories[data.theory].tauFactor;
         // @ts-expect-error
         result.push(["", "", "", "", logToExp(dtau, 2), "", "", formatNumber(dtau / (time / 3600), 5), convertTime(time)]);
         return result;
@@ -259,7 +220,7 @@ function createSimAllOutput(arr) {
 }
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const strats = getStrats(data.theory, data.rho, data.strat);
+        const strats = getStrats(data.theory, data.rho, data.strat, cache.lastStrat);
         //@ts-expect-error
         let bestSim = new Array(9).fill(0);
         for (let i = 0; i < strats.length; i++) {
@@ -270,295 +231,4 @@ function getBestStrat(data) {
         }
         return bestSim;
     });
-}
-function getStrats(theory, rho, type) {
-    let conditions = [];
-    switch (theory) {
-        case "T1":
-            conditions = [
-                rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 850,
-                type !== "Best Overall" && type !== "Best Active" && rho > 625,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && (type === "Best Active" || rho < 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T1SolarXLII
-            ];
-            break;
-        case "T2":
-            conditions = [
-                (type !== "Best Semi-Idle" && type !== "Best Active" && type !== "Best Overall") || rho < 25,
-                type !== "Best Idle" && ((type !== "Best Active" && type !== "Best Overall") || rho >= 250),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 250,
-                type !== "Best Active" && type !== "Best Overall" && type !== "Best Idle" && rho < 250 //T2qs
-            ];
-            break;
-        case "T3":
-            conditions = [
-                rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho < 150,
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 175,
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle" && rho >= 175 && rho < 300,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 260 && (rho < 500 || type !== "Best Semi-Idle"),
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 150,
-                type !== "Best Overall" && type !== "Best Idle" && type !== "Best Semi-Idle" && rho >= 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 150,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 350,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 175,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 150 && rho < 225,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 200 && rho < 375,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 250 //T3Play2
-            ];
-            break;
-        case "T4":
-            conditions = [
-                rho < 30,
-                type !== "Best Overall" && type !== "Best Active" && rho < 600 && cache.lastStrat !== "T4C3",
-                type !== "Best Overall" && type !== "Best Active" && rho > 200,
-                type !== "Best Overall" && type !== "Best Active" && rho < 125,
-                type !== "Best Overall" && type !== "Best Active" && rho < 150,
-                type !== "Best Overall" && type !== "Best Active" && rho < 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && cache.lastStrat !== "T4C3d66" && cache.lastStrat !== "T4C123d",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 700 && rho > 175 && (cache.lastStrat !== "T4C3d66" || rho < 225),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 75 && rho < 200,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 175 && rho < 300,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 275,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho > 240 //T4C3d66
-            ];
-            break;
-        case "T5":
-            conditions = [
-                rho < 25 || (type !== "Best Overall" && type !== "Best Active" && type !== "Best Semi-Idle"),
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
-                type !== "Best Idle" && type !== "Best Semi-Idle" //T5AI2
-            ];
-            break;
-        case "T6":
-            conditions = [
-                rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 100,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
-                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
-                type !== "Best Overall" && type !== "Best Active" && rho > 800,
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho > 400,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 25,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 100,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 1100 && cache.lastStrat !== "T6noC1234",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 100 && rho < 750 && cache.lastStrat !== "T6noC34" && cache.lastStrat !== "T6noC1234",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho > 800,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho >= 100 //T6AI
-            ];
-            break;
-        case "T7":
-            conditions = [
-                false,
-                type !== "Best Overall" && type !== "Best Active" && (rho < 25 || (rho >= 75 && rho < 100)),
-                type !== "Best Overall" && type !== "Best Active" && rho >= 25 && rho < 75,
-                type !== "Best Overall" && type !== "Best Active" && rho < 550 && rho >= 100,
-                type !== "Best Overall" && type !== "Best Active" && rho < 625 && rho > 500,
-                type !== "Best Overall" && type !== "Best Active" && rho > 525,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && (rho < 25 || (rho >= 75 && rho < 150)),
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 25 && rho < 75,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 //T7PlaySpqcey
-            ];
-            break;
-        case "T8":
-            conditions = [
-                type !== "Best Overall" && type !== "Best Active" && (type !== "Best Semi-Idle" || rho < 100),
-                type !== "Best Overall" && type !== "Best Active" && rho < 25,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 160 && rho < 220,
-                type !== "Best Overall" && type !== "Best Active" && rho >= 100 && rho < 160,
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 60,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 160 && rho < 220,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 100 && rho < 160,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 40 && rho < 100,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho >= 220,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" //T8PlaySolarswap
-            ];
-            break;
-        case "WSP":
-            conditions = [
-                type !== "Best Overall" && type !== "Best Active" && rho < 525,
-                type !== "Best Overall" && type !== "Best Active" && rho > 475,
-                type !== "Best Semi-Idle" && type !== "Best Idle" //WSPdstopC1
-            ];
-            break;
-        case "SL":
-            conditions = [
-                rho < 25 || type === "Best Idle",
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle" && rho >= 300,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho >= 300,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Overall" && rho < 300,
-                type !== "Best Semi-Idle" && type !== "Best Idle" && type !== "Best Active" && rho < 300 //SLMSd
-            ];
-            break;
-        case "EF":
-            conditions = [
-                rho < 10 || type === "Best Idle",
-                type !== "Best Overall" && type !== "Best Active" && type !== "Best Idle",
-                type !== "Best Semi-Idle" && type !== "Best Idle" && rho < 10,
-                type !== "Best Semi-Idle" && type !== "Best Idle" //EFAI
-            ];
-            break;
-        case "CSR2":
-            conditions = [
-                rho < 10 || type === "Best Idle" || type === "Best Semi-Idle",
-                type === "Best Active" && rho < 500,
-                (type === "Best Overall" || (type === "Best Active" && rho >= 500)) && rho > 10 //CSR2XL
-            ];
-            break;
-        case "RZ":
-            conditions = [true, true, true, true];
-            break;
-    }
-    let requirements = [];
-    switch (theory) {
-        case "T1":
-            requirements = [
-                true,
-                rho >= 25,
-                rho >= 50,
-                true,
-                true //T1SolarXLII
-            ];
-            break;
-        case "T2":
-            requirements = [
-                true,
-                true,
-                true,
-                true //T2qs
-            ];
-            break;
-        case "T3":
-            requirements = [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true //T3Play2
-            ];
-            break;
-        case "T4":
-            requirements = [
-                true,
-                true,
-                true,
-                rho >= 25,
-                rho >= 50,
-                rho >= 50,
-                true,
-                true,
-                rho >= 25,
-                rho >= 75,
-                rho >= 50,
-                true //T4C3d66
-            ];
-            break;
-        case "T5":
-            requirements = [
-                true,
-                true,
-                true //T5AI2
-            ];
-            break;
-        case "T6":
-            requirements = [
-                true,
-                true,
-                true,
-                true,
-                true,
-                rho >= 125,
-                true,
-                true,
-                true,
-                true,
-                true,
-                rho >= 125,
-                true //T6AI
-            ];
-            break;
-        case "T7":
-            requirements = [
-                true,
-                true,
-                rho >= 25,
-                rho >= 25,
-                rho >= 75,
-                rho >= 75,
-                true,
-                rho >= 25,
-                rho >= 100 //T7PlaySpqcey
-            ];
-            break;
-        case "T8":
-            requirements = [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true //T8PlaySolarswap
-            ];
-            break;
-        case "WSP":
-            requirements = [
-                true,
-                true,
-                true //WSPdstopC1
-            ];
-            break;
-        case "SL":
-            requirements = [
-                true,
-                true,
-                true,
-                true,
-                true //SLMSd
-            ];
-            break;
-        case "EF":
-            requirements = [
-                true,
-                true,
-                true,
-                true //EFAI
-            ];
-            break;
-        case "CSR2":
-            requirements = [
-                true,
-                true,
-                true //CSR2XL
-            ];
-            break;
-        case "RZ":
-            requirements = [true, true, true, true];
-            break;
-    }
-    if (conditions.length === 0)
-        throw "No strats found";
-    let res = [];
-    for (let i = 0; i < conditions.length; i++)
-        if ((conditions[i] || !global.stratFilter) && requirements[i])
-            res.push(jsonData.strats[getIndexFromTheory(theory)][i]);
-    return res;
 }

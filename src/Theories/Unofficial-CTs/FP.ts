@@ -1,12 +1,15 @@
-import { global, varBuy } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
+import { global, varBuy, theory } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, simResult, theoryData, sleep } from "../../Utils/helpers.js";
 import Variable, { CompositeCost, ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 
 export default async function fp(data: theoryData): Promise<simResult> {
   let sim = new fpSim(data);
   let res = await sim.simulate();
   return res;
 }
+
+type strat = keyof typeof jsonData.theories.FP.strats;
 
 let un = [
   0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877, 3235413, 3527445, 4348245, 5600149, 5663317, 5807893, 5940565,
@@ -38,13 +41,12 @@ interface milestones {
 }
 
 class fpSim {
-  conditions: Array<Array<boolean | Function>>;
+  conditions: Array<Function>;
   milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<milestones>>;
+  milestoneTree: Array<milestones>;
 
-  stratIndex: number;
-  strat: string;
-  theory: string;
+  strat: strat;
+  theory: theory;
   tauFactor: number;
   //theory
   cap: Array<number>;
@@ -83,9 +85,11 @@ class fpSim {
   pubMulti: number;
 
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [[...new Array(10).fill(true)]];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-    return conditions;
+    const conditions: { [key in strat]: Array<boolean | Function> } = {
+      FP: new Array(10).fill(true)
+    };
+    const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+    return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [
@@ -101,8 +105,8 @@ class fpSim {
     return conditions;
   }
   getMilestoneTree() {
-    let tree: Array<Array<milestones>> = [
-      [
+    const tree: { [key in strat]: Array<milestones> } = {
+      FP: [
         { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 0, fractals: 1, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 0, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
@@ -114,9 +118,9 @@ class fpSim {
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 }
-      ] //FP
-    ];
-    return tree;
+      ]
+    };
+    return tree[this.strat];
   }
 
   getTotMult(val: number) {
@@ -128,7 +132,7 @@ class fpSim {
     for (let i = 0; i < points.length; i++) {
       if (Math.max(this.lastPub, this.maxRho) >= points[i]) stage = i + 1;
     }
-    this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+    this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
 
     // if (this.lastPub > 700 && this.lastPub < 900) {
     //   if (this.ticks % 40 < 20) this.milestones.sterm = 0;
@@ -181,10 +185,9 @@ class fpSim {
     this.S_n = this.S(Math.floor(Math.sqrt(this.n)));
   }
   constructor(data: theoryData) {
-    this.stratIndex = findIndex(data.strats, data.strat);
-    this.strat = data.strat;
+    this.strat = data.strat as strat;
     this.theory = "FP";
-    this.tauFactor = getTauFactor(this.theory);
+    this.tauFactor = jsonData.theories.FP.tauFactor;
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
     this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
@@ -300,7 +303,7 @@ class fpSim {
   buyVariables() {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
-        if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+        if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["tdot", "c1", "c2", "q1", "q2", "r1", "n1", "s"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

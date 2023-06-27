@@ -13,33 +13,10 @@ export function sleep(time = 0) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
 export function getIndexFromTheory(theory) {
-    return findIndex(jsonData.theories, theory);
-}
-export function getTauFactor(theory) {
-    switch (theory) {
-        case "T1":
-        case "T2":
-        case "T3":
-        case "T4":
-        case "T5":
-        case "T6":
-        case "T7":
-        case "T8":
-            return 1;
-        case "WSP":
-        case "SL":
-        case "CSR2":
-        case "RZ":
-            return 0.1;
-        case "EF":
-            return 0.4;
-        case "FP":
-            return 0.075;
-    }
-    throw `Invalid theory ${theory}. Please contact the author of the sim.`;
+    return theory in Object.keys(jsonData.theories);
 }
 export function getTheoryFromIndex(index) {
-    return jsonData.theories[index];
+    return Object.keys(jsonData.theories)[index];
 }
 export function log10(num) {
     const split = String(num).split("e");
@@ -104,6 +81,19 @@ export function l10(val) {
 export function l2(val) {
     return Math.log2(val);
 }
+//written by propfeds
+export function binarySearch(arr, target) {
+    let l = 0;
+    let r = arr.length - 1;
+    while (l < r) {
+        let m = Math.ceil((l + r) / 2);
+        if (arr[m] <= target)
+            l = m;
+        else
+            r = m - 1;
+    }
+    return l;
+}
 export const ZERO = (() => {
     let r = Math.random();
     //dont ask pls ik this is dumb
@@ -117,10 +107,10 @@ export function createResult(data, stratExtra) {
         data.sigma,
         logToExp(data.lastPub, 2),
         logToExp(data.pubRho, 2),
-        logToExp((data.pubRho - data.lastPub) * getTauFactor(data.theory), 2),
+        logToExp((data.pubRho - data.lastPub) * jsonData.theories[data.theory].tauFactor, 2),
         formatNumber(data.pubMulti),
         data.strat + stratExtra,
-        data.maxTauH === 0 ? 0 : Number(formatNumber(data.maxTauH * getTauFactor(data.theory))),
+        data.maxTauH === 0 ? 0 : Number(formatNumber(data.maxTauH * jsonData.theories[data.theory].tauFactor)),
         convertTime(Math.max(0, data.pubT - data.recovery.time)),
         [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
     ];

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, logToExp } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 export default function t5(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -21,7 +21,6 @@ export default function t5(data) {
 class t5Sim {
     constructor(data) {
         var _a;
-        this.stratIndex = findIndex(data.strats, data.strat);
         this.strat = data.strat;
         this.theory = "T5";
         //theory
@@ -63,44 +62,47 @@ class t5Sim {
         this.updateMilestones();
     }
     getBuyingConditions() {
-        let conditions = [
-            [true, true, true, true, true],
-            [true, true, () => this.maxRho + (this.lastPub - 200) / 165 < this.lastPub, () => this.c2worth, true],
-            [
+        const conditions = {
+            T5: [true, true, true, true, true],
+            T5Idle: [true, true, () => this.maxRho + (this.lastPub - 200) / 165 < this.lastPub, () => this.c2worth, true],
+            T5AI2: [
                 () => this.variables[0].cost + l10(3 + (this.variables[0].lvl % 10)) <= Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[4].cost : 1000),
                 true,
                 () => this.q + l10(1.5) < this.variables[3].value + this.variables[4].value * (1 + 0.05 * this.milestones[2]) || !this.c2worth,
                 () => this.c2worth,
                 true
-            ] //T5AI2
-        ];
-        conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-        return conditions;
+            ]
+        };
+        const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+        return condition;
     }
     getMilestoneConditions() {
         let conditions = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
         return conditions;
     }
     getMilestoneTree() {
-        let tree = [
-            ...new Array(3).fill([
-                [0, 0, 0],
-                [0, 1, 0],
-                [1, 1, 0],
-                [2, 1, 0],
-                [3, 1, 0],
-                [3, 1, 1],
-                [3, 1, 2]
-            ])
+        const globalOptimalRoute = [
+            [0, 0, 0],
+            [0, 1, 0],
+            [1, 1, 0],
+            [2, 1, 0],
+            [3, 1, 0],
+            [3, 1, 1],
+            [3, 1, 2]
         ];
-        return tree;
+        const tree = {
+            T5: globalOptimalRoute,
+            T5Idle: globalOptimalRoute,
+            T5AI2: globalOptimalRoute
+        };
+        return tree[this.strat];
     }
     getTotMult(val) {
         return Math.max(0, val * 0.159) + l10(Math.pow((this.sigma / 20), (this.sigma < 65 ? 0 : this.sigma < 75 ? 1 : this.sigma < 85 ? 2 : 3)));
     }
     updateMilestones() {
         const stage = Math.min(6, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
-        this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+        this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
     }
     calculateQ(ic1, ic2, ic3) {
         let log10E = Math.log10(Math.E);
@@ -136,7 +138,7 @@ class t5Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, this.stratIndex === 1 ? " " + logToExp(this.variables[2].cost, 1) : "");
+            let result = createResult(this, this.strat === "T5Idle" ? " " + logToExp(this.variables[2].cost, 1) : "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -167,7 +169,7 @@ class t5Sim {
         this.c2worth = iq >= this.variables[3].value + nc3 + l10(2 / 3);
         for (let i = this.variables.length - 1; i >= 0; i--) {
             while (true) {
-                if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["q1", "q2", "c1", "c2", "c3"];
                         this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

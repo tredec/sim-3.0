@@ -1,7 +1,8 @@
-import { global, varBuy } from "../../Sim/main.js";
+import { global, varBuy, theory } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, simResult, theoryData, logToExp } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 
 export default async function t6(data: theoryData): Promise<simResult> {
   let sim = new t6Sim(data);
@@ -9,14 +10,15 @@ export default async function t6(data: theoryData): Promise<simResult> {
   return res;
 }
 
-class t6Sim {
-  conditions: Array<Array<boolean | Function>>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<Array<number>>>;
+type strat = keyof typeof jsonData.theories.T6.strats;
 
-  stratIndex: number;
-  strat: string;
-  theory: string;
+class t6Sim {
+  conditions: Array<Function>;
+  milestoneConditions: Array<Function>;
+  milestoneTree: Array<Array<number>>;
+
+  strat: strat;
+  theory: theory;
   //theory
   cap: Array<number>;
   recovery: { value: number; time: number; recoveryTime: boolean };
@@ -48,15 +50,15 @@ class t6Sim {
   pubMulti: number;
 
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [
-      [true, true, true, true, true, true, true, true, true], //T6
-      [true, true, true, true, false, false, true, false, false], //T6C3
-      [true, true, true, true, false, false, false, true, false], //T6C4
-      [true, true, true, true, true, true, false, false, true], //T6noC34
-      [true, true, true, true, true, true, false, false, false], //T6noC345
-      [true, true, true, true, false, false, false, false, true], //T6noC1234
-      [true, true, true, true, () => this.stopC12[2], () => this.stopC12[2], false, false, true], //T6snax
-      [
+    const conditions: { [key in strat]: Array<boolean | Function> } = {
+      T6: [true, true, true, true, true, true, true, true, true],
+      T6C3: [true, true, true, true, false, false, true, false, false],
+      T6C4: [true, true, true, true, false, false, false, true, false],
+      T6noC34: [true, true, true, true, true, true, false, false, true],
+      T6noC345: [true, true, true, true, true, true, false, false, false],
+      T6noC1234: [true, true, true, true, false, false, false, false, true],
+      T6Snax: [true, true, true, true, () => this.stopC12[2], () => this.stopC12[2], false, false, true],
+      T6C3d: [
         () => this.variables[0].cost + l10(3) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[6].cost),
         true,
         () => this.variables[2].cost + l10(3) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[6].cost),
@@ -66,8 +68,8 @@ class t6Sim {
         true,
         false,
         false
-      ], //T6C3d
-      [
+      ],
+      T6C4d: [
         () => this.variables[0].cost + l10(5) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[7].cost),
         true,
         () => this.variables[2].cost + l10(5) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[7].cost),
@@ -77,8 +79,8 @@ class t6Sim {
         false,
         true,
         false
-      ], //T6C4d
-      [
+      ],
+      T6noC34d: [
         () => this.variables[0].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
         true,
         () => this.variables[2].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
@@ -88,8 +90,8 @@ class t6Sim {
         false,
         false,
         true
-      ], //T6C34d
-      [
+      ],
+      T6noC345d: [
         () => this.variables[0].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost),
         true,
         () => this.variables[2].cost + l10(8) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[5].cost),
@@ -99,8 +101,8 @@ class t6Sim {
         false,
         false,
         false
-      ], //T6C345d
-      [
+      ],
+      T6noC1234d: [
         () => this.variables[0].cost + l10(7 + (this.variables[0].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
         true,
         () => this.variables[2].cost + l10(5) < Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[8].cost : Infinity),
@@ -110,29 +112,42 @@ class t6Sim {
         false,
         false,
         true
-      ], //T6C1234d
-      [false] //T6AI has own buying system
-    ];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-    return conditions;
+      ],
+      T6AI: []
+    };
+    const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+    return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [() => true, () => true, () => this.milestones[0] > 0, () => this.milestones[0] > 0, () => true, () => true, () => true, () => true, () => this.milestones[2] > 0];
     return conditions;
   }
   getMilestoneTree() {
-    let tree: Array<Array<Array<number>>> = [
-      ...new Array(13).fill([
-        [0, 0, 0, 0],
-        [0, 1, 0, 0],
-        [1, 1, 0, 0],
-        [1, 1, 1, 0],
-        [1, 0, 0, 3],
-        [1, 0, 1, 3],
-        [1, 1, 1, 3]
-      ])
+    const globalOptimalRoute = [
+      [0, 0, 0, 0],
+      [0, 1, 0, 0],
+      [1, 1, 0, 0],
+      [1, 1, 1, 0],
+      [1, 0, 0, 3],
+      [1, 0, 1, 3],
+      [1, 1, 1, 3]
     ];
-    return tree;
+    const tree: { [key in strat]: Array<Array<number>> } = {
+      T6: globalOptimalRoute,
+      T6C3: globalOptimalRoute,
+      T6C4: globalOptimalRoute,
+      T6noC34: globalOptimalRoute,
+      T6noC345: globalOptimalRoute,
+      T6noC1234: globalOptimalRoute,
+      T6Snax: globalOptimalRoute,
+      T6C3d: globalOptimalRoute,
+      T6C4d: globalOptimalRoute,
+      T6noC34d: globalOptimalRoute,
+      T6noC345d: globalOptimalRoute,
+      T6noC1234d: globalOptimalRoute,
+      T6AI: globalOptimalRoute
+    };
+    return tree[this.strat];
   }
 
   getTotMult(val: number) {
@@ -140,7 +155,7 @@ class t6Sim {
   }
   updateMilestones(): void {
     const stage = Math.min(6, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
-    this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+    this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
   calculateIntegral(vc1: number, vc2: number, vc3: number, vc4: number, vc5: number) {
     let term1 = vc1 + vc2 + this.q + this.r;
@@ -151,8 +166,7 @@ class t6Sim {
     return this.totMult + add(term1, add(term2, add(term3, term4)));
   }
   constructor(data: theoryData) {
-    this.stratIndex = findIndex(data.strats, data.strat);
-    this.strat = data.strat;
+    this.strat = data.strat as strat;
     this.theory = "T6";
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
@@ -212,7 +226,7 @@ class t6Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    let result = createResult(this, this.strat === "T6snax" ? " " + logToExp(this.stopC12[0], 1) : "");
+    let result = createResult(this, this.strat === "T6Snax" ? " " + logToExp(this.stopC12[0], 1) : "");
 
     while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
     global.varBuy.push([result[7], this.boughtVars]);
@@ -252,10 +266,10 @@ class t6Sim {
     }
   }
   buyVariables() {
-    if (this.stratIndex !== 12)
+    if (this.strat !== "T6AI")
       for (let i = this.variables.length - 1; i >= 0; i--)
         while (true) {
-          if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+          if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
             if (this.maxRho + 5 > this.lastPub) {
               let vars = ["q1", "q2", "r1", "r2", "c1", "c2", "c3", "c4", "c5"];
               this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

@@ -1,6 +1,7 @@
 import { qs, qsa, event, ce, findIndex } from "../Utils/helpers.js";
 import data from "../Data/data.json" assert { type: "json" };
 import { updateTimeDiffTable } from "../Sim/parsers.js";
+import { theory } from "../Sim/main.js";
 
 //Inputs
 const theory = <HTMLSelectElement>qs(".theory");
@@ -24,17 +25,20 @@ const modeInputDescription = qs(".extraInputDescription");
 
 //Renders theories, strats and modes options on page load
 
+const theories = Object.keys(data.theories);
+
 window.onload = () => {
-  for (let i = 0; i < data.theories.length; i++) {
+  for (let i = 0; i < theories.length; i++) {
     const option = <HTMLSelectElement>ce("option");
-    option.value = data.theories[i];
-    option.textContent = data.theories[i];
+    option.value = theories[i];
+    option.textContent = theories[i];
     theory.appendChild(option);
   }
-  for (let i = 0; i < data.strats[0].length; i++) {
+  const T1strats = Object.keys(data.theories.T1.strats);
+  for (let i = 0; i < T1strats.length; i++) {
     const option = <HTMLSelectElement>ce("option");
-    option.value = data.strats[0][i];
-    option.textContent = data.strats[0][i];
+    option.value = T1strats[i];
+    option.textContent = T1strats[i];
     strat.appendChild(option);
   }
   for (let i = 0; i < data.modes.length; i++) {
@@ -89,20 +93,21 @@ export function modeUpdate(): void {
   modeInputDescription.textContent = data.modeInputDescriptions[findIndex(data.modes, mode.value)];
 }
 
-export function theoryUpdate(): void {
+export function theoryUpdate() {
   while (strat.firstChild) strat.firstChild.remove();
-  const defaultStrats: Array<string> = ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"];
   for (let i = 0; i < 4; i++) {
     const option = <HTMLSelectElement>ce("option");
-    option.value = defaultStrats[i];
-    option.textContent = defaultStrats[i];
+    option.value = data.stratCategories[i];
+    option.textContent = data.stratCategories[i];
     strat.appendChild(option);
   }
-  const index: number = findIndex(data.theories, theory.value);
-  for (let i = 0; i < data.strats[index].length; i++) {
+  const currentTheory = theory.value as theory;
+  const strats = Object.keys(data.theories[currentTheory].strats);
+  for (let i = 0; i < strats.length; i++) {
+    if ((<any>data.theories[currentTheory].strats)[strats[i]].UI_visible === false) continue;
     const option = <HTMLSelectElement>ce("option");
-    option.value = data.strats[index][i];
-    option.textContent = data.strats[index][i];
+    option.value = strats[i];
+    option.textContent = strats[i];
     strat.appendChild(option);
   }
 }

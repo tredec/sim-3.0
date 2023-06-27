@@ -1,4 +1,5 @@
 import jsonData from "../Data/data.json" assert { type: "json" };
+import { theory } from "../Sim/main";
 
 export const qs = (name: string): HTMLElement => document.querySelector(name)!;
 export const qsa = (name: string) => document.querySelectorAll(name)!;
@@ -15,33 +16,10 @@ export function sleep(time: number = 0) {
 }
 
 export function getIndexFromTheory(theory: string) {
-  return findIndex(jsonData.theories, theory);
+  return theory in Object.keys(jsonData.theories);
 }
-export function getTauFactor(theory: string) {
-  switch (theory) {
-    case "T1":
-    case "T2":
-    case "T3":
-    case "T4":
-    case "T5":
-    case "T6":
-    case "T7":
-    case "T8":
-      return 1;
-    case "WSP":
-    case "SL":
-    case "CSR2":
-    case "RZ":
-      return 0.1;
-    case "EF":
-      return 0.4;
-    case "FP":
-      return 0.075;
-  }
-  throw `Invalid theory ${theory}. Please contact the author of the sim.`;
-}
-export function getTheoryFromIndex(index: number): string {
-  return jsonData.theories[index];
+export function getTheoryFromIndex(index: number): theory {
+  return <theory>(<unknown>Object.keys(jsonData.theories)[index]);
 }
 
 export function log10(num: string) {
@@ -109,6 +87,17 @@ export function l10(val: number) {
 export function l2(val: number) {
   return Math.log2(val);
 }
+//written by propfeds
+export function binarySearch(arr: Array<number>, target: number) {
+  let l = 0;
+  let r = arr.length - 1;
+  while (l < r) {
+    let m = Math.ceil((l + r) / 2);
+    if (arr[m] <= target) l = m;
+    else r = m - 1;
+  }
+  return l;
+}
 
 export const ZERO = (() => {
   let r = Math.random();
@@ -126,10 +115,9 @@ interface simResultInterface {
   pubT: number;
   strat: string;
   maxTauH: number;
-  theory: string;
+  theory: theory;
 }
 export interface theoryData {
-  strats: Array<string>;
   sigma: number;
   rho: number;
   strat: string;
@@ -138,16 +126,17 @@ export interface theoryData {
   recursionValue: null | number | Array<number>;
 }
 export type simResult = [string, number, string, string, string, string, string, number, string, [number, number]];
+
 export function createResult(data: simResultInterface, stratExtra: null | string): simResult {
   return [
     data.theory,
     data.sigma,
     logToExp(data.lastPub, 2),
     logToExp(data.pubRho, 2),
-    logToExp((data.pubRho - data.lastPub) * getTauFactor(data.theory), 2),
+    logToExp((data.pubRho - data.lastPub) * jsonData.theories[data.theory].tauFactor, 2),
     formatNumber(data.pubMulti),
     data.strat + stratExtra,
-    data.maxTauH === 0 ? 0 : Number(formatNumber(data.maxTauH * getTauFactor(data.theory))),
+    data.maxTauH === 0 ? 0 : Number(formatNumber(data.maxTauH * jsonData.theories[data.theory].tauFactor)),
     convertTime(Math.max(0, data.pubT - data.recovery.time)),
     [data.pubRho, data.recovery.recoveryTime ? data.recovery.time : Math.max(0, data.pubT - data.recovery.time)]
   ];

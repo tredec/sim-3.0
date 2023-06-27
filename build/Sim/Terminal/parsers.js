@@ -1,10 +1,11 @@
 import jsonData from "../../Data/data.json" assert { type: "json" };
+import { getTheoryFromIndex } from "../../Utils/helpers.js";
 export function parseSimParams(params) {
     if (params.length < 3)
         throw "At least 3 parameters [strat, sigma, start rho] required.";
     params = params.map((elem) => elem.replace(/ /g, ""));
     const data = {
-        theory: "",
+        theory: "T1",
         strat: "",
         sigma: "",
         rho: "",
@@ -15,11 +16,11 @@ export function parseSimParams(params) {
         timeDiffInputs: [],
         hardCap: false
     };
-    const s01 = params[0].slice(0, 2);
+    const s01 = params[0].slice(0, 2).toLowerCase();
     const s2e = params[0].slice(2, params[0].length);
-    if (["bo", "ba", "bs", "bi"].findIndex((i) => i === s01) !== -1) {
-        data.theory = /[1-8]/.test(s2e) ? jsonData.theories[parseInt(s2e) - 1] : s2e.toUpperCase();
-        switch (s01.toLowerCase()) {
+    if (["bo", "ba", "bs", "bi"].includes(s01)) {
+        data.theory = /[1-8]/.test(s2e) ? getTheoryFromIndex(parseInt(s2e) - 1) : s2e.toUpperCase();
+        switch (s01) {
             case "bo":
                 data.strat = "Best Overall";
                 break;
@@ -27,7 +28,7 @@ export function parseSimParams(params) {
                 data.strat = "Best Active";
                 break;
             case "bs":
-                data.strat = "best Semi-Idle";
+                data.strat = "Best Semi-Idle";
                 break;
             case "bi":
                 data.strat = "Best Idle";
@@ -36,15 +37,17 @@ export function parseSimParams(params) {
     }
     else {
         let index = -1;
-        for (let i = 0; i < jsonData.theories.length; i++) {
-            if (new RegExp(jsonData.theories[i]).test(params[0].toUpperCase())) {
-                data.theory = jsonData.theories[i];
+        for (let i = 0; i < Object.keys(jsonData.theories).length; i++) {
+            if (new RegExp(getTheoryFromIndex(i)).test(params[0].toUpperCase())) {
+                data.theory = getTheoryFromIndex(i);
                 index = i;
             }
         }
-        for (let i = 0; i < jsonData.strats[index].length; i++)
-            if (params[0].toLowerCase() === jsonData.strats[index][i].toLowerCase())
-                data.strat = jsonData.strats[index][i];
+        for (let i = 0; i < Object.keys(jsonData.theories[getTheoryFromIndex(index)].strats).length; i++) {
+            const strat = Object.keys(jsonData.theories[getTheoryFromIndex(index)].strats)[i];
+            if (params[0].toLowerCase() === strat.toLowerCase())
+                data.strat = strat;
+        }
     }
     data.sigma = params[1];
     if (/[+=]/.test(params[2])) {

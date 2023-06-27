@@ -1,7 +1,8 @@
-import { global, varBuy } from "../../Sim/main.js";
+import { global, varBuy, theory } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 
 export default async function t2(data: theoryData): Promise<simResult> {
   let sim = new t2Sim(data);
@@ -9,14 +10,15 @@ export default async function t2(data: theoryData): Promise<simResult> {
   return res;
 }
 
-class t2Sim {
-  conditions: Array<Array<boolean | Function>>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<Array<number>>>;
+type strat = keyof typeof jsonData.theories.T2.strats;
 
-  stratIndex: number;
-  strat: string;
-  theory: string;
+class t2Sim {
+  conditions: Array<Function>;
+  milestoneConditions: Array<Function>;
+  milestoneTree: Array<Array<number>>;
+
+  strat: strat;
+  theory: theory;
   //theory
   cap: Array<number>;
   recovery: { value: number; time: number; recoveryTime: boolean };
@@ -52,9 +54,9 @@ class t2Sim {
   pubMulti: number;
 
   getBuyingConditions() {
-    let conditions: Array<Array<boolean | Function>> = [
-      new Array(8).fill(true), //t2
-      [
+    const conditions: { [key in strat]: Array<boolean | Function> } = {
+      T2: new Array(8).fill(true),
+      T2MC: [
         () => this.curMult < 4650,
         () => this.curMult < 2900,
         () => this.curMult < 2250,
@@ -63,55 +65,57 @@ class t2Sim {
         () => this.curMult < 2900,
         () => this.curMult < 2250,
         () => this.curMult < 1150
-      ], //t2mc
-      new Array(8).fill(true), //t2ms
-      new Array(8).fill(true) //t2qs
-    ];
-    conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-    return conditions;
+      ],
+      T2MS: new Array(8).fill(true),
+      T2QS: new Array(8).fill(true)
+    };
+    const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+    return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [() => true, () => true, () => this.milestones[0] > 0, () => this.milestones[0] > 1, () => true, () => true, () => this.milestones[1] > 0, () => this.milestones[1] > 1];
     return conditions;
   }
   getMilestoneTree() {
-    let tree: Array<Array<Array<number>>> = [
-      ...new Array(4).fill([
-        [0, 0, 0, 0],
-        [1, 0, 0, 0],
-        [2, 0, 0, 0],
-        [2, 1, 0, 0],
-        [2, 2, 0, 0],
-        [2, 2, 1, 0],
-        [2, 2, 2, 0],
-        [2, 2, 3, 0],
-        [2, 2, 3, 1],
-        [2, 2, 3, 2],
-        [2, 2, 3, 3]
-      ]) //t2,t2mc
+    const globalOptimalRoute = [
+      [0, 0, 0, 0],
+      [1, 0, 0, 0],
+      [2, 0, 0, 0],
+      [2, 1, 0, 0],
+      [2, 2, 0, 0],
+      [2, 2, 1, 0],
+      [2, 2, 2, 0],
+      [2, 2, 3, 0],
+      [2, 2, 3, 1],
+      [2, 2, 3, 2],
+      [2, 2, 3, 3]
     ];
-    return tree;
+    const tree: { [key in strat]: Array<Array<number>> } = {
+      T2: globalOptimalRoute,
+      T2MC: globalOptimalRoute,
+      T2MS: globalOptimalRoute,
+      T2QS: globalOptimalRoute
+    };
+    return tree[this.strat];
   }
   getTotMult(val: number) {
     return Math.max(0, val * 0.198 - l10(100)) + l10((this.sigma / 20) ** (this.sigma < 65 ? 0 : this.sigma < 75 ? 1 : this.sigma < 85 ? 2 : 3));
   }
-  updateMilestones(): void {
+  updateMilestones() {
     let milestoneCount = Math.min(10, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
     this.milestones = [0, 0, 0, 0];
     let priority: Array<number> = [];
 
-    if (this.stratIndex < 2) priority = [1, 2, 3, 4];
+    priority = [1, 2, 3, 4];
 
-    //ms for t2ms
-    if (this.stratIndex === 2) {
+    if (this.strat === "T2MS") {
       let tm100 = this.t % 100;
       if (tm100 < 10) priority = [3, 4, 1, 2];
       else if (tm100 < 50) priority = [1, 2, 3, 4];
       else if (tm100 < 60) priority = [3, 4, 1, 2];
       else if (tm100 < 100) priority = [2, 1, 3, 4];
     }
-    //ms for t2qs
-    if (this.stratIndex === 3) {
+    if (this.strat === "T2QS") {
       let coastMulti = Infinity;
       if (this.lastPub > 0) coastMulti = 10;
       if (this.lastPub > 75) coastMulti = 200;
@@ -132,8 +136,7 @@ class t2Sim {
     }
   }
   constructor(data: theoryData) {
-    this.stratIndex = findIndex(data.strats, data.strat);
-    this.strat = data.strat;
+    this.strat = data.strat as strat;
     this.theory = "T2";
     //theory
     this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
@@ -231,7 +234,7 @@ class t2Sim {
   buyVariables() {
     for (let i = this.variables.length - 1; i >= 0; i--)
       while (true) {
-        if (this.rho > this.variables[i].cost && (<Function>this.conditions[this.stratIndex][i])() && this.milestoneConditions[i]()) {
+        if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "q2", "q3", "q4", "r1", "r2", "r3", "r4"];
             this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

@@ -8,8 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, getTauFactor, findIndex, sleep } from "../../Utils/helpers.js";
+import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { CompositeCost, ExponentialCost } from "../../Utils/variable.js";
+import jsonData from "../../Data/data.json" assert { type: "json" };
 export default function fp(data) {
     return __awaiter(this, void 0, void 0, function* () {
         let sim = new fpSim(data);
@@ -40,10 +41,9 @@ let stepwiseSum = (level, base, length) => {
 class fpSim {
     constructor(data) {
         var _a;
-        this.stratIndex = findIndex(data.strats, data.strat);
         this.strat = data.strat;
         this.theory = "FP";
-        this.tauFactor = getTauFactor(this.theory);
+        this.tauFactor = jsonData.theories.FP.tauFactor;
         //theory
         this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
         this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
@@ -94,9 +94,11 @@ class fpSim {
         this.updateMilestones();
     }
     getBuyingConditions() {
-        let conditions = [[...new Array(10).fill(true)]];
-        conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-        return conditions;
+        const conditions = {
+            FP: new Array(10).fill(true)
+        };
+        const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+        return condition;
     }
     getMilestoneConditions() {
         let conditions = [
@@ -112,8 +114,8 @@ class fpSim {
         return conditions;
     }
     getMilestoneTree() {
-        let tree = [
-            [
+        const tree = {
+            FP: [
                 { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
                 { snexp: 0, fractals: 1, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
                 { snexp: 0, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
@@ -125,9 +127,9 @@ class fpSim {
                 { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
                 { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
                 { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 }
-            ] //FP
-        ];
-        return tree;
+            ]
+        };
+        return tree[this.strat];
     }
     getTotMult(val) {
         return Math.max(0, val * this.tauFactor * 1.324 + l10(5));
@@ -139,7 +141,7 @@ class fpSim {
             if (Math.max(this.lastPub, this.maxRho) >= points[i])
                 stage = i + 1;
         }
-        this.milestones = this.milestoneTree[this.stratIndex][Math.min(this.milestoneTree[this.stratIndex].length - 1, stage)];
+        this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
         // if (this.lastPub > 700 && this.lastPub < 900) {
         //   if (this.ticks % 40 < 20) this.milestones.sterm = 0;
         //   else this.milestones.sterm = 1;
@@ -263,7 +265,7 @@ class fpSim {
     buyVariables() {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
-                if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["tdot", "c1", "c2", "q1", "q2", "r1", "n1", "s"];
                         this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });

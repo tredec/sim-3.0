@@ -20,18 +20,20 @@ const singleInput = qsa(".controls")[0];
 const simAllInputs = qs(".simAllInputs");
 const modeInputDescription = qs(".extraInputDescription");
 //Renders theories, strats and modes options on page load
+const theories = Object.keys(data.theories);
 window.onload = () => {
     var _a;
-    for (let i = 0; i < data.theories.length; i++) {
+    for (let i = 0; i < theories.length; i++) {
         const option = ce("option");
-        option.value = data.theories[i];
-        option.textContent = data.theories[i];
+        option.value = theories[i];
+        option.textContent = theories[i];
         theory.appendChild(option);
     }
-    for (let i = 0; i < data.strats[0].length; i++) {
+    const T1strats = Object.keys(data.theories.T1.strats);
+    for (let i = 0; i < T1strats.length; i++) {
         const option = ce("option");
-        option.value = data.strats[0][i];
-        option.textContent = data.strats[0][i];
+        option.value = T1strats[i];
+        option.textContent = T1strats[i];
         strat.appendChild(option);
     }
     for (let i = 0; i < data.modes.length; i++) {
@@ -86,18 +88,20 @@ export function modeUpdate() {
 export function theoryUpdate() {
     while (strat.firstChild)
         strat.firstChild.remove();
-    const defaultStrats = ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"];
     for (let i = 0; i < 4; i++) {
         const option = ce("option");
-        option.value = defaultStrats[i];
-        option.textContent = defaultStrats[i];
+        option.value = data.stratCategories[i];
+        option.textContent = data.stratCategories[i];
         strat.appendChild(option);
     }
-    const index = findIndex(data.theories, theory.value);
-    for (let i = 0; i < data.strats[index].length; i++) {
+    const currentTheory = theory.value;
+    const strats = Object.keys(data.theories[currentTheory].strats);
+    for (let i = 0; i < strats.length; i++) {
+        if (data.theories[currentTheory].strats[strats[i]].UI_visible === false)
+            continue;
         const option = ce("option");
-        option.value = data.strats[index][i];
-        option.textContent = data.strats[index][i];
+        option.value = strats[i];
+        option.textContent = strats[i];
         strat.appendChild(option);
     }
 }

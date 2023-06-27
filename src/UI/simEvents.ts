@@ -1,4 +1,4 @@
-import { simulate, inputData, global, varBuy } from "../Sim/main.js";
+import { simulate, inputData, global, varBuy, theory } from "../Sim/main.js";
 import { qs, event, sleep, ce, qsa, convertTime, logToExp, simResult } from "../Utils/helpers.js";
 import { getSimState, setSimState } from "./simState.js";
 
@@ -50,7 +50,7 @@ event(simulateButton, "click", async () => {
   global.showA23 = showA23.checked;
   localStorage.setItem("simAllSettings", JSON.stringify([semi_idle.checked, hard_active.checked]));
   const data: inputData = {
-    theory: theory.value,
+    theory: theory.value as theory,
     strat: strat.value,
     sigma: sigma.value.replace(" ", ""),
     rho: input.value.replace(" ", ""),
@@ -112,7 +112,7 @@ function resetVarBuy() {
     for (let j = 0; j < tbody?.children.length; j++) {
       const row = tbody?.children[j];
       if (parseFloat(row?.children[7].innerHTML) === parseFloat(<any>global.varBuy[i][0])) {
-        let val = <Array<varBuy>>global.varBuy[i][1];
+        let val = global.varBuy[i][1];
         (<HTMLElement>row?.children[8]).onclick = () => {
           openVarModal(val);
         };

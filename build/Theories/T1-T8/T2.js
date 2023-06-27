@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 export default function t2(data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -21,7 +21,6 @@ export default function t2(data) {
 class t2Sim {
     constructor(data) {
         var _a;
-        this.stratIndex = findIndex(data.strats, data.strat);
         this.strat = data.strat;
         this.theory = "T2";
         //theory
@@ -72,9 +71,9 @@ class t2Sim {
         this.updateMilestones();
     }
     getBuyingConditions() {
-        let conditions = [
-            new Array(8).fill(true),
-            [
+        const conditions = {
+            T2: new Array(8).fill(true),
+            T2MC: [
                 () => this.curMult < 4650,
                 () => this.curMult < 2900,
                 () => this.curMult < 2250,
@@ -84,33 +83,37 @@ class t2Sim {
                 () => this.curMult < 2250,
                 () => this.curMult < 1150
             ],
-            new Array(8).fill(true),
-            new Array(8).fill(true) //t2qs
-        ];
-        conditions = conditions.map((elem) => elem.map((i) => (typeof i === "function" ? i : () => i)));
-        return conditions;
+            T2MS: new Array(8).fill(true),
+            T2QS: new Array(8).fill(true)
+        };
+        const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
+        return condition;
     }
     getMilestoneConditions() {
         let conditions = [() => true, () => true, () => this.milestones[0] > 0, () => this.milestones[0] > 1, () => true, () => true, () => this.milestones[1] > 0, () => this.milestones[1] > 1];
         return conditions;
     }
     getMilestoneTree() {
-        let tree = [
-            ...new Array(4).fill([
-                [0, 0, 0, 0],
-                [1, 0, 0, 0],
-                [2, 0, 0, 0],
-                [2, 1, 0, 0],
-                [2, 2, 0, 0],
-                [2, 2, 1, 0],
-                [2, 2, 2, 0],
-                [2, 2, 3, 0],
-                [2, 2, 3, 1],
-                [2, 2, 3, 2],
-                [2, 2, 3, 3]
-            ]) //t2,t2mc
+        const globalOptimalRoute = [
+            [0, 0, 0, 0],
+            [1, 0, 0, 0],
+            [2, 0, 0, 0],
+            [2, 1, 0, 0],
+            [2, 2, 0, 0],
+            [2, 2, 1, 0],
+            [2, 2, 2, 0],
+            [2, 2, 3, 0],
+            [2, 2, 3, 1],
+            [2, 2, 3, 2],
+            [2, 2, 3, 3]
         ];
-        return tree;
+        const tree = {
+            T2: globalOptimalRoute,
+            T2MC: globalOptimalRoute,
+            T2MS: globalOptimalRoute,
+            T2QS: globalOptimalRoute
+        };
+        return tree[this.strat];
     }
     getTotMult(val) {
         return Math.max(0, val * 0.198 - l10(100)) + l10(Math.pow((this.sigma / 20), (this.sigma < 65 ? 0 : this.sigma < 75 ? 1 : this.sigma < 85 ? 2 : 3)));
@@ -119,10 +122,8 @@ class t2Sim {
         let milestoneCount = Math.min(10, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
         this.milestones = [0, 0, 0, 0];
         let priority = [];
-        if (this.stratIndex < 2)
-            priority = [1, 2, 3, 4];
-        //ms for t2ms
-        if (this.stratIndex === 2) {
+        priority = [1, 2, 3, 4];
+        if (this.strat === "T2MS") {
             let tm100 = this.t % 100;
             if (tm100 < 10)
                 priority = [3, 4, 1, 2];
@@ -133,8 +134,7 @@ class t2Sim {
             else if (tm100 < 100)
                 priority = [2, 1, 3, 4];
         }
-        //ms for t2qs
-        if (this.stratIndex === 3) {
+        if (this.strat === "T2QS") {
             let coastMulti = Infinity;
             if (this.lastPub > 0)
                 coastMulti = 10;
@@ -215,7 +215,7 @@ class t2Sim {
     buyVariables() {
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
-                if (this.rho > this.variables[i].cost && this.conditions[this.stratIndex][i]() && this.milestoneConditions[i]()) {
+                if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["q1", "q2", "q3", "q4", "r1", "r2", "r3", "r4"];
                         this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
