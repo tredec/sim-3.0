@@ -110,10 +110,10 @@ class fpSim {
         { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 0, fractals: 1, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 0, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 1, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 2, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 1, snboost: 0, sterm: 0, expterm: 0 },
+        { snexp: 0, fractals: 2, nboost: 1, snboost: 0, sterm: 0, expterm: 0 },
+        { snexp: 0, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+        { snexp: 1, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+        { snexp: 2, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
@@ -128,7 +128,7 @@ class fpSim {
   }
   updateMilestones(): void {
     let stage = 0;
-    let points = [23, 105, 175, 210, 240, 280, 450, 550, 700, 1500];
+    let points = [23, 90, 175, 300, 385, 420, 550, 600, 700, 1500];
     for (let i = 0; i < points.length; i++) {
       if (Math.max(this.lastPub, this.maxRho) >= points[i]) stage = i + 1;
     }
@@ -210,10 +210,10 @@ class fpSim {
     this.variables = [
       new Variable({ cost: new ExponentialCost(1e4, 1e4) }),
       new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
-      new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e37, 16.42)), varBase: 2 }),
+      new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(1e79, 1e3) }),
-      new Variable({ cost: new CompositeCost(290, new ExponentialCost(1e70, 20), new ExponentialCost("1e475", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
+      new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
       new Variable({ cost: new ExponentialCost("1e730", 1e30) })
     ];
@@ -261,8 +261,8 @@ class fpSim {
   tick() {
     if (this.updateN_flag) {
       this.prevN = this.n;
-      const term2 = this.milestones.nboost > 0 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 45), 1, 35) * 2) : 0;
-      const term3 = this.milestones.nboost > 1 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 57), 1, 30) * 2.4) : 0;
+      const term2 = this.milestones.nboost > 0 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 30), 1, 35) * 2) : 0;
+      const term3 = this.milestones.nboost > 1 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 69), 1, 30) * 2.4) : 0;
       this.n = Math.min(20000, 1 + stepwiseSum(this.variables[6].lvl, 1, 40) + term2 + term3);
       this.updateN();
       this.updateN_flag = false;
