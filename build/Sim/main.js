@@ -23,6 +23,7 @@ import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
+import bt from "../Theories/Unofficial-CTs/BT.js";
 import { parseData } from "./parsers.js";
 import { getStrats } from "./strats";
 const output = qs(".output");
@@ -116,6 +117,8 @@ function singleSim(data) {
                 return yield rz(sendData);
             case "FP":
                 return yield fp(sendData);
+            case "BT":
+                return yield bt(sendData);
         }
     });
 }

@@ -14,6 +14,8 @@ import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
+import bt from "../Theories/Unofficial-CTs/BT.js";
+
 import { parseData } from "./parsers.js";
 import { getStrats } from "./strats";
 
@@ -143,6 +145,8 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await rz(sendData);
     case "FP":
       return await fp(sendData);
+    case "BT":
+      return await bt(sendData);
   }
 }
 

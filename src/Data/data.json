@@ -370,6 +370,17 @@
           "stratFilterCondition": "true"
         }
       }
+    },
+    "BT": {
+      "tauFactor": 0.1,
+      "strats": {
+        "BT": {
+          "stratFilterCondition": "Idle || Semi-Idle"
+        },
+        "BTd": {
+          "stratFilterCondition": "Active || Very-Active"
+        }
+      }
     }
   },
   "stratCategories": ["Best Overall", "Best Active", "Best Semi-Idle", "Best Idle"],
