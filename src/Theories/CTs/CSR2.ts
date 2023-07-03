@@ -54,19 +54,19 @@ class csr2Sim {
     const conditions: { [key in strat]: Array<boolean | Function> } = {
       CSR2: [true, true, true, true, true],
       CSR2d: [
-        () => this.variables[0].cost + l10(7 + (this.variables[0].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
+        () => this.variables[0].cost + l10(7 + (this.variables[0].level % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
         true,
-        () => this.variables[2].cost + l10(15 + (this.variables[2].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
+        () => this.variables[2].cost + l10(15 + (this.variables[2].level % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
         true,
-        true
+        true,
       ],
       CSR2XL: [
-        () => this.variables[0].cost + l10(7 + (this.variables[0].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
+        () => this.variables[0].cost + l10(7 + (this.variables[0].level % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
         () => this.variables[1].cost + l10(1.8) < this.variables[4].cost,
-        () => this.variables[2].cost + l10(15 + (this.variables[2].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
+        () => this.variables[2].cost + l10(15 + (this.variables[2].level % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
         () => this.variables[3].cost + l10(1.3) < this.variables[4].cost,
-        true
-      ]
+        true,
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
@@ -92,7 +92,9 @@ class csr2Sim {
       if (this.lastPub > 115) msCond = 20;
       if (this.lastPub > 220) msCond = 40;
       if (
-        ((this.rho + l10(msCond * 0.5) > this.variables[3].cost || (this.rho + l10(msCond) > this.variables[4].cost && this.milestones[1] > 0) || (this.curMult > 1 && this.rho + l10(2) > this.variables[1].cost)) &&
+        ((this.rho + l10(msCond * 0.5) > this.variables[3].cost ||
+          (this.rho + l10(msCond) > this.variables[4].cost && this.milestones[1] > 0) ||
+          (this.curMult > 1 && this.rho + l10(2) > this.variables[1].cost)) &&
           this.rho < Math.min(this.variables[3].cost, this.variables[4].cost)) ||
         this.t > this.recursionValue[0]
       ) {
@@ -189,7 +191,7 @@ class csr2Sim {
       new Variable({ cost: new ExponentialCost(15, 128), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e6, 16), value: 1, stepwisePowerSum: { default: true } }),
       new Variable({ cost: new ExponentialCost(50, 2 ** (Math.log2(256) * 3.346)) }),
-      new Variable({ cost: new ExponentialCost(1e3, 10 ** 5.65), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(1e3, 10 ** 5.65), varBase: 2 }),
     ];
     this.recursionValue = <Array<number>>data.recursionValue ?? [Infinity, 0];
     this.bestCoast = [0, 0];
@@ -247,8 +249,8 @@ class csr2Sim {
     let vc2 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.5 * this.milestones[2]) : 0;
 
     if (this.updateError_flag) {
-      let c2level = this.milestones[1] > 0 ? this.variables[4].lvl : 0;
-      let vn = this.variables[3].lvl + 1 + c2level;
+      let c2level = this.milestones[1] > 0 ? this.variables[4].level : 0;
+      let vn = this.variables[3].level + 1 + c2level;
       this.updateError(vn);
 
       this.updateError_flag = false;
@@ -279,7 +281,7 @@ class csr2Sim {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub && (this.recursionValue[1] === 1 || this.strat !== "CSR2XL")) {
             let vars = ["q1", "q2", "c1", "n", "c2"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

@@ -54,7 +54,7 @@ class t2Sim {
             new Variable({ cost: new ExponentialCost(2e6, 2), stepwisePowerSum: { default: true } }),
             new Variable({ cost: new ExponentialCost(3e9, 2), stepwisePowerSum: { default: true } }),
             new Variable({ cost: new ExponentialCost(4e25, 3), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(5e50, 4), stepwisePowerSum: { default: true } })
+            new Variable({ cost: new ExponentialCost(5e50, 4), stepwisePowerSum: { default: true } }),
         ];
         this.boughtVars = [];
         //pub values
@@ -81,16 +81,25 @@ class t2Sim {
                 () => this.curMult < 4650,
                 () => this.curMult < 2900,
                 () => this.curMult < 2250,
-                () => this.curMult < 1150
+                () => this.curMult < 1150,
             ],
             T2MS: new Array(8).fill(true),
-            T2QS: new Array(8).fill(true)
+            T2QS: new Array(8).fill(true),
         };
         const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [() => true, () => true, () => this.milestones[0] > 0, () => this.milestones[0] > 1, () => true, () => true, () => this.milestones[1] > 0, () => this.milestones[1] > 1];
+        let conditions = [
+            () => true,
+            () => true,
+            () => this.milestones[0] > 0,
+            () => this.milestones[0] > 1,
+            () => true,
+            () => true,
+            () => this.milestones[1] > 0,
+            () => this.milestones[1] > 1,
+        ];
         return conditions;
     }
     getMilestoneTree() {
@@ -105,13 +114,13 @@ class t2Sim {
             [2, 2, 3, 0],
             [2, 2, 3, 1],
             [2, 2, 3, 2],
-            [2, 2, 3, 3]
+            [2, 2, 3, 3],
         ];
         const tree = {
             T2: globalOptimalRoute,
             T2MC: globalOptimalRoute,
             T2MS: globalOptimalRoute,
-            T2QS: globalOptimalRoute
+            T2QS: globalOptimalRoute,
         };
         return tree[this.strat];
     }
@@ -218,7 +227,7 @@ class t2Sim {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["q1", "q2", "q3", "q4", "r1", "r2", "r3", "r4"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

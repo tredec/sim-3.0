@@ -58,12 +58,12 @@ class wspSim {
       WSP: [true, true, true, true, true],
       WSPStopC1: [true, true, true, () => this.lastPub < 450 || this.t < 15, true],
       WSPdStopC1: [
-        () => this.variables[0].cost + l10(8 + (this.variables[0].lvl % 10)) < Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity),
+        () => this.variables[0].cost + l10(8 + (this.variables[0].level % 10)) < Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity),
         true,
         true,
         () => this.variables[3].cost + c1weight < Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity) || this.t < 15,
-        true
-      ]
+        true,
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
@@ -82,12 +82,12 @@ class wspSim {
       [1, 1, 3],
       [2, 1, 3],
       [3, 1, 3],
-      [4, 1, 3]
+      [4, 1, 3],
     ];
     const tree: { [key in strat]: Array<Array<number>> } = {
       WSP: globalOptimalRoute,
       WSPStopC1: globalOptimalRoute,
-      WSPdStopC1: globalOptimalRoute
+      WSPdStopC1: globalOptimalRoute,
     };
     return tree[this.strat];
   }
@@ -150,7 +150,7 @@ class wspSim {
       new Variable({ cost: new ExponentialCost(1000, 3.38 * 3, true), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(20, 3.38, true) }),
       new Variable({ cost: new ExponentialCost(50, 3.38 / 1.5, true), stepwisePowerSum: { base: 2, length: 50 } }),
-      new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 }),
     ];
     this.S = 0;
     this.boughtVars = [];
@@ -217,7 +217,7 @@ class wspSim {
           this.rho = subtract(this.rho, this.variables[i].cost);
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "q2", "n", "c1", "c2"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.variables[i].buy();
           if (i === 2 || i === 4) updateS_flag = true;

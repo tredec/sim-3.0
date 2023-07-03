@@ -39,18 +39,9 @@ class btSim {
         //currencies
         this.rho = 0;
         this.maxRho = 0;
-        this.q = 0;
-        this.r = 0;
-        this.t_var = 0;
         //initialize variables
         this.variables = [new Variable({ cost: new ExponentialCost(15, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }), new Variable({ cost: new ExponentialCost(5, 10), varBase: 2 })];
         this.boughtVars = [];
-        this.T_n = 1;
-        this.U_n = 1;
-        this.S_n = 0;
-        this.n = 1;
-        this.prevN = 1;
-        this.updateN_flag = true;
         //pub values
         this.tauH = 0;
         this.maxTauH = 0;
@@ -67,7 +58,7 @@ class btSim {
     getBuyingConditions() {
         const conditions = {
             BT: [true, true],
-            BTd: [() => this.variables[0].cost + l10(this.lastPub < 275 ? 12 + (this.variables[0].lvl % 10) : 10 + (this.variables[0].lvl % 10)) < this.variables[1].cost, true]
+            BTd: [() => this.variables[0].cost + l10(this.lastPub < 275 ? 12 + (this.variables[0].level % 10) : 10 + (this.variables[0].level % 10)) < this.variables[1].cost, true],
         };
         const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
         return condition;
@@ -85,11 +76,11 @@ class btSim {
             [1, 3, 0],
             [2, 3, 0],
             [3, 3, 0],
-            [3, 3, 1]
+            [3, 3, 1],
         ];
         const tree = {
             BT: globalOptimalRoute,
-            BTd: globalOptimalRoute
+            BTd: globalOptimalRoute,
         };
         return tree[this.strat];
     }
@@ -150,12 +141,10 @@ class btSim {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["tai", "rao"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();
-                    if (i === 6 || i === 7 || i === 8)
-                        this.updateN_flag = true;
                 }
                 else
                     break;

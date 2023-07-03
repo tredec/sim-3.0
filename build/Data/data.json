@@ -239,7 +239,7 @@
             "tauFactor": 1,
             "strats": {
                 "T8": {
-                    "stratFilterCondition": "(Idle || Semi-Idle) && rho < 100"
+                    "stratFilterCondition": "Idle || (Semi-Idle && rho < 100)"
                 },
                 "T8noC3": {
                     "stratFilterCondition": "(Idle || Semi-Idle) && rho < 25"
@@ -380,6 +380,22 @@
                 "BTd": {
                     "stratFilterCondition": "Active || Very-Active"
                 }
+            }
+        },
+        "LT-main": {
+            "tauFactor": 0.015,
+            "UI_visible": false,
+            "strats": {
+                "LT-main-30/30": {},
+                "LT-main-2/2": {},
+                "LT-main-2/240": {}
+            }
+        },
+        "LT-c1": {
+            "tauFactor": 1,
+            "UI_visible": false,
+            "strats": {
+                "LT-c1": {}
             }
         }
     },

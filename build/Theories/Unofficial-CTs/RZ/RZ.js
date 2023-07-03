@@ -48,15 +48,15 @@ class rzSim {
                 cost: new ExponentialCost(225, Math.pow(2, 0.699)),
                 stepwisePowerSum: {
                     base: 2,
-                    length: 8
-                }
+                    length: 8,
+                },
             }),
             new Variable({
                 cost: new ExponentialCost(1500, Math.pow(2, 0.699 * 4)),
-                varBase: 2
+                varBase: 2,
             }),
             new Variable({
-                cost: new ExponentialCost(1e21, 1e79)
+                cost: new ExponentialCost(1e21, 1e79),
                 // power: use outside method
             }),
             new Variable({
@@ -64,21 +64,21 @@ class rzSim {
                 value: 1,
                 stepwisePowerSum: {
                     base: 2,
-                    length: 8
-                }
+                    length: 8,
+                },
             }),
             new Variable({
                 cost: new ExponentialCost(1e5, 10),
-                varBase: 2
+                varBase: 2,
             }),
             new Variable({
                 cost: new ExponentialCost("3.16227766017e599", 1e30),
-                varBase: 2
+                varBase: 2,
             }),
             new Variable({
-                cost: new ExponentialCost("1e600", "1e300")
+                cost: new ExponentialCost("1e600", "1e300"),
                 // b (2nd layer)
-            })
+            }),
         ];
         this.varNames = ["c1", "c2", "b", "w1", "w2", "w3", "b+"];
         this.boughtVars = [];
@@ -98,13 +98,13 @@ class rzSim {
     }
     getBuyingConditions() {
         const activeStratConditions = [
-            () => this.variables[0].lvl < this.variables[1].lvl * 4 + (this.milestones[0] ? 2 : 1),
+            () => this.variables[0].level < this.variables[1].level * 4 + (this.milestones[0] ? 2 : 1),
             true,
             true,
-            () => (this.milestones[2] ? this.variables[3].cost + l10(4 + 0.5 * (this.variables[3].lvl % 8) + 0.0001) < this.variables[4].cost : true),
+            () => (this.milestones[2] ? this.variables[3].cost + l10(4 + 0.5 * (this.variables[3].level % 8) + 0.0001) < this.variables[4].cost : true),
             true,
             true,
-            true // b3
+            true, // b3
         ];
         const conditions = {
             RZ: new Array(7).fill(true),
@@ -112,7 +112,7 @@ class rzSim {
             RZdBH: activeStratConditions,
             RZSpiralswap: activeStratConditions,
             RZMS: activeStratConditions,
-            RZnoB: [true, true, false, true, true, false, false]
+            RZnoB: [true, true, false, true, true, false, false],
         };
         const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
         return condition;
@@ -121,11 +121,11 @@ class rzSim {
         return [
             () => true,
             () => true,
-            () => this.variables[2].lvl < 1,
+            () => this.variables[2].level < 1,
             () => this.milestones[1] == 1,
             () => this.milestones[2] == 1,
             () => this.milestones[2] == 1,
-            () => this.variables[6].lvl < 2 // b3
+            () => this.variables[6].level < 2, // b3
         ];
     }
     getMilestoneTree() {
@@ -137,7 +137,7 @@ class rzSim {
                 [1, 1, 1, 0],
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 0]
+                [3, 1, 1, 0],
             ],
             RZd: [
                 [0, 0, 0, 0],
@@ -146,7 +146,7 @@ class rzSim {
                 [1, 1, 1, 0],
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 0]
+                [3, 1, 1, 0],
             ],
             RZdBH: [
                 [0, 0, 0, 0],
@@ -155,7 +155,7 @@ class rzSim {
                 [1, 1, 1, 0],
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 1]
+                [3, 1, 1, 1],
             ],
             RZSpiralswap: [
                 [0, 0, 0, 0],
@@ -165,7 +165,7 @@ class rzSim {
                 [3, 1, 0, 0],
                 [3, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 1] // Dummy line
+                [3, 1, 1, 1], // Dummy line
             ],
             RZMS: [
                 [0, 0, 0, 0],
@@ -175,7 +175,7 @@ class rzSim {
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 1] // Dummy line
+                [3, 1, 1, 1], // Dummy line
             ],
             RZnoB: [
                 [0, 0, 0, 0],
@@ -184,8 +184,8 @@ class rzSim {
                 [1, 1, 1, 0],
                 [2, 1, 1, 0],
                 [3, 1, 1, 0],
-                [3, 1, 1, 0]
-            ]
+                [3, 1, 1, 0],
+            ],
         };
         return tree[this.strat];
     }
@@ -319,7 +319,7 @@ class rzSim {
         let w3Term = this.milestones[2] ? this.variables[5].value : 0;
         let c1Term = this.variables[0].value * c1Exp[this.milestones[0]];
         let c2Term = this.variables[1].value;
-        let bTerm = getb(this.variables[2].lvl + this.variables[6].lvl);
+        let bTerm = getb(this.variables[2].level + this.variables[6].level);
         let z = zeta(this.t_var, this.ticks, this.offGrid, lookups.zetaLookup);
         if (this.milestones[1]) {
             let tmpZ = zeta(this.t_var + 0.0001, this.ticks, this.offGrid, lookups.zetaDerivLookup);
@@ -353,9 +353,9 @@ class rzSim {
                     if (this.maxRho + 5 > this.lastPub) {
                         this.boughtVars.push({
                             variable: this.varNames[i],
-                            level: this.variables[i].lvl + 1,
+                            level: this.variables[i].level + 1,
                             cost: this.variables[i].cost,
-                            timeStamp: this.t
+                            timeStamp: this.t,
                         });
                     }
                     this.variables[i].buy();

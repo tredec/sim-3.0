@@ -51,7 +51,7 @@ class slSim {
             new Variable({ cost: new ExponentialCost(1, 0.369 * Math.log2(10), true), stepwisePowerSum: { base: 3.5, length: 3 }, firstFreeCost: true }),
             new Variable({ cost: new ExponentialCost(175, 10), varBase: 2 }),
             new Variable({ cost: new ExponentialCost(500, 0.649 * Math.log2(10), true), stepwisePowerSum: { base: 6.5, length: 4 } }),
-            new Variable({ cost: new ExponentialCost(1000, 0.926 * Math.log2(10), true), varBase: 2 })
+            new Variable({ cost: new ExponentialCost(1000, 0.926 * Math.log2(10), true), varBase: 2 }),
         ];
         this.inverseE_Gamma = 0;
         this.boughtVars = [];
@@ -72,18 +72,18 @@ class slSim {
             SL: [true, true, true, true],
             SLStopA: [() => this.curMult < 4.5, () => this.curMult < 4.5, () => this.curMult < 6, () => this.curMult < 6],
             SLStopAd: [
-                () => this.curMult < 4.5 && this.variables[0].cost + l10(2 * (this.variables[0].lvl % 3) + 0.0001) < this.variables[1].cost,
+                () => this.curMult < 4.5 && this.variables[0].cost + l10(2 * (this.variables[0].level % 3) + 0.0001) < this.variables[1].cost,
                 () => this.curMult < 4.5,
                 () => this.curMult < 6 && this.variables[2].cost + l10(this.variables[2].cost % 4) < this.variables[3].cost,
-                () => this.curMult < 6
+                () => this.curMult < 6,
             ],
             SLMS: [() => this.curMult < 4, () => this.curMult < 4, () => this.curMult < 7.5, () => this.curMult < 7.5],
             SLMSd: [
-                () => this.curMult < 4 && this.variables[0].cost + l10(2 * (this.variables[0].lvl % 3) + 0.0001) < this.variables[1].cost,
+                () => this.curMult < 4 && this.variables[0].cost + l10(2 * (this.variables[0].level % 3) + 0.0001) < this.variables[1].cost,
                 () => this.curMult < 4,
                 () => this.curMult < 7.5 && this.variables[2].cost + l10(this.variables[2].cost % 4) < this.variables[3].cost,
-                () => this.curMult < 7.5
-            ]
+                () => this.curMult < 7.5,
+            ],
         };
         const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
         return condition;
@@ -210,7 +210,7 @@ class slSim {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
                         let vars = ["a1", "a2", "b1", "b2"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

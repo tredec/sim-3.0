@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import jsonData from "../Data/data.json" assert { type: "json" };
 import { qs, sleep, getTheoryFromIndex, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
+import { parseData } from "./parsers.js";
+import { getStrats } from "./strats.js";
 import t1 from "../Theories/T1-T8/T1.js";
 import t2 from "../Theories/T1-T8/T2.js";
 import t3 from "../Theories/T1-T8/T3.js";
@@ -24,8 +26,8 @@ import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
 import bt from "../Theories/Unofficial-CTs/BT.js";
-import { parseData } from "./parsers.js";
-import { getStrats } from "./strats";
+import lt from "../Theories/Unofficial-CTs/LT/LT-main.js";
+import ltc1 from "../Theories/Unofficial-CTs/LT/LT-c1";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -35,11 +37,11 @@ export const global = {
     forcedPubTime: Infinity,
     showA23: false,
     varBuy: [[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
-    customVal: null
+    customVal: null,
 };
 const cache = {
-    lastStrat: null,
-    simEndTimestamp: 0
+    lastStrat: "",
+    simEndTimestamp: 0,
 };
 export function simulate(simData) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -86,7 +88,7 @@ function singleSim(data) {
             rho: data.rho,
             recursionValue: null,
             recovery: (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false },
-            cap: data.hardCap ? data.cap : null
+            cap: data.hardCap ? data.cap : null,
         };
         switch (data.theory) {
             case "T1":
@@ -119,6 +121,10 @@ function singleSim(data) {
                 return yield fp(sendData);
             case "BT":
                 return yield bt(sendData);
+            case "LT-main":
+                return yield lt(sendData);
+            case "LT-c1":
+                return yield ltc1(sendData);
         }
     });
 }
@@ -147,7 +153,7 @@ function chainSim(data) {
             data.rho = lastPub;
             time += res[res.length - 1][1];
         }
-        cache.lastStrat = null;
+        cache.lastStrat = "";
         // @ts-expect-error
         result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
         const dtau = (data.rho - start) * jsonData.theories[data.theory].tauFactor;
@@ -179,7 +185,7 @@ function stepSim(data) {
             data.rho += data.modeInput;
             time += res[res.length - 1][1];
         }
-        cache.lastStrat = null;
+        cache.lastStrat = "";
         return result;
     });
 }
@@ -206,7 +212,7 @@ function simAll(data) {
                     sigma,
                     rho: values[i],
                     cap: Infinity,
-                    mode: "Single Sim"
+                    mode: "Single Sim",
                 };
                 temp.push(yield singleSim(sendData));
             }

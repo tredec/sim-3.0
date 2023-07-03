@@ -25,10 +25,11 @@ const modeInputDescription = qs(".extraInputDescription");
 
 //Renders theories, strats and modes options on page load
 
-const theories = Object.keys(data.theories);
+const theories = Object.keys(data.theories) as Array<theory>;
 
 window.onload = () => {
   for (let i = 0; i < theories.length; i++) {
+    if ((<any>data.theories[theories[i]]).UI_visible === false) continue;
     const option = <HTMLSelectElement>ce("option");
     option.value = theories[i];
     option.textContent = theories[i];

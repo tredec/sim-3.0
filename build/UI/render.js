@@ -24,6 +24,8 @@ const theories = Object.keys(data.theories);
 window.onload = () => {
     var _a;
     for (let i = 0; i < theories.length; i++) {
+        if (data.theories[theories[i]].UI_visible === false)
+            continue;
         const option = ce("option");
         option.value = theories[i];
         option.textContent = theories[i];

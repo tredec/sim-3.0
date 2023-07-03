@@ -52,12 +52,12 @@ class t5Sim {
       T5: [true, true, true, true, true],
       T5Idle: [true, true, () => this.maxRho + (this.lastPub - 200) / 165 < this.lastPub, () => this.c2worth, true],
       T5AI2: [
-        () => this.variables[0].cost + l10(3 + (this.variables[0].lvl % 10)) <= Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[4].cost : 1000),
+        () => this.variables[0].cost + l10(3 + (this.variables[0].level % 10)) <= Math.min(this.variables[1].cost, this.variables[3].cost, this.milestones[2] > 0 ? this.variables[4].cost : 1000),
         true,
         () => this.q + l10(1.5) < this.variables[3].value + this.variables[4].value * (1 + 0.05 * this.milestones[2]) || !this.c2worth,
         () => this.c2worth,
-        true
-      ]
+        true,
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
@@ -74,12 +74,12 @@ class t5Sim {
       [2, 1, 0],
       [3, 1, 0],
       [3, 1, 1],
-      [3, 1, 2]
+      [3, 1, 2],
     ];
     const tree: { [key in strat]: Array<Array<number>> } = {
       T5: globalOptimalRoute,
       T5Idle: globalOptimalRoute,
-      T5AI2: globalOptimalRoute
+      T5AI2: globalOptimalRoute,
     };
     return tree[this.strat];
   }
@@ -125,7 +125,7 @@ class t5Sim {
       new Variable({ cost: new ExponentialCost(15, 64), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e6, 1.18099), value: 1, stepwisePowerSum: { default: true } }),
       new Variable({ cost: new ExponentialCost(75, 4.53725), varBase: 2 }),
-      new Variable({ cost: new ExponentialCost(1e3, 8.85507e7), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(1e3, 8.85507e7), varBase: 2 }),
     ];
     this.c2worth = true;
     this.boughtVars = [];
@@ -192,7 +192,7 @@ class t5Sim {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "q2", "c1", "c2", "c3"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

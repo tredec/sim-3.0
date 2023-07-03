@@ -54,29 +54,41 @@ class efSim {
   getBuyingConditions() {
     const conditions: { [key in strat]: Array<boolean | Function> } = {
       EF: new Array(10).fill(true),
-      EFSnax: [true, () => this.curMult < 1, true, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1, () => this.curMult < 1 || this.lastPub > 150, true, true],
+      EFSnax: [
+        true,
+        () => this.curMult < 1,
+        true,
+        () => this.curMult < 1,
+        () => this.curMult < 1,
+        () => this.curMult < 1,
+        () => this.curMult < 1,
+        () => this.curMult < 1 || this.lastPub > 150,
+        true,
+        true,
+      ],
       EFd: [true, () => this.variables[1].cost + 1 < this.variables[2].cost, true, true, true, true, true, () => this.variables[6].cost + l10(2.5) < this.variables[2].cost, true, true],
       EFAI: [
         /*tdot*/ true,
-        /*q1*/ () => this.variables[1].cost + l10(10 + (this.variables[1].lvl % 10)) < this.variables[2].cost && this.variables[1].cost + l10((this.variables[1].lvl % 10) + 5) < this.recursionValue[0],
+        /*q1*/ () =>
+          this.variables[1].cost + l10(10 + (this.variables[1].level % 10)) < this.variables[2].cost && this.variables[1].cost + l10((this.variables[1].level % 10) + 5) < this.recursionValue[0],
         /*q2*/ () => this.variables[2].cost + 0.2 < this.recursionValue[0],
         /*b1*/ () => this.variables[3].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
         /*b2*/ () => this.variables[4].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
         /*c1*/ () => this.variables[5].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
         /*c2*/ () => this.variables[6].cost + l10(5) < this.variables[9].cost || this.milestones[1] < 2 || this.curMult < 1,
         /*a1*/ () =>
-          (this.variables[7].cost + l10(4 + (this.variables[7].lvl % 10) / 2) < this.variables[2].cost || this.variables[2].cost > this.recursionValue[0]) &&
-          this.variables[7].cost + l10((this.variables[7].lvl % 10) / 3) < this.recursionValue[0],
+          (this.variables[7].cost + l10(4 + (this.variables[7].level % 10) / 2) < this.variables[2].cost || this.variables[2].cost > this.recursionValue[0]) &&
+          this.variables[7].cost + l10((this.variables[7].level % 10) / 3) < this.recursionValue[0],
         /*a2*/ true,
-        /*a3*/ true
-      ]
+        /*a3*/ true,
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [
-      () => this.variables[0].lvl < 4 && this.maxRho + l10(5) < this.nextMilestoneCost,
+      () => this.variables[0].level < 4 && this.maxRho + l10(5) < this.nextMilestoneCost,
       () => true && this.maxRho + l10(5) < this.nextMilestoneCost,
       () => true && this.maxRho + l10(5) < this.nextMilestoneCost,
       () => this.milestones[0] > 0 && this.maxRho + l10(5) < this.nextMilestoneCost,
@@ -85,7 +97,7 @@ class efSim {
       () => this.milestones[0] > 1 && this.maxRho + l10(5) < this.nextMilestoneCost,
       () => this.milestones[1] > 0 && this.maxRho + l10(5) < this.nextMilestoneCost,
       () => this.milestones[1] > 1,
-      () => this.milestones[1] > 2
+      () => this.milestones[1] > 2,
     ];
     return conditions;
   }
@@ -105,13 +117,13 @@ class efSim {
       [2, 3, 5, 1, 0],
       [2, 3, 5, 2, 0],
       [2, 3, 5, 2, 1],
-      [2, 3, 5, 2, 2]
+      [2, 3, 5, 2, 2],
     ];
     const tree: { [key in strat]: Array<Array<number>> } = {
       EF: globalOptimalRoute,
       EFd: globalOptimalRoute,
       EFSnax: globalOptimalRoute,
-      EFAI: globalOptimalRoute
+      EFAI: globalOptimalRoute,
     };
     return tree[this.strat];
   }
@@ -168,7 +180,7 @@ class efSim {
       (this.lastPub < 298.2 && this.maxRho > 300) ||
       (this.lastPub < 323.2 && this.maxRho > 325) ||
       (totalMilestones - initMilestones < 1 && this.curMult > 2.6 + (totalMilestones - initMilestones) && this.recursionValue[1] < 2 && this.isEFAI) ||
-      (this.recursionValue[1] === 2 && this.pubRho > this.variables[7].cost + l10(4) && this.variables[7].cost + l10((this.variables[7].lvl % 10) / 3) > this.recursionValue[0])
+      (this.recursionValue[1] === 2 && this.pubRho > this.variables[7].cost + l10(4) && this.variables[7].cost + l10((this.variables[7].level % 10) / 3) > this.recursionValue[0])
     );
   }
   forcedPubConditions() {
@@ -210,7 +222,7 @@ class efSim {
       new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
       new Variable({ cost: new ExponentialCost(2000, 2.2, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(500, 2.2, true), value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
-      new Variable({ cost: new ExponentialCost(500, 2.2, true), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(500, 2.2, true), varBase: 2 }),
     ];
     this.recursionValue = <Array<number>>data.recursionValue ?? [Infinity, 0];
     this.lastA23 = [0, 0];
@@ -250,13 +262,15 @@ class efSim {
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
       pubCondition =
-        (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) && this.pubRho > 10 && this.forcedPubConditions();
+        (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.evaluatePubConditions()) &&
+        this.pubRho > 10 &&
+        this.forcedPubConditions();
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
     let result = createResult(
       this,
-      this.isEFAI ? ` q1: ${this.variables[1].lvl} q2: ${this.variables[2].lvl} a1: ${this.variables[7].lvl}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : ""
+      this.isEFAI ? ` q1: ${this.variables[1].level} q2: ${this.variables[2].level} a1: ${this.variables[7].level}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : ""
     );
     if (!this.isEFAI || this.recursionValue[1] === 2) {
       while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
@@ -268,7 +282,7 @@ class efSim {
     let logbonus = l10(this.dt) + this.totMult;
     this.q = add(this.q, this.variables[1].value + this.variables[2].value + logbonus);
 
-    this.t_var += this.dt * (this.variables[0].lvl / 5 + 0.2);
+    this.t_var += this.dt * (this.variables[0].level / 5 + 0.2);
 
     let a = (this.variables[7].value + this.variables[8].value + this.variables[9].value) * (0.1 * this.milestones[2] + 1);
 
@@ -304,7 +318,7 @@ class efSim {
       this.maxTauH = this.tauH;
       this.pubT = this.t;
       this.pubRho = this.maxRho;
-      this.lastA23 = [this.variables[8].lvl, this.variables[9].lvl];
+      this.lastA23 = [this.variables[8].level, this.variables[9].level];
     }
   }
   buyVariables() {
@@ -314,7 +328,7 @@ class efSim {
         if (this.currencies[currencyIndexes[i]] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub && (!this.isEFAI || this.recursionValue[1] === 2)) {
             let vars = ["t", "q1", "q2", "b1", "b2", "c1", "c2", "a1", "a2", "a3"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.currencies[currencyIndexes[i]] = subtract(this.currencies[currencyIndexes[i]], this.variables[i].cost);
           this.variables[i].buy();

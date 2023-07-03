@@ -1,5 +1,7 @@
 import jsonData from "../Data/data.json" assert { type: "json" };
 import { qs, sleep, getTheoryFromIndex, theoryData, simResult, logToExp, convertTime, formatNumber } from "../Utils/helpers.js";
+import { parseData } from "./parsers.js";
+import { getStrats } from "./strats.js";
 import t1 from "../Theories/T1-T8/T1.js";
 import t2 from "../Theories/T1-T8/T2.js";
 import t3 from "../Theories/T1-T8/T3.js";
@@ -15,9 +17,8 @@ import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
 import bt from "../Theories/Unofficial-CTs/BT.js";
-
-import { parseData } from "./parsers.js";
-import { getStrats } from "./strats";
+import lt from "../Theories/Unofficial-CTs/LT/LT-main.js";
+import ltc1 from "../Theories/Unofficial-CTs/LT/LT-c1";
 
 export type theory = keyof typeof jsonData.theories;
 
@@ -31,7 +32,7 @@ export const global = {
   forcedPubTime: Infinity,
   showA23: false,
   varBuy: <Array<[number, Array<varBuy>]>>[[0, [{ variable: "var", level: 0, cost: 0, timeStamp: 0 }]]],
-  customVal: null
+  customVal: null,
 };
 
 export interface varBuy {
@@ -41,13 +42,9 @@ export interface varBuy {
   timeStamp: number;
 }
 
-interface cacheInterface {
-  lastStrat: string | null;
-  simEndTimestamp: number;
-}
-const cache: cacheInterface = {
-  lastStrat: null,
-  simEndTimestamp: 0
+const cache = {
+  lastStrat: "",
+  simEndTimestamp: 0,
 };
 
 export interface inputData {
@@ -114,7 +111,7 @@ async function singleSim(data: parsedData): Promise<simResult> {
     rho: data.rho,
     recursionValue: null,
     recovery: data.recovery ?? { value: 0, time: 0, recoveryTime: false },
-    cap: data.hardCap ? data.cap : null
+    cap: data.hardCap ? data.cap : null,
   };
   switch (data.theory) {
     case "T1":
@@ -147,6 +144,10 @@ async function singleSim(data: parsedData): Promise<simResult> {
       return await fp(sendData);
     case "BT":
       return await bt(sendData);
+    case "LT-main":
+      return await lt(sendData);
+    case "LT-c1":
+      return await ltc1(sendData);
   }
 }
 
@@ -172,7 +173,7 @@ async function chainSim(data: parsedData): Promise<Array<simResult>> {
     data.rho = lastPub;
     time += (<Array<any>>res[res.length - 1])[1];
   }
-  cache.lastStrat = null;
+  cache.lastStrat = "";
   // @ts-expect-error
   result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
   const dtau = (data.rho - start) * jsonData.theories[data.theory as theory].tauFactor;
@@ -200,7 +201,7 @@ async function stepSim(data: parsedData): Promise<Array<simResult>> {
     data.rho += <number>data.modeInput;
     time += (<Array<any>>res[res.length - 1])[1];
   }
-  cache.lastStrat = null;
+  cache.lastStrat = "";
   return result;
 }
 async function simAll(data: parsedData): Promise<Array<simResult>> {
@@ -222,7 +223,7 @@ async function simAll(data: parsedData): Promise<Array<simResult>> {
         sigma,
         rho: values[i],
         cap: Infinity,
-        mode: "Single Sim"
+        mode: "Single Sim",
       };
       temp.push(await singleSim(sendData));
     }

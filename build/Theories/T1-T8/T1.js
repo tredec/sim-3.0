@@ -44,7 +44,7 @@ class t1Sim {
             new Variable({ cost: new ExponentialCost(15, 2), stepwisePowerSum: { default: true } }),
             new Variable({ cost: new ExponentialCost(3000, 10), varBase: 2 }),
             new Variable({ cost: new ExponentialCost(1e4, 4.5 * Math.log2(10), true), varBase: 10 }),
-            new Variable({ cost: new ExponentialCost(1e10, 8 * Math.log2(10), true), varBase: 10 })
+            new Variable({ cost: new ExponentialCost(1e10, 8 * Math.log2(10), true), varBase: 10 }),
         ];
         //values of the different terms, so they are accesible for variable buying conditions
         this.term1 = 0;
@@ -77,18 +77,18 @@ class t1Sim {
                 () => this.variables[2].cost + this.termRatio + 1 <= this.rho,
                 () => this.variables[3].cost + this.termRatio <= this.rho,
                 () => this.variables[4].cost + l10(this.c3Ratio) < this.rho,
-                true
+                true,
             ],
             T1SolarXLII: [
                 () => this.variables[0].cost + l10(5) <= this.rho &&
-                    this.variables[0].cost + l10(6 + (this.variables[0].lvl % 10)) <= this.variables[1].cost &&
-                    this.variables[0].cost + l10(15 + (this.variables[0].lvl % 10)) < (this.milestones[3] > 0 ? this.variables[5].cost : 1000),
+                    this.variables[0].cost + l10(6 + (this.variables[0].level % 10)) <= this.variables[1].cost &&
+                    this.variables[0].cost + l10(15 + (this.variables[0].level % 10)) < (this.milestones[3] > 0 ? this.variables[5].cost : 1000),
                 () => this.variables[1].cost + l10(1.11) < this.rho,
                 () => this.variables[2].cost + this.termRatio + 1 <= this.rho,
                 () => this.variables[3].cost + this.termRatio <= this.rho,
                 () => this.variables[4].cost + l10(this.c3Ratio) < this.rho,
-                true
-            ]
+                true,
+            ],
         };
         const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
         return condition;
@@ -105,14 +105,14 @@ class t1Sim {
             [1, 0, 1, 1],
             [1, 1, 1, 1],
             [1, 2, 1, 1],
-            [1, 3, 1, 1]
+            [1, 3, 1, 1],
         ];
         const tree = {
             T1: globalOptimalRoute,
             T1C34: globalOptimalRoute,
             T1C4: globalOptimalRoute,
             T1Ratio: globalOptimalRoute,
-            T1SolarXLII: globalOptimalRoute
+            T1SolarXLII: globalOptimalRoute,
         };
         return tree[this.strat];
     }
@@ -143,7 +143,9 @@ class t1Sim {
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 if (this.strat !== "T1SolarXLII" || this.rho < coast || global.forcedPubTime !== Infinity)
                     this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.strat === "T1SolarXLII" ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 10;
+                pubCondition =
+                    (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.strat === "T1SolarXLII" ? this.pubRho > pub : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) &&
+                        this.pubRho > 10;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
@@ -178,7 +180,7 @@ class t1Sim {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub && ((i !== 2 && i !== 3) || this.lastPub < 350)) {
                         let vars = ["q1", "q2", "c1", "c2", "c3", "c4"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

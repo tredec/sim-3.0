@@ -12,16 +12,17 @@ export default async function fp(data: theoryData): Promise<simResult> {
 type strat = keyof typeof jsonData.theories.FP.strats;
 
 let un = [
-  0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877, 3235413, 3527445, 4348245, 5600149, 5663317, 5807893, 5940565,
-  6200341, 6655573, 6841621, 7178581, 7607701, 8272981, 9793813, 9983317, 10246549, 10727509, 11309845, 12941653, 13288981, 14109781, 15594133, 17392981, 22369685, 22400597, 22488341, 22653269, 22839317, 23231573,
-  23488661, 23762261, 24243221, 24801365, 25677461, 26622293, 26830229, 27366485, 27800213, 28714325, 29858837, 30430805, 32081045, 33091925, 35461013, 39175253, 39364757, 39933269, 40196501, 40986197, 42341525,
-  42910037, 43952021, 45239381, 47328533, 51766613, 52321301, 53155925, 54567701, 56439125, 61199765, 62376533, 64838933, 69571925, 74595221, 89478741, 89511189, 89602389, 89763861, 89953365, 90387093, 90613077,
-  90872853, 91357269, 91915413, 92926293, 93732885, 93954645, 94480533, 95049045, 95838741, 96972885, 97555221, 99205461, 100247445, 102709845, 106289301, 106489173, 107042709, 107320917, 108110613, 109465941,
-  110024085, 111200853, 112394901, 114857301, 118877205, 119435349, 120311445, 121723221, 123594645, 128324181, 129625365, 132367701, 136696341, 141844053, 156588693, 156701013, 156964245, 157459029, 158027541,
-  159733077, 159996309, 160786005, 162239253, 163944789, 167070741, 169366101, 170062485, 171640149, 173304213, 175808085, 179086101, 180957525, 185783829, 189314133, 196701333, 207066453, 207624597, 209285205,
-  210161301, 212623701, 216565269, 218270805, 222174357, 225756501, 232770453, 244799061, 246473493, 249506133, 253368213, 259355733, 273171093, 278287701, 285394965, 298380885, 314103957, 357914965, 357953557,
-  358044757, 358209685, 358409557, 358962709, 359055445, 359318677, 359813461, 360371605, 361548373, 362178709, 362452309, 362933269, 363491413, 364367509, 365429077, 366052885, 367661653, 368962837, 371705173,
-  374740885, 374931541, 375481621, 375818581, 376608277, 377922133, 378490645, 380196181, 380985877, 383354965, 387323029, 387891541, 388933525, 390220885, 392310037, 396821845
+  0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877, 3235413, 3527445, 4348245, 5600149, 5663317, 5807893,
+  5940565, 6200341, 6655573, 6841621, 7178581, 7607701, 8272981, 9793813, 9983317, 10246549, 10727509, 11309845, 12941653, 13288981, 14109781, 15594133, 17392981, 22369685, 22400597, 22488341,
+  22653269, 22839317, 23231573, 23488661, 23762261, 24243221, 24801365, 25677461, 26622293, 26830229, 27366485, 27800213, 28714325, 29858837, 30430805, 32081045, 33091925, 35461013, 39175253,
+  39364757, 39933269, 40196501, 40986197, 42341525, 42910037, 43952021, 45239381, 47328533, 51766613, 52321301, 53155925, 54567701, 56439125, 61199765, 62376533, 64838933, 69571925, 74595221,
+  89478741, 89511189, 89602389, 89763861, 89953365, 90387093, 90613077, 90872853, 91357269, 91915413, 92926293, 93732885, 93954645, 94480533, 95049045, 95838741, 96972885, 97555221, 99205461,
+  100247445, 102709845, 106289301, 106489173, 107042709, 107320917, 108110613, 109465941, 110024085, 111200853, 112394901, 114857301, 118877205, 119435349, 120311445, 121723221, 123594645, 128324181,
+  129625365, 132367701, 136696341, 141844053, 156588693, 156701013, 156964245, 157459029, 158027541, 159733077, 159996309, 160786005, 162239253, 163944789, 167070741, 169366101, 170062485, 171640149,
+  173304213, 175808085, 179086101, 180957525, 185783829, 189314133, 196701333, 207066453, 207624597, 209285205, 210161301, 212623701, 216565269, 218270805, 222174357, 225756501, 232770453, 244799061,
+  246473493, 249506133, 253368213, 259355733, 273171093, 278287701, 285394965, 298380885, 314103957, 357914965, 357953557, 358044757, 358209685, 358409557, 358962709, 359055445, 359318677, 359813461,
+  360371605, 361548373, 362178709, 362452309, 362933269, 363491413, 364367509, 365429077, 366052885, 367661653, 368962837, 371705173, 374740885, 374931541, 375481621, 375818581, 376608277, 377922133,
+  378490645, 380196181, 380985877, 383354965, 387323029, 387891541, 388933525, 390220885, 392310037, 396821845,
 ];
 let stepwiseSum = (level: number, base: number, length: number) => {
   if (level <= length) return level;
@@ -86,21 +87,21 @@ class fpSim {
 
   getBuyingConditions() {
     const conditions: { [key in strat]: Array<boolean | Function> } = {
-      FP: new Array(10).fill(true)
+      FP: new Array(10).fill(true),
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
   }
   getMilestoneConditions() {
     let conditions: Array<Function> = [
-      () => this.variables[0].lvl < 4,
+      () => this.variables[0].level < 4,
       () => true,
       () => true,
       () => this.milestones.fractals > 0,
       () => this.milestones.fractals > 0,
       () => this.milestones.fractals > 1,
       () => true,
-      () => this.milestones.sterm > 0
+      () => this.milestones.sterm > 0,
     ];
     return conditions;
   }
@@ -117,8 +118,8 @@ class fpSim {
         { snexp: 3, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
         { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 }
-      ]
+        { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 },
+      ],
     };
     return tree[this.strat];
   }
@@ -215,7 +216,7 @@ class fpSim {
       new Variable({ cost: new ExponentialCost(1e79, 1e3) }),
       new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
-      new Variable({ cost: new ExponentialCost("1e730", 1e30) })
+      new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
     ];
     this.boughtVars = [];
     this.T_n = 1;
@@ -261,21 +262,21 @@ class fpSim {
   tick() {
     if (this.updateN_flag) {
       this.prevN = this.n;
-      const term2 = this.milestones.nboost > 0 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 30), 1, 35) * 2) : 0;
-      const term3 = this.milestones.nboost > 1 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].lvl - 69), 1, 30) * 2.4) : 0;
-      this.n = Math.min(20000, 1 + stepwiseSum(this.variables[6].lvl, 1, 40) + term2 + term3);
+      const term2 = this.milestones.nboost > 0 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].level - 30), 1, 35) * 2) : 0;
+      const term3 = this.milestones.nboost > 1 ? Math.floor(stepwiseSum(Math.max(0, this.variables[6].level - 69), 1, 30) * 2.4) : 0;
+      this.n = Math.min(20000, 1 + stepwiseSum(this.variables[6].level, 1, 40) + term2 + term3);
       this.updateN();
       this.updateN_flag = false;
     }
 
-    let vq1 = this.variables[3].value - l10(1 + 1000 / this.variables[3].lvl ** 1.5);
-    let vr1 = this.variables[5].value - l10(1 + 1e9 / this.variables[5].lvl ** 4);
+    let vq1 = this.variables[3].value - l10(1 + 1000 / this.variables[3].level ** 1.5);
+    let vr1 = this.variables[5].value - l10(1 + 1e9 / this.variables[5].level ** 4);
 
-    let A = this.approx(this.variables[4].lvl + 1);
+    let A = this.approx(this.variables[4].level + 1);
 
-    this.t_var += (this.variables[0].lvl / 5 + 0.2) * this.dt;
+    this.t_var += (this.variables[0].level / 5 + 0.2) * this.dt;
 
-    let qdot = vq1 + A + l10(this.U_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].lvl) : 0)) - 3;
+    let qdot = vq1 + A + l10(this.U_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) : 0)) - 3;
     this.q = this.milestones.fractals > 0 ? add(this.q, qdot + l10(this.dt)) : this.q;
 
     let rdot: number;
@@ -283,7 +284,7 @@ class fpSim {
     else rdot = vr1 + (l10(this.T_n) + l10(this.U_n)) * (l10(this.U_n * 2) / 2) + this.S_n * (1 + 0.6 * this.milestones.snexp);
     this.r = this.milestones.fractals > 1 ? add(this.r, rdot + l10(this.dt)) : this.r;
 
-    let rhodot = this.totMult + this.variables[1].value + this.variables[2].value + l10(this.T_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].lvl) - 2 : 0)) + l10(this.t_var);
+    let rhodot = this.totMult + this.variables[1].value + this.variables[2].value + l10(this.T_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) - 2 : 0)) + l10(this.t_var);
     rhodot += this.milestones.fractals > 0 ? this.q : 0;
     rhodot += this.milestones.fractals > 1 ? this.r : 0;
 
@@ -306,7 +307,7 @@ class fpSim {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["tdot", "c1", "c2", "q1", "q2", "r1", "n1", "s"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

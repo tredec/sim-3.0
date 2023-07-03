@@ -66,13 +66,13 @@ class t7Sim {
       T7C3d: [() => this.variables[0].cost + 1 < this.variables[3].cost, false, false, true, false, false, false],
       T7PlaySpqcey: [
         () => this.variables[0].cost + l10(4) < this.variables[6].cost,
-        () => this.variables[1].cost + l10(10 + this.variables[2].lvl) < this.variables[2].cost,
+        () => this.variables[1].cost + l10(10 + this.variables[2].level) < this.variables[2].cost,
         () => this.variables[2].cost + l10(this.c2ratio) < this.variables[6].cost,
         () => this.variables[3].cost + 1 < this.variables[6].cost,
         () => this.variables[4].cost + 1 < this.variables[6].cost,
         () => this.variables[5].cost + l10(4) < this.variables[6].cost,
-        true
-      ]
+        true,
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
@@ -91,46 +91,46 @@ class t7Sim {
         [1, 1, 1, 1, 0],
         [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 2],
-        [1, 1, 1, 1, 3]
+        [1, 1, 1, 1, 3],
       ],
       T7C12: [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 2],
-        [0, 0, 0, 0, 3]
+        [0, 0, 0, 0, 3],
       ],
       T7C3: [
         [0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0]
+        [0, 1, 0, 0, 0],
       ],
       T7noC12: [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
         [1, 1, 0, 0, 0],
         [1, 1, 1, 0, 0],
-        [1, 1, 1, 1, 0]
+        [1, 1, 1, 1, 0],
       ],
       T7noC123: [
         [0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 0, 1, 0, 0],
-        [1, 0, 1, 1, 0]
+        [1, 0, 1, 1, 0],
       ],
       T7noC1234: [
         [0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0],
         [1, 0, 1, 0, 0],
-        [1, 0, 1, 1, 0]
+        [1, 0, 1, 1, 0],
       ],
       T7C12d: [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 2],
-        [0, 0, 0, 0, 3]
+        [0, 0, 0, 0, 3],
       ],
       T7C3d: [
         [0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0]
+        [0, 1, 0, 0, 0],
       ],
       T7PlaySpqcey: [
         [0, 0, 0, 0, 0],
@@ -140,8 +140,8 @@ class t7Sim {
         [1, 1, 1, 1, 0],
         [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 2],
-        [1, 1, 1, 1, 3]
-      ]
+        [1, 1, 1, 1, 3],
+      ],
     };
     return tree[this.strat];
   }
@@ -179,7 +179,7 @@ class t7Sim {
       new Variable({ cost: new ExponentialCost(1e5, 63), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(10, 2.82), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e8, 60), varBase: 2 }),
-      new Variable({ cost: new ExponentialCost(1e2, 2.81), varBase: 2 })
+      new Variable({ cost: new ExponentialCost(1e2, 2.81), varBase: 2 }),
     ];
     this.drho13 = 0;
     this.drho23 = 0;
@@ -251,7 +251,7 @@ class t7Sim {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
             let vars = ["q1", "c1", "c2", "c3", "c4", "c5", "c6"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].lvl + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();
