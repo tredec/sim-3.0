@@ -39,6 +39,7 @@ export interface varBuy {
   variable: string;
   level: number;
   cost: number;
+  symbol?: string;
   timeStamp: number;
 }
 

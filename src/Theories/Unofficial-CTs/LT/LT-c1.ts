@@ -180,6 +180,7 @@ class ltSim {
               variable: this.varNames[i],
               level: this.variables[i].level + 1,
               cost: this.variables[i].cost,
+              symbol: currencyIndices[i] === 0 ? "rho" : "lambda",
               timeStamp: this.t,
             });
           }

@@ -36,7 +36,7 @@ const tau = `<span style="font-size:0.9rem; font-style:italics">&tau;</span>`;
 const tableHeaders = {
   current: "All",
   single: `<th style="padding-inline: 0.5rem !important">Theory</th><th><span style="font-size:0.9rem;">&sigma;</span><sub>t</sub></th><th>Last Pub</th><th>Max Rho</th><th>&Delta;${tau}</th><th>Multi</th><th>Strat</th><th>${tau}/h</th><th>Pub Time</th>`,
-  all: `<th>&emsp;</th><th>Input</th><th>${tau}/h Active</th><th>${tau}/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;${tau} Active</th><th>&Delta;${tau} Idle</th>`
+  all: `<th>&emsp;</th><th>Input</th><th>${tau}/h Active</th><th>${tau}/h Idle</th><th>Ratio</th><th>Multi Active</th><th>Multi Idle</th><th>Strat Active</th><th>Strat Idle</th><th>Time Active</th><th>Time Idle</th><th>&Delta;${tau} Active</th><th>&Delta;${tau} Idle</th>`,
 };
 thead.innerHTML = tableHeaders.all;
 table.classList.add("big");
@@ -59,7 +59,7 @@ event(simulateButton, "click", async () => {
     modeInput: modeInput.value,
     simAllInputs: [semi_idle.checked, hard_active.checked],
     timeDiffInputs: [],
-    hardCap: hardCap.checked
+    hardCap: hardCap.checked,
   };
   for (let element of timeDiffInputs) {
     data.timeDiffInputs.push(element.value);
@@ -136,13 +136,23 @@ function openVarModal(arr: Array<varBuy>) {
     td2.innerText = arr[i].level.toString();
     tr.appendChild(td2);
     const td3 = document.createElement("td");
-    td3.innerText = logToExp(arr[i].cost, 2);
+    td3.innerHTML = `${logToExp(arr[i].cost, 2)}<span style="margin-left:.1em">${getCurrencySymbol(arr[i].symbol)}</span>`;
     tr.appendChild(td3);
     const td4 = document.createElement("td");
     td4.innerText = convertTime(arr[i].timeStamp);
     tr.appendChild(td4);
     tbody.appendChild(tr);
   }
+}
+function getCurrencySymbol(value: string | undefined): string {
+  if (value === undefined || value === "rho") return "\u03C1";
+  if (value === "lambda") return "\u03BB";
+  if (/_/.test(value)) {
+    value = value.replace(/{}/g, "");
+    const split = value.split("_");
+    return `${getCurrencySymbol(split[0])}<sub>${split[1]}</sub>`;
+  }
+  return value;
 }
 event(qs(".boughtVarsCloseBtn"), "pointerdown", () => {
   (<HTMLDialogElement>qs(".boughtVars")).close();

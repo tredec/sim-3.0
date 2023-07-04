@@ -213,7 +213,7 @@ class fpSim {
       new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
       new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
-      new Variable({ cost: new ExponentialCost(1e79, 1e3) }),
+      new Variable({ cost: new ExponentialCost(1e73, 1e3) }),
       new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
       new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
@@ -272,7 +272,7 @@ class fpSim {
     let vq1 = this.variables[3].value - l10(1 + 1000 / this.variables[3].level ** 1.5);
     let vr1 = this.variables[5].value - l10(1 + 1e9 / this.variables[5].level ** 4);
 
-    let A = this.approx(this.variables[4].level + 1);
+    let A = this.approx(this.variables[4].level);
 
     this.t_var += (this.variables[0].level / 5 + 0.2) * this.dt;
 
