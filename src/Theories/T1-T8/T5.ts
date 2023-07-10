@@ -1,6 +1,5 @@
 import { global, varBuy, theory } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData, logToExp } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { add, createResult, l10, subtract, simResult, theoryData, logToExp, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
 import jsonData from "../../Data/data.json" assert { type: "json" };
 

@@ -25,25 +25,6 @@
     </script>
     <script defer src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script defer type="module" src="./build/bundle.js"></script>
-    <script>
-      let ab1 = false;
-      function ctc(index = 7) {
-        if (ab1) return;
-        ab1 = true;
-        document.querySelector("table").addEventListener("click", () => {
-          const table = document.querySelector("tbody");
-          let res = "";
-          for (let i = 0; i < table.children.length; i++) {
-            let val = table.children[i].children[index].innerText;
-            if (isNaN(Number(val))) break;
-            res += val + "\n";
-          }
-          navigator.clipboard.writeText(res);
-          console.log(`Copied ${table.children.length - 1} values to clipboard.`);
-        });
-        return "Click on table to copy tau/h values to clipboard.";
-      }
-    </script>
   </head>
   <body>
     <div class="nav">

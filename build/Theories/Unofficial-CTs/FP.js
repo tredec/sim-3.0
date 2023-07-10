@@ -69,7 +69,7 @@ class fpSim {
             new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
             new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
             new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(1e73, 1e3) }),
+            new Variable({ cost: new ExponentialCost(1e76, 1e3) }),
             new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
             new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
             new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
