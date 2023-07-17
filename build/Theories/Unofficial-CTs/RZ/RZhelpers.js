@@ -1,11 +1,11 @@
 export const resolution = 4;
 export const getBlackholeSpeed = (z) => Math.min(Math.pow(z, 2) + 0.004, 1 / resolution);
 export const getb = (level) => 1 << level;
-const getbMarginTerm = (level) => Math.pow(10, -getb(level));
+// const getbMarginTerm = (level: number) => Math.pow(10, -getb(level));
 export const c1Exp = [1, 1.14, 1.21, 1.25];
-let interpolate = (t) => {
-    let v1 = t * t;
-    let v2 = 1 - (1 - t) * (1 - t);
+const interpolate = (t) => {
+    const v1 = t * t;
+    const v2 = 1 - (1 - t) * (1 - t);
     return v1 * (1 - t) + v2 * t;
 };
 const zeta01Table = [
@@ -49,35 +49,35 @@ const zeta01Table = [
     [0.091070056261173163, -0.76464549549431216],
     [0.10966862939766708, -0.750339936434268],
     [0.12726948615366909, -0.73615035542727014],
-    [0.14393642707718907, -0.722099743531673]
+    [0.14393642707718907, -0.722099743531673],
 ];
 // Linear interpolation lol
-let zetaSmall = (t) => {
-    let fullIndex = t * (zeta01Table.length - 1);
-    let index = Math.floor(fullIndex);
-    let offset = fullIndex - index;
-    let re = zeta01Table[index][0] * (1 - offset) + zeta01Table[index + 1][0] * offset;
-    let im = zeta01Table[index][1] * (1 - offset) + zeta01Table[index + 1][1] * offset;
+const zetaSmall = (t) => {
+    const fullIndex = t * (zeta01Table.length - 1);
+    const index = Math.floor(fullIndex);
+    const offset = fullIndex - index;
+    const re = zeta01Table[index][0] * (1 - offset) + zeta01Table[index + 1][0] * offset;
+    const im = zeta01Table[index][1] * (1 - offset) + zeta01Table[index + 1][1] * offset;
     return [re, im, Math.sqrt(re * re + im * im)];
 };
-let even = (n) => {
-    if (n % 2 == 0)
+const even = (n) => {
+    if (n % 2 === 0)
         return 1;
     else
         return -1;
 };
-let theta = (t) => {
+const theta = (t) => {
     return (t / 2) * Math.log(t / 2 / Math.PI) - t / 2 - Math.PI / 8 + 1 / 48 / t + 7 / 5760 / t / t / t;
 };
-let C = (n, z) => {
-    if (n == 0)
-        return (+0.38268343236508977173 * Math.pow(z, 0.0) +
-            0.43724046807752044936 * Math.pow(z, 2.0) +
-            0.13237657548034352332 * Math.pow(z, 4.0) -
-            0.01360502604767418865 * Math.pow(z, 6.0) -
-            0.01356762197010358089 * Math.pow(z, 8.0) -
-            0.00162372532314446528 * Math.pow(z, 10.0) +
-            0.00029705353733379691 * Math.pow(z, 12.0) +
+const C = (n, z) => {
+    if (n === 0)
+        return (0.3826834323650897 * Math.pow(z, 0.0) +
+            0.4372404680775204 * Math.pow(z, 2.0) +
+            0.1323765754803435 * Math.pow(z, 4.0) -
+            0.013605026047674188 * Math.pow(z, 6.0) -
+            0.01356762197010358 * Math.pow(z, 8.0) -
+            0.001623725323144465 * Math.pow(z, 10.0) +
+            0.0002970535373337969 * Math.pow(z, 12.0) +
             0.0000794330087952147 * Math.pow(z, 14.0) +
             0.00000046556124614505 * Math.pow(z, 16.0) -
             0.00000143272516309551 * Math.pow(z, 18.0) -
@@ -93,13 +93,13 @@ let C = (n, z) => {
             0.00000000000000003412 * Math.pow(z, 38.0) +
             0.00000000000000000058 * Math.pow(z, 40.0) +
             0.00000000000000000015 * Math.pow(z, 42.0));
-    else if (n == 1)
-        return (-0.02682510262837534703 * Math.pow(z, 1.0) +
-            0.01378477342635185305 * Math.pow(z, 3.0) +
-            0.03849125048223508223 * Math.pow(z, 5.0) +
-            0.00987106629906207647 * Math.pow(z, 7.0) -
-            0.00331075976085840433 * Math.pow(z, 9.0) -
-            0.00146478085779541508 * Math.pow(z, 11.0) -
+    else if (n === 1)
+        return (-0.02682510262837534 * Math.pow(z, 1.0) +
+            0.013784773426351853 * Math.pow(z, 3.0) +
+            0.03849125048223508 * Math.pow(z, 5.0) +
+            0.00987106629906207 * Math.pow(z, 7.0) -
+            0.003310759760858404 * Math.pow(z, 9.0) -
+            0.001464780857795415 * Math.pow(z, 11.0) -
             0.00001320794062487696 * Math.pow(z, 13.0) +
             0.00005922748701847141 * Math.pow(z, 15.0) +
             0.00000598024258537345 * Math.pow(z, 17.0) -
@@ -117,14 +117,14 @@ let C = (n, z) => {
             0.00000000000000000084 * Math.pow(z, 41.0) +
             0.00000000000000000036 * Math.pow(z, 43.0) +
             0.00000000000000000001 * Math.pow(z, 45.0));
-    else if (n == 2)
-        return (+0.00518854283029316849 * Math.pow(z, 0.0) +
-            0.00030946583880634746 * Math.pow(z, 2.0) -
-            0.01133594107822937338 * Math.pow(z, 4.0) +
-            0.00223304574195814477 * Math.pow(z, 6.0) +
-            0.00519663740886233021 * Math.pow(z, 8.0) +
-            0.00034399144076208337 * Math.pow(z, 10.0) -
-            0.00059106484274705828 * Math.pow(z, 12.0) -
+    else if (n === 2)
+        return (0.0051885428302931684 * Math.pow(z, 0.0) +
+            0.0003094658388063474 * Math.pow(z, 2.0) -
+            0.011335941078229373 * Math.pow(z, 4.0) +
+            0.002233045741958144 * Math.pow(z, 6.0) +
+            0.00519663740886233 * Math.pow(z, 8.0) +
+            0.0003439914407620833 * Math.pow(z, 10.0) -
+            0.0005910648427470582 * Math.pow(z, 12.0) -
             0.00010229972547935857 * Math.pow(z, 14.0) +
             0.00002088839221699276 * Math.pow(z, 16.0) +
             0.00000592766549309654 * Math.pow(z, 18.0) -
@@ -142,13 +142,13 @@ let C = (n, z) => {
             0.00000000000000000416 * Math.pow(z, 42.0) +
             0.00000000000000000044 * Math.pow(z, 44.0) +
             0.00000000000000000003 * Math.pow(z, 46.0));
-    else if (n == 3)
-        return (-0.0013397160907194569 * Math.pow(z, 1.0) +
-            0.0037442151363793937 * Math.pow(z, 3.0) -
-            0.00133031789193214681 * Math.pow(z, 5.0) -
-            0.00226546607654717871 * Math.pow(z, 7.0) +
-            0.00095484999985067304 * Math.pow(z, 9.0) +
-            0.00060100384589636039 * Math.pow(z, 11.0) -
+    else if (n === 3)
+        return (-0.001339716090719456 * Math.pow(z, 1.0) +
+            0.003744215136379393 * Math.pow(z, 3.0) -
+            0.0013303178919321468 * Math.pow(z, 5.0) -
+            0.002265466076547178 * Math.pow(z, 7.0) +
+            0.000954849999850673 * Math.pow(z, 9.0) +
+            0.00060100384589636 * Math.pow(z, 11.0) -
             0.00010128858286776622 * Math.pow(z, 13.0) -
             0.00006865733449299826 * Math.pow(z, 15.0) +
             0.00000059853667915386 * Math.pow(z, 17.0) +
@@ -168,13 +168,13 @@ let C = (n, z) => {
             0.00000000000000000033 * Math.pow(z, 45.0) +
             0.00000000000000000004 * Math.pow(z, 47.0));
     else
-        return (+0.00046483389361763382 * Math.pow(z, 0.0) -
-            0.00100566073653404708 * Math.pow(z, 2.0) +
-            0.00024044856573725793 * Math.pow(z, 4.0) +
-            0.00102830861497023219 * Math.pow(z, 6.0) -
-            0.00076578610717556442 * Math.pow(z, 8.0) -
+        return (+0.0004648338936176338 * Math.pow(z, 0.0) -
+            0.001005660736534047 * Math.pow(z, 2.0) +
+            0.0002404485657372579 * Math.pow(z, 4.0) +
+            0.001028308614970232 * Math.pow(z, 6.0) -
+            0.0007657861071755644 * Math.pow(z, 8.0) -
             0.00020365286803084818 * Math.pow(z, 10.0) +
-            0.00023212290491068728 * Math.pow(z, 12.0) +
+            0.0002321229049106872 * Math.pow(z, 12.0) +
             0.0000326021442438652 * Math.pow(z, 14.0) -
             0.00002557906251794953 * Math.pow(z, 16.0) -
             0.00000410746443891574 * Math.pow(z, 18.0) +
@@ -194,15 +194,15 @@ let C = (n, z) => {
             0.00000000000000000011 * Math.pow(z, 46.0) +
             0.00000000000000000004 * Math.pow(z, 48.0));
 };
-let logLookup = [];
-let sqrtLookup = [];
-let riemannSiegelZeta = (t, n) => {
+const logLookup = [];
+const sqrtLookup = [];
+const riemannSiegelZeta = (t, n) => {
     let Z = 0;
     let R = 0;
-    let fullN = Math.sqrt(t / (2 * Math.PI));
-    let N = Math.floor(fullN);
-    let p = fullN - N;
-    let th = theta(t);
+    const fullN = Math.sqrt(t / (2 * Math.PI));
+    const N = Math.floor(fullN);
+    const p = fullN - N;
+    const th = theta(t);
     for (let j = 1; j <= N; ++j) {
         if (logLookup[j] === undefined) {
             logLookup[j] = Math.log(j);
@@ -222,21 +222,21 @@ export const lookups = {
     zetaLookup: [],
     zetaDerivLookup: [],
     prevDt: 1.5,
-    prevDdt: 1.0001
+    prevDdt: 1.0001,
 };
 export const zeta = (T, ticks, offGrid, cache) => {
     if (!offGrid && cache[ticks])
         return cache[ticks];
-    let t = Math.abs(T);
+    const t = Math.abs(T);
     let z;
     if (t >= 1)
         z = riemannSiegelZeta(t, 1);
     else if (t < 0.1)
         z = zetaSmall(t);
     else {
-        let offset = interpolate(((t - 0.1) * 10) / 9);
-        let a = zetaSmall(t);
-        let b = riemannSiegelZeta(t, 1);
+        const offset = interpolate(((t - 0.1) * 10) / 9);
+        const a = zetaSmall(t);
+        const b = riemannSiegelZeta(t, 1);
         z = [a[0] * (1 - offset) + b[0] * offset, a[1] * (1 - offset) + b[1] * offset, a[2] * (1 - offset) + Math.abs(b[2]) * offset];
     }
     if (T < 0)

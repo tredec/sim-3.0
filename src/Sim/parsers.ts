@@ -1,7 +1,7 @@
 import { getTheoryFromIndex, log10 } from "../Utils/helpers.js";
 import jsonData from "../Data/data.json" assert { type: "json" };
 import { qs, qsa } from "../Utils/helpers.js";
-import { theory, inputData, parsedData } from "./main.js";
+import { inputData, parsedData } from "./main.js";
 
 export function parseData(data: inputData) {
   const parsedDataObj: parsedData = {
@@ -14,7 +14,7 @@ export function parseData(data: inputData) {
     sigma: 0,
     rho: 0,
     cap: Infinity,
-    recovery: null
+    recovery: null,
   };
 
   if (data.mode !== "All" && data.mode !== "Time diff.") {
@@ -41,7 +41,7 @@ export function parseData(data: inputData) {
   return parsedDataObj;
 }
 
-export function parseCurrencyValue(value: string | Array<number | string>, theory: theory, sigma: number, defaultType: string = "r"): number {
+export function parseCurrencyValue(value: string | Array<number | string>, theory: theoryType, sigma: number, defaultType = "r"): number {
   if (typeof value === "string") {
     const lastChar: string = value.charAt(value.length - 1);
     //checks if last character is not valid currency character. If not, throw error
@@ -87,10 +87,10 @@ function isInt(str: string) {
   return /^\d+$/.test(str);
 }
 export function reverseMulti(theory: string, value: number, sigma: number) {
-  let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
-  let divSigmaMulti = (exp: number, div: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) + Math.log10(div)) * (1 / exp);
-  let multSigmaMulti = (exp: number, mult: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) - Math.log10(mult)) * (1 / exp);
-  let sigmaMulti = (exp: number) => (value - Math.log10((sigma / 20) ** getR9Exp())) * (1 / exp);
+  const getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
+  const divSigmaMulti = (exp: number, div: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) + Math.log10(div)) * (1 / exp);
+  const multSigmaMulti = (exp: number, mult: number) => (value - Math.log10((sigma / 20) ** getR9Exp()) - Math.log10(mult)) * (1 / exp);
+  const sigmaMulti = (exp: number) => (value - Math.log10((sigma / 20) ** getR9Exp())) * (1 / exp);
   switch (theory) {
     case "T1":
       return divSigmaMulti(0.164, 3);
@@ -159,7 +159,7 @@ function parseSimAll(input: string): Array<number> {
   //dont allow more inputs than students + theories
   if (split.length - 1 > Object.keys(jsonData.theories).length) throw `Invalid value ${split[Object.keys(jsonData.theories).length + 1]} does not match any theory.`;
   //parse students
-  let res: Array<number> = [];
+  const res: Array<number> = [];
   if (isInt(split[0])) res.push(parseInt(split[0]));
   else throw `Invalid student value ${split[0]}.`;
   //parse and check if all values are valid
@@ -204,7 +204,7 @@ export function updateTimeDiffTable() {
   const timeDiffTable = <HTMLTableElement>qs(".timeDiffTable");
   const str = [];
   for (const elem of timeDiffInputs) str.push(elem.value);
-  let parsedValues = parseTimeDiff(JSON.stringify(str));
+  // const parsedValues = parseTimeDiff(JSON.stringify(str));
   while (timeDiffTable.firstChild) timeDiffTable.firstChild.remove();
   const tr = document.createElement("th");
   const td = document.createElement("td");

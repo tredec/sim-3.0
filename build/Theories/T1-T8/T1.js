@@ -8,64 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, logToExp } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { add, createResult, l10, subtract, logToExp, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import { theoryClass } from "../theory.js";
 export default function t1(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new t1Sim(data);
-        let res = yield sim.simulate();
+        const sim = new t1Sim(data);
+        const res = yield sim.simulate();
         return res;
     });
 }
-class t1Sim {
-    constructor(data) {
-        var _a;
-        this.strat = data.strat;
-        this.theory = "T1";
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.rho = 0;
-        this.maxRho = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(5, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(100, 10), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(15, 2), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(3000, 10), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e4, 4.5 * Math.log2(10), true), varBase: 10 }),
-            new Variable({ cost: new ExponentialCost(1e10, 8 * Math.log2(10), true), varBase: 10 }),
-        ];
-        //values of the different terms, so they are accesible for variable buying conditions
-        this.term1 = 0;
-        this.term2 = 0;
-        this.term3 = 0;
-        this.termRatio = 0;
-        this.c3Ratio = this.lastPub < 300 ? 1 : this.lastPub < 450 ? 1.1 : this.lastPub < 550 ? 2 : this.lastPub < 655 ? 5 : 10;
-        this.boughtVars = [];
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [logterm, c1exp, c3term, c4term]
-        this.milestones = [0, 0, 0, 0];
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class t1Sim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
             T1: new Array(6).fill(true),
@@ -94,7 +47,7 @@ class t1Sim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [() => true, () => true, () => true, () => true, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
+        const conditions = [() => true, () => true, () => true, () => true, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
         return conditions;
     }
     getMilestoneTree() {
@@ -123,10 +76,36 @@ class t1Sim {
         const stage = Math.min(6, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
         this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
     }
+    constructor(data) {
+        super(data);
+        this.totMult = this.getTotMult(data.rho);
+        this.rho = 0;
+        this.varNames = ["q1", "q2", "c1", "c2", "c3", "c4"];
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(5, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(100, 10), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(15, 2), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(3000, 10), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e4, 4.5 * Math.log2(10), true), varBase: 10 }),
+            new Variable({ cost: new ExponentialCost(1e10, 8 * Math.log2(10), true), varBase: 10 }),
+        ];
+        //values of the different terms, so they are accesible for variable buying conditions
+        this.term1 = 0;
+        this.term2 = 0;
+        this.term3 = 0;
+        this.termRatio = 0;
+        this.c3Ratio = this.lastPub < 300 ? 1 : this.lastPub < 450 ? 1.1 : this.lastPub < 550 ? 2 : this.lastPub < 655 ? 5 : 10;
+        //milestones  [logterm, c1exp, c3term, c4term]
+        this.milestones = [0, 0, 0, 0];
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updateMilestones();
+    }
     simulate() {
         return __awaiter(this, void 0, void 0, function* () {
-            let c4_nc = Math.ceil((this.lastPub - 10) / 8) * 8 + 10;
-            let pub = c4_nc - this.lastPub < 3 ? c4_nc + 2 : c4_nc - this.lastPub < 5 ? c4_nc - 2 + Math.log10(1.5) : c4_nc - 4 + Math.log10(1.4);
+            const c4_nc = Math.ceil((this.lastPub - 10) / 8) * 8 + 10;
+            const pub = c4_nc - this.lastPub < 3 ? c4_nc + 2 : c4_nc - this.lastPub < 5 ? c4_nc - 2 + Math.log10(1.5) : c4_nc - 4 + Math.log10(1.4);
             let coast = (c4_nc - this.lastPub < 3 ? c4_nc : Math.floor(this.lastPub)) + Math.log10(30);
             coast = Math.max(8 + Math.log10(30), coast + Math.floor(pub - coast));
             let pubCondition = false;
@@ -149,7 +128,7 @@ class t1Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, global.forcedPubTime === Infinity && this.strat === "T1SolarXLII" ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
+            const result = createResult(this, global.forcedPubTime === Infinity && this.strat === "T1SolarXLII" ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -160,7 +139,7 @@ class t1Sim {
         this.term1 = this.variables[2].value * (1 + 0.05 * this.milestones[1]) + this.variables[3].value + (this.milestones[0] > 0 ? l10(1 + this.rho / Math.LOG10E / 100) : 0);
         this.term2 = add(this.variables[4].value + this.rho * 0.2, this.variables[5].value + this.rho * 0.3);
         this.term3 = this.variables[0].value + this.variables[1].value;
-        let rhodot = add(this.term1, this.term2) + this.term3 + this.totMult + l10(this.dt);
+        const rhodot = add(this.term1, this.term2) + this.term3 + this.totMult + l10(this.dt);
         this.rho = add(this.rho, rhodot);
         this.t += this.dt / 1.5;
         this.dt *= this.ddt;
@@ -179,8 +158,7 @@ class t1Sim {
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub && ((i !== 2 && i !== 3) || this.lastPub < 350)) {
-                        let vars = ["q1", "q2", "c1", "c2", "c3", "c4"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

@@ -3,10 +3,14 @@ import { global } from "./main.js";
 
 const stratData = convertConditions((<unknown>structuredClone(jsonData.theories)) as theoryDataType);
 
+type args = [boolean, boolean, boolean, boolean, number, string];
+
+type conditionFunctions = (...args: args) => boolean;
+
 type stratDataType = {
   [key: string]: {
-    stratFilterCondition: Function;
-    forcedCondition: Function;
+    stratFilterCondition: conditionFunctions;
+    forcedCondition: conditionFunctions;
   };
 };
 
@@ -18,8 +22,8 @@ function convertConditions(theoryData: theoryDataType) {
   for (const theory of Object.keys(theoryData)) {
     delete theoryData[theory].tauFactor;
     for (const strat of Object.keys(theoryData[theory].strats)) {
-      theoryData[theory].strats[strat].stratFilterCondition = Function(parseExpression(<string>(<unknown>theoryData[theory].strats[strat].stratFilterCondition)));
-      theoryData[theory].strats[strat].forcedCondition = Function(parseExpression(<string>(<unknown>theoryData[theory].strats[strat].forcedCondition)));
+      theoryData[theory].strats[strat].stratFilterCondition = Function(parseExpression(<string>(<unknown>theoryData[theory].strats[strat].stratFilterCondition))) as conditionFunctions;
+      theoryData[theory].strats[strat].forcedCondition = Function(parseExpression(<string>(<unknown>theoryData[theory].strats[strat].forcedCondition))) as conditionFunctions;
     }
   }
   return theoryData;
@@ -38,9 +42,9 @@ function parseExpression(expression: string) {
   return `return ${expression}`;
 }
 
-export function getStrats(theory: string, rho: number, type: string, lastStrat: string | null): Array<string> {
-  let res = [];
-  const args = [...jsonData.stratCategories.map((v) => v === type), rho, lastStrat];
+export function getStrats(theory: theoryType, rho: number, type: string, lastStrat: string): Array<string> {
+  const res = [];
+  const args = [...jsonData.stratCategories.map((v) => v === type), rho, lastStrat] as args;
   for (const strat of Object.keys(stratData[theory].strats)) {
     if ((stratData[theory].strats[strat].stratFilterCondition(...args) || !global.stratFilter) && stratData[theory].strats[strat].forcedCondition(...args)) res.push(strat);
   }

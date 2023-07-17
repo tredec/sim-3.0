@@ -26,8 +26,6 @@ import csr2 from "../Theories/CTs/CSR2.js";
 import fp from "../Theories/Unofficial-CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
 import bt from "../Theories/Unofficial-CTs/BT.js";
-import lt from "../Theories/Unofficial-CTs/LT/LT-main.js";
-import ltc1 from "../Theories/Unofficial-CTs/LT/LT-c1";
 const output = qs(".output");
 export const global = {
     dt: 1.5,
@@ -52,18 +50,18 @@ export function simulate(simData) {
         if ((performance.now() - cache.simEndTimestamp) / 1000 < 1)
             return null;
         try {
-            let pData = parseData(simData);
+            const pData = parseData(simData);
             let res = [];
             global.simulating = true;
             switch (pData.mode) {
                 case "Single sim":
-                    res = [yield singleSim(pData)];
+                    res = [(yield singleSim(pData)).map((v) => v.toString())];
                     break;
                 case "Chain":
                     res = yield chainSim(pData);
                     break;
                 case "Steps":
-                    res = yield stepSim(pData);
+                    res = (yield stepSim(pData)).map((i) => i.map((v) => v.toString()));
                     break;
                 case "All":
                     res = yield simAll(pData);
@@ -83,6 +81,7 @@ function singleSim(data) {
         if (jsonData.stratCategories.includes(data.strat))
             return getBestStrat(data);
         const sendData = {
+            theory: data.theory,
             strat: data.strat,
             sigma: data.sigma,
             rho: data.rho,
@@ -121,10 +120,6 @@ function singleSim(data) {
                 return yield fp(sendData);
             case "BT":
                 return yield bt(sendData);
-            case "LT-main":
-                return yield lt(sendData);
-            case "LT-c1":
-                return yield ltc1(sendData);
         }
     });
 }
@@ -134,56 +129,51 @@ function chainSim(data) {
         let time = 0;
         const start = data.rho;
         const result = [];
-        let stopOtp = logToExp(data.cap);
+        const stopOtp = logToExp(data.cap);
         let lastLog = 0;
         while (lastPub < data.cap) {
-            let st = performance.now();
+            const st = performance.now();
             if (st - lastLog > 250) {
                 lastLog = st;
                 output.textContent = `Simulating ${logToExp(lastPub, 0)}/${stopOtp}`;
                 yield sleep();
             }
-            let res = yield singleSim(Object.assign({}, data));
+            const res = yield singleSim(Object.assign({}, data));
             if (!global.simulating)
                 break;
             if (typeof res[6] === "string")
                 cache.lastStrat = res[6].split(" ")[0];
-            result.push(res);
-            lastPub = res[res.length - 1][0];
+            result.push(res.map((v) => v.toString()));
+            lastPub = res[9][0];
             data.rho = lastPub;
-            time += res[res.length - 1][1];
+            time += res[9][1];
         }
         cache.lastStrat = "";
-        // @ts-expect-error
         result.push(["", "", "", "", "ΔTau Total", "", "", `Average <span style="font-size:0.9rem; font-style:italics">&tau;</span>/h`, "Total Time"]);
         const dtau = (data.rho - start) * jsonData.theories[data.theory].tauFactor;
-        // @ts-expect-error
         result.push(["", "", "", "", logToExp(dtau, 2), "", "", formatNumber(dtau / (time / 3600), 5), convertTime(time)]);
         return result;
     });
 }
 function stepSim(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let time = 0;
-        const start = data.rho;
         const result = [];
-        let stopOtp = logToExp(data.cap);
+        const stopOtp = logToExp(data.cap);
         let lastLog = 0;
         while (data.rho < data.cap + 0.00001) {
-            let st = performance.now();
+            const st = performance.now();
             if (st - lastLog > 250) {
                 lastLog = st;
                 output.textContent = `Simulating ${logToExp(data.rho, 0)}/${stopOtp}`;
                 yield sleep();
             }
-            let res = yield singleSim(Object.assign({}, data));
+            const res = yield singleSim(Object.assign({}, data));
             if (!global.simulating)
                 break;
             if (typeof res[6] === "string")
                 cache.lastStrat = res[6].split(" ")[0];
             result.push(res);
             data.rho += data.modeInput;
-            time += res[res.length - 1][1];
         }
         cache.lastStrat = "";
         return result;
@@ -193,7 +183,7 @@ function simAll(data) {
     return __awaiter(this, void 0, void 0, function* () {
         const sigma = data.modeInput[0];
         const values = data.modeInput.slice(1, data.modeInput.length);
-        let res = [];
+        const res = [];
         for (let i = 0; i < values.length; i++) {
             if (values[i] === 0)
                 continue;
@@ -201,12 +191,10 @@ function simAll(data) {
             yield sleep();
             if (!global.simulating)
                 break;
-            let modes = ["Best Semi-Idle", "Best Overall"];
-            if (data.simAllInputs != null)
-                modes = [data.simAllInputs[0] ? "Best Semi-Idle" : "Best Idle", data.simAllInputs[1] ? "Best Overall" : "Best Active"];
-            let temp = [];
+            const modes = [data.simAllInputs[0] ? "Best Semi-Idle" : "Best Idle", data.simAllInputs[1] ? "Best Overall" : "Best Active"];
+            const temp = [];
             for (let j = 0; j < modes.length; j++) {
-                let sendData = {
+                const sendData = {
                     theory: getTheoryFromIndex(i),
                     strat: modes[j],
                     sigma,
@@ -218,23 +206,20 @@ function simAll(data) {
             }
             res.push(createSimAllOutput(temp));
         }
-        //@ts-expect-error
-        res.push([sigma]);
+        res.push([sigma.toString()]);
         return res;
     });
 }
 function createSimAllOutput(arr) {
-    //@ts-expect-error
-    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]];
+    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]].map((v) => v.toString());
 }
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {
         const strats = getStrats(data.theory, data.rho, data.strat, cache.lastStrat);
-        //@ts-expect-error
-        let bestSim = new Array(9).fill(0);
+        let bestSim = ["", 0, "", "", "", "", "", 0, "", [0, 0]];
         for (let i = 0; i < strats.length; i++) {
             data.strat = strats[i];
-            let sim = yield singleSim(data);
+            const sim = yield singleSim(data);
             if (bestSim[7] < sim[7])
                 bestSim = sim;
         }

@@ -1,56 +1,25 @@
-import { global, varBuy, theory } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData, logToExp } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { global } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, logToExp, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { specificTheoryProps, theoryClass, conditionFunction } from "../theory.js";
 
 export default async function t6(data: theoryData): Promise<simResult> {
-  let sim = new t6Sim(data);
-  let res = await sim.simulate();
+  const sim = new t6Sim(data);
+  const res = await sim.simulate();
   return res;
 }
 
-type strat = keyof typeof jsonData.theories.T6.strats;
+type theory = "T6";
 
-class t6Sim {
-  conditions: Array<Function>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<number>>;
-
-  strat: strat;
-  theory: theory;
-  //theory
-  cap: Array<number>;
-  recovery: { value: number; time: number; recoveryTime: boolean };
-  lastPub: number;
-  sigma: number;
-  totMult: number;
-  curMult: number;
-  dt: number;
-  ddt: number;
-  t: number;
-  ticks: number;
-  //currencies
+class t6Sim extends theoryClass<theory> implements specificTheoryProps {
   rho: number;
-  maxRho: number;
   q: number;
   r: number;
-  //initialize variables
-  variables: Array<Variable>;
   k: number;
   stopC12: [number, number, boolean];
-  boughtVars: Array<varBuy>;
-  //pub values
-  tauH: number;
-  maxTauH: number;
-  pubT: number;
-  pubRho: number;
-  //milestones  [dimensions, b1exp, b2exp, b3exp]
-  milestones: Array<number>;
-  pubMulti: number;
 
   getBuyingConditions() {
-    const conditions: { [key in strat]: Array<boolean | Function> } = {
+    const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       T6: [true, true, true, true, true, true, true, true, true],
       T6C3: [true, true, true, true, false, false, true, false, false],
       T6C4: [true, true, true, true, false, false, false, true, false],
@@ -119,7 +88,7 @@ class t6Sim {
     return condition;
   }
   getMilestoneConditions() {
-    let conditions: Array<Function> = [
+    const conditions: Array<conditionFunction> = [
       () => true,
       () => true,
       () => this.milestones[0] > 0,
@@ -142,7 +111,7 @@ class t6Sim {
       [1, 0, 1, 3],
       [1, 1, 1, 3],
     ];
-    const tree: { [key in strat]: Array<Array<number>> } = {
+    const tree: { [key in stratType[theory]]: Array<Array<number>> } = {
       T6: globalOptimalRoute,
       T6C3: globalOptimalRoute,
       T6C4: globalOptimalRoute,
@@ -168,33 +137,21 @@ class t6Sim {
     this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
   calculateIntegral(vc1: number, vc2: number, vc3: number, vc4: number, vc5: number) {
-    let term1 = vc1 + vc2 + this.q + this.r;
-    let term2 = vc3 + this.q * 2 + this.r - l10(2);
-    let term3 = this.milestones[1] > 0 ? vc4 + this.q * 3 + this.r - l10(3) : 0;
-    let term4 = this.milestones[2] > 0 ? vc5 + this.q + this.r * 2 - l10(2) : 0;
+    const term1 = vc1 + vc2 + this.q + this.r;
+    const term2 = vc3 + this.q * 2 + this.r - l10(2);
+    const term3 = this.milestones[1] > 0 ? vc4 + this.q * 3 + this.r - l10(3) : 0;
+    const term4 = this.milestones[2] > 0 ? vc5 + this.q + this.r * 2 - l10(2) : 0;
     this.k = term4 - term1;
     return this.totMult + add(term1, add(term2, add(term3, term4)));
   }
   constructor(data: theoryData) {
-    this.strat = data.strat as strat;
-    this.theory = "T6";
-    //theory
-    this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
-    this.lastPub = data.rho;
-    this.sigma = data.sigma;
+    super(data);
     this.totMult = this.getTotMult(data.rho);
-    this.curMult = 0;
-    this.dt = global.dt;
-    this.ddt = global.ddt;
-    this.t = 0;
-    this.ticks = 0;
-    //currencies
     this.rho = 0;
-    this.maxRho = 0;
     this.q = 0;
     this.r = 0;
     //initialize variables
+    this.varNames = ["q1", "q2", "r1", "r2", "c1", "c2", "c3", "c4", "c5"];
     this.variables = [
       new Variable({ cost: new ExponentialCost(15, 3), stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(500, 100), varBase: 2 }),
@@ -208,15 +165,6 @@ class t6Sim {
     ];
     this.k = 0;
     this.stopC12 = [0, 0, true];
-    this.boughtVars = [];
-    //pub values
-    this.tauH = 0;
-    this.maxTauH = 0;
-    this.pubT = 0;
-    this.pubRho = 0;
-    //milestones  [q1exp,c3term,c3exp]
-    this.milestones = [0, 0, 0];
-    this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.milestoneTree = this.getMilestoneTree();
@@ -236,7 +184,7 @@ class t6Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    let result = createResult(this, this.strat === "T6Snax" ? " " + logToExp(this.stopC12[0], 1) : "");
+    const result = createResult(this, this.strat === "T6Snax" ? " " + logToExp(this.stopC12[0], 1) : "");
 
     while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
     global.varBuy.push([result[7], this.boughtVars]);
@@ -244,7 +192,7 @@ class t6Sim {
     return result;
   }
   tick() {
-    let vc1 = this.variables[4].value * (1 + 0.05 * this.milestones[3]);
+    const vc1 = this.variables[4].value * (1 + 0.05 * this.milestones[3]);
 
     let C = subtract(this.calculateIntegral(vc1, this.variables[5].value, this.variables[6].value, this.variables[7].value, this.variables[8].value), this.rho);
 
@@ -252,7 +200,7 @@ class t6Sim {
 
     this.r = this.milestones[0] > 0 ? add(this.r, this.variables[2].value + this.variables[3].value + l10(this.dt) - 3) : 0;
 
-    let newCurrency = this.calculateIntegral(vc1, this.variables[5].value, this.variables[6].value, this.variables[7].value, this.variables[8].value);
+    const newCurrency = this.calculateIntegral(vc1, this.variables[5].value, this.variables[6].value, this.variables[7].value, this.variables[8].value);
     C = C > newCurrency ? newCurrency : C;
     this.rho = Math.max(0, subtract(newCurrency, C));
 
@@ -281,8 +229,7 @@ class t6Sim {
         while (true) {
           if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
             if (this.maxRho + 5 > this.lastPub) {
-              let vars = ["q1", "q2", "r1", "r2", "c1", "c2", "c3", "c4", "c5"];
-              this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+              this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
             }
             this.rho = subtract(this.rho, this.variables[i].cost);
             this.variables[i].buy();
@@ -290,8 +237,8 @@ class t6Sim {
         }
     else {
       while (true) {
-        let rawCost = this.variables.map((item) => item.cost);
-        let weights = [
+        const rawCost = this.variables.map((item) => item.cost);
+        const weights = [
           l10(7 + (this.variables[0].level % 10)), //q1
           0, //q2
           l10(5 + (this.variables[2].level % 10)), //r1
@@ -310,8 +257,7 @@ class t6Sim {
         if (minCost[1] !== -1 && rawCost[minCost[1]] < this.rho) {
           this.rho = subtract(this.rho, this.variables[minCost[1]].cost);
           if (this.maxRho + 5 > this.lastPub) {
-            let vars = ["q1", "q2", "r1", "r2", "c1", "c2", "c3", "c4", "c5"];
-            this.boughtVars.push({ variable: vars[minCost[1]], level: this.variables[minCost[1]].level + 1, cost: this.variables[minCost[1]].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[minCost[1]], level: this.variables[minCost[1]].level + 1, cost: this.variables[minCost[1]].cost, timeStamp: this.t });
           }
           this.variables[minCost[1]].buy();
         } else break;

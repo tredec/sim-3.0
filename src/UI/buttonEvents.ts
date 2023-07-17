@@ -1,5 +1,6 @@
-import { qs, event, ce } from "../Utils/helpers.js";
-declare var html2canvas: any;
+import html2canvas from "html2canvas";
+import { qs, event } from "../Utils/helpers.js";
+
 //Buttons
 const clear = qs(".clear");
 const copyImage = qs(".imageC");
@@ -21,8 +22,8 @@ event(copyImage, "pointerdown", () => createImage(""));
 event(downloadImage, "pointerdown", () => createImage("download"));
 
 function createImage(mode: string) {
-  html2canvas(qs(".simTable")).then((canvas: any) =>
-    canvas.toBlob((blob: any) => {
+  html2canvas(qs(".simTable")).then((canvas) =>
+    canvas.toBlob((blob) => {
       if (mode === "download") {
         const a = document.createElement("a");
         a.href = canvas.toDataURL("image/png");
@@ -30,7 +31,7 @@ function createImage(mode: string) {
         a.click();
       } else {
         navigator.clipboard
-          .write([new ClipboardItem(<any>{ "image/png": blob })])
+          .write([new ClipboardItem({ "image/png": blob } as { [key: string]: Blob })])
           .then(() => {
             console.log("Sucsessfully created image!");
           })
@@ -53,7 +54,3 @@ event(saveDist, "pointerdown", () => {
 event(getDist, "pointerdown", () => {
   modeInput.value = localStorage.getItem("savedDistribution") ?? modeInput.value;
 });
-
-// const ctDev = <HTMLInputElement>qs(".ctDev");
-// event(ctDev, "input", () => {
-// });

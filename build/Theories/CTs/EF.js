@@ -10,67 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { theoryClass } from "../theory.js";
 export default function ef(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new efSim(data);
-        let res = yield sim.simulate(data);
+        const sim = new efSim(data);
+        const res = yield sim.simulate(data);
         return res;
     });
 }
-class efSim {
-    constructor(data) {
-        var _a, _b;
-        this.strat = data.strat;
-        this.theory = "EF";
-        this.tauFactor = jsonData.theories.EF.tauFactor;
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.currencies = [0, 0, 0];
-        this.maxRho = 0;
-        this.q = 0;
-        this.t_var = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(1e6, 1e6) }),
-            new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(5, 60), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
-            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
-            new Variable({ cost: new ExponentialCost(2000, 2.2, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(500, 2.2, true), value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
-            new Variable({ cost: new ExponentialCost(500, 2.2, true), varBase: 2 }),
-        ];
-        this.recursionValue = (_b = data.recursionValue) !== null && _b !== void 0 ? _b : [Infinity, 0];
-        this.lastA23 = [0, 0];
-        this.isEFAI = this.strat === "EFAI";
-        this.boughtVars = [];
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [dimensions, aterm, aexp, b2base, c2base]
-        this.milestones = [0, 0, 0, 0, 0];
-        this.nextMilestoneCost = Infinity;
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class efSim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
             EF: new Array(10).fill(true),
@@ -105,7 +53,7 @@ class efSim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [
+        const conditions = [
             () => this.variables[0].level < 4 && this.maxRho + l10(5) < this.nextMilestoneCost,
             () => true && this.maxRho + l10(5) < this.nextMilestoneCost,
             () => true && this.maxRho + l10(5) < this.nextMilestoneCost,
@@ -150,7 +98,7 @@ class efSim {
     }
     updateMilestones() {
         let stage = 0;
-        let points = [10, 20, 30, 40, 50, 70, 90, 110, 130, 150, 250, 275, 300, 325];
+        const points = [10, 20, 30, 40, 50, 70, 90, 110, 130, 150, 250, 275, 300, 325];
         for (let i = 0; i < points.length; i++) {
             if (Math.max(this.lastPub, this.maxRho) >= points[i])
                 stage = i + 1;
@@ -176,7 +124,7 @@ class efSim {
             return false;
         let totalMilestones = 0;
         let initMilestones = 0;
-        let points = [10, 20, 30, 40, 50, 70, 90, 110, 130, 150, 250, 275, 300, 325];
+        const points = [10, 20, 30, 40, 50, 70, 90, 110, 130, 150, 250, 275, 300, 325];
         for (let i = 0; i < points.length; i++) {
             if (Math.max(this.lastPub, this.maxRho) >= points[i])
                 totalMilestones = i + 1;
@@ -214,13 +162,44 @@ class efSim {
             return false;
         return (this.lastPub < 298.2 && this.lastPub >= 296) || (this.lastPub >= 321 && this.lastPub < 323.2);
     }
+    constructor(data) {
+        var _a;
+        super(data);
+        this.totMult = this.getTotMult(data.rho);
+        this.curMult = 0;
+        this.currencies = [0, 0, 0];
+        this.q = 0;
+        this.t_var = 0;
+        //initialize variables
+        this.varNames = ["t", "q1", "q2", "b1", "b2", "c1", "c2", "a1", "a2", "a3"];
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(1e6, 1e6) }),
+            new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(5, 60), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
+            new Variable({ cost: new ExponentialCost(20, 200), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(100, 2), varBase: 1.1 }),
+            new Variable({ cost: new ExponentialCost(2000, 2.2, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(500, 2.2, true), value: 1, stepwisePowerSum: { base: 40, length: 10 } }),
+            new Variable({ cost: new ExponentialCost(500, 2.2, true), varBase: 2 }),
+        ];
+        this.recursionValue = (_a = data.recursionValue) !== null && _a !== void 0 ? _a : [Infinity, 0];
+        this.lastA23 = [0, 0];
+        this.isEFAI = this.strat === "EFAI";
+        this.nextMilestoneCost = 0;
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updateMilestones();
+    }
     simulate(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.lastPub >= 10 && data.recursionValue == null && this.isEFAI) {
+            if (this.lastPub >= 10 && (data.recursionValue === null || data.recursionValue === undefined) && this.isEFAI) {
                 data.recursionValue = [Infinity, 0];
-                let res1 = yield ef(data);
+                const res1 = yield ef(data);
                 data.recursionValue = [res1[9][0], 1];
-                let res2 = yield ef(data);
+                const res2 = yield ef(data);
                 this.recursionValue = [res2[9][0], 2];
                 if (this.recursionValue[0] > 300 && this.recursionValue[0] < 301)
                     this.recursionValue[0] = 299.2;
@@ -236,7 +215,7 @@ class efSim {
                 this.tick();
                 if (this.currencies[0] > this.maxRho)
                     this.maxRho = this.currencies[0];
-                if (this.lastPub < 325)
+                if (this.lastPub <= 325)
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
@@ -247,7 +226,7 @@ class efSim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, this.isEFAI ? ` q1: ${this.variables[1].level} q2: ${this.variables[2].level} a1: ${this.variables[7].level}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : "");
+            const result = createResult(this, this.isEFAI ? ` q1: ${this.variables[1].level} q2: ${this.variables[2].level} a1: ${this.variables[7].level}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : "");
             if (!this.isEFAI || this.recursionValue[1] === 2) {
                 while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                     this.boughtVars.pop();
@@ -257,14 +236,14 @@ class efSim {
         });
     }
     tick() {
-        let logbonus = l10(this.dt) + this.totMult;
+        const logbonus = l10(this.dt) + this.totMult;
         this.q = add(this.q, this.variables[1].value + this.variables[2].value + logbonus);
         this.t_var += this.dt * (this.variables[0].level / 5 + 0.2);
-        let a = (this.variables[7].value + this.variables[8].value + this.variables[9].value) * (0.1 * this.milestones[2] + 1);
-        let b = this.variables[3].value + this.variables[4].value;
-        let c = this.variables[5].value + this.variables[6].value;
-        let R = b + l10(Math.abs(Math.cos(this.t_var)));
-        let I = c + l10(Math.abs(Math.sin(this.t_var)));
+        const a = (this.variables[7].value + this.variables[8].value + this.variables[9].value) * (0.1 * this.milestones[2] + 1);
+        const b = this.variables[3].value + this.variables[4].value;
+        const c = this.variables[5].value + this.variables[6].value;
+        const R = b + l10(Math.abs(Math.cos(this.t_var)));
+        const I = c + l10(Math.abs(Math.sin(this.t_var)));
         this.currencies[1] = this.milestones[0] > 0 ? add(this.currencies[1], logbonus + R * 2) : 0;
         this.currencies[2] = this.milestones[0] > 1 ? add(this.currencies[2], logbonus + I * 2) : 0;
         switch (this.milestones[0]) {
@@ -291,15 +270,14 @@ class efSim {
         }
     }
     buyVariables() {
-        let currencyIndexes = [0, 0, 0, 1, 1, 2, 2, 0, 1, 2];
+        const currencyIndicies = [0, 0, 0, 1, 1, 2, 2, 0, 1, 2];
         for (let i = this.variables.length - 1; i >= 0; i--)
             while (true) {
-                if (this.currencies[currencyIndexes[i]] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
+                if (this.currencies[currencyIndicies[i]] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub && (!this.isEFAI || this.recursionValue[1] === 2)) {
-                        let vars = ["t", "q1", "q2", "b1", "b2", "c1", "c2", "a1", "a2", "a3"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
-                    this.currencies[currencyIndexes[i]] = subtract(this.currencies[currencyIndexes[i]], this.variables[i].cost);
+                    this.currencies[currencyIndicies[i]] = subtract(this.currencies[currencyIndicies[i]], this.variables[i].cost);
                     this.variables[i].buy();
                 }
                 else

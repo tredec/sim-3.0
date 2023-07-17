@@ -1,25 +1,27 @@
 import jsonData from "../Data/data.json" assert { type: "json" };
-import { theory } from "../Sim/main";
 
-export const qs = (name: string): HTMLElement => document.querySelector(name)!;
-export const qsa = (name: string) => document.querySelectorAll(name)!;
-export const ce = (type: string) => document.createElement(type)!;
+const raise = (err: string) => {
+  throw new Error(err);
+};
+export const qs = <T extends HTMLElement>(name: string) => document.querySelector<T>(name) ?? raise(`HtmlElement ${name} not found.`);
+export const qsa = <T extends HTMLElement>(name: string) => document.querySelectorAll<T>(name);
+export const ce = <T extends HTMLElement>(type: string) => (document.createElement(type) as T) ?? raise(`HtmlElement ${type} could not be created.`);
 
-export const event = (element: HTMLElement, eventType: string, callback: Function) => element.addEventListener(eventType, (e) => callback(e));
+export const event = <T>(element: HTMLElement, eventType: string, callback: (e: T) => void) => element.addEventListener(eventType, (e) => callback(e as T));
 
 export function findIndex(arr: Array<string | number | boolean>, val: string | number | boolean) {
   for (let i = 0; i < arr.length; i++) if (val === arr[i]) return i;
   return -1;
 }
-export function sleep(time: number = 0) {
+export function sleep(time = 0) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
 export function getIndexFromTheory(theory: string) {
   return theory in Object.keys(jsonData.theories);
 }
-export function getTheoryFromIndex(index: number): theory {
-  return <theory>(<unknown>Object.keys(jsonData.theories)[index]);
+export function getTheoryFromIndex(index: number) {
+  return Object.keys(jsonData.theories)[index] as theoryType;
 }
 
 export function log10(num: string) {
@@ -28,17 +30,17 @@ export function log10(num: string) {
   return Number(result);
 }
 
-export function logToExp(num: number, dec: number = 3) {
+export function logToExp(num: number, dec = 3) {
   const wholePart: number = Math.floor(num);
   const fractionalPart: number = num - wholePart;
   const frac1: number = round(10 ** fractionalPart, dec);
   return (frac1 >= 10 ? frac1 / 10 : frac1) + "e" + (frac1 >= 10 ? wholePart + 1 : wholePart);
 }
-export function convertTime(secs: number): string {
-  let mins = Math.floor((secs / 60) % 60);
-  let hrs = Math.floor((secs / 3600) % 24);
-  let days = Math.floor((secs / 86400) % 365);
-  let years = Math.floor(secs / 31536000);
+export function convertTime(secs: number) {
+  const mins = Math.floor((secs / 60) % 60);
+  const hrs = Math.floor((secs / 3600) % 24);
+  const days = Math.floor((secs / 86400) % 365);
+  const years = Math.floor(secs / 31536000);
   let result = "";
   if (years > 0) {
     result += years < 1e6 ? years : logToExp(Math.log10(years));
@@ -49,13 +51,8 @@ export function convertTime(secs: number): string {
   if (years === 0) result += (mins < 10 ? "0" : "") + mins + "m";
   return result;
 }
-export function formatNumber(value: number, precision: number = 6) {
+export function formatNumber(value: number, precision = 6) {
   return value.toPrecision(precision).replace(/[+]/, "");
-  // if (value >= 1e6) return logToExp(Math.log10(value), 3);
-  // const l: number = Math.floor(Math.log10(Math.abs(value)));
-  // let num = round(value, precision - l).toString();
-  // while (num.split(".")[1]?.length < precision - l) num += "0";
-  // return num;
 }
 
 export function round(number: number, decimals: number) {
@@ -92,7 +89,7 @@ export function binarySearch(arr: Array<number>, target: number) {
   let l = 0;
   let r = arr.length - 1;
   while (l < r) {
-    let m = Math.ceil((l + r) / 2);
+    const m = Math.ceil((l + r) / 2);
     if (arr[m] <= target) l = m;
     else r = m - 1;
   }
@@ -108,17 +105,8 @@ interface simResultInterface {
   pubT: number;
   strat: string;
   maxTauH: number;
-  theory: theory;
+  theory: theoryType;
 }
-export interface theoryData {
-  sigma: number;
-  rho: number;
-  strat: string;
-  recovery: null | { value: number; time: number; recoveryTime: boolean };
-  cap: null | number;
-  recursionValue: null | number | Array<number>;
-}
-export type simResult = [string, number, string, string, string, string, string, number, string, [number, number]];
 
 export function createResult(data: simResultInterface, stratExtra: null | string): simResult {
   return [

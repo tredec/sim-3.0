@@ -12,7 +12,7 @@ export function parseData(data) {
         sigma: 0,
         rho: 0,
         cap: Infinity,
-        recovery: null
+        recovery: null,
     };
     if (data.mode !== "All" && data.mode !== "Time diff.") {
         //parsing sigma
@@ -104,10 +104,10 @@ function isInt(str) {
     return /^\d+$/.test(str);
 }
 export function reverseMulti(theory, value, sigma) {
-    let getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
-    let divSigmaMulti = (exp, div) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) + Math.log10(div)) * (1 / exp);
-    let multSigmaMulti = (exp, mult) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) - Math.log10(mult)) * (1 / exp);
-    let sigmaMulti = (exp) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp()))) * (1 / exp);
+    const getR9Exp = () => (sigma < 65 ? 0 : sigma < 75 ? 1 : sigma < 85 ? 2 : 3);
+    const divSigmaMulti = (exp, div) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) + Math.log10(div)) * (1 / exp);
+    const multSigmaMulti = (exp, mult) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp())) - Math.log10(mult)) * (1 / exp);
+    const sigmaMulti = (exp) => (value - Math.log10(Math.pow((sigma / 20), getR9Exp()))) * (1 / exp);
     switch (theory) {
         case "T1":
             return divSigmaMulti(0.164, 3);
@@ -183,7 +183,7 @@ function parseSimAll(input) {
     if (split.length - 1 > Object.keys(jsonData.theories).length)
         throw `Invalid value ${split[Object.keys(jsonData.theories).length + 1]} does not match any theory.`;
     //parse students
-    let res = [];
+    const res = [];
     if (isInt(split[0]))
         res.push(parseInt(split[0]));
     else
@@ -234,7 +234,7 @@ export function updateTimeDiffTable() {
     const str = [];
     for (const elem of timeDiffInputs)
         str.push(elem.value);
-    let parsedValues = parseTimeDiff(JSON.stringify(str));
+    // const parsedValues = parseTimeDiff(JSON.stringify(str));
     while (timeDiffTable.firstChild)
         timeDiffTable.firstChild.remove();
     const tr = document.createElement("th");

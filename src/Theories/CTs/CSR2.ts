@@ -1,57 +1,27 @@
-import { global, varBuy, theory } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData, sleep } from "../../Utils/helpers.js";
+import { global } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { specificTheoryProps, theoryClass, conditionFunction } from "../theory.js";
 
 export default async function csr2(data: theoryData): Promise<simResult> {
-  let sim = new csr2Sim(data);
-  let res = await sim.simulate(data);
+  const sim = new csr2Sim(data);
+  const res = await sim.simulate(data);
   return res;
 }
 
-type strat = keyof typeof jsonData.theories.CSR2.strats;
+type theory = "CSR2";
 
-class csr2Sim {
-  conditions: Array<Function>;
-  milestoneConditions: Array<Function>;
-
-  strat: strat;
-  theory: theory;
-  tauFactor: number;
-  //theory
-  cap: Array<number>;
-  recovery: { value: number; time: number; recoveryTime: boolean };
+class csr2Sim extends theoryClass<theory> implements specificTheoryProps {
   recursionValue: Array<number>;
   bestCoast: Array<number>;
-  lastPub: number;
-  sigma: number;
-  totMult: number;
   curMult: number;
-  dt: number;
-  ddt: number;
-  t: number;
-  ticks: number;
-  //currencies
   rho: number;
-  maxRho: number;
   q: number;
-  t_var: number;
-  //initialize variables
-  variables: Array<Variable>;
   updateError_flag: boolean;
   error: number;
-  boughtVars: Array<varBuy>;
-  //pub values
-  tauH: number;
-  maxTauH: number;
-  pubT: number;
-  pubRho: number;
-  //milestones  [dimensions, b1exp, b2exp, b3exp]
-  milestones: Array<number>;
-  pubMulti: number;
 
   getBuyingConditions() {
-    const conditions: { [key in strat]: Array<boolean | Function> } = {
+    const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       CSR2: [true, true, true, true, true],
       CSR2d: [
         () => this.variables[0].cost + l10(7 + (this.variables[0].level % 10)) < Math.min(this.variables[1].cost, this.variables[3].cost, this.variables[4].cost),
@@ -72,7 +42,7 @@ class csr2Sim {
     return condition;
   }
   getMilestoneConditions() {
-    let conditions: Array<Function> = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
+    const conditions: Array<conditionFunction> = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
     return conditions;
   }
   getTotMult(val: number) {
@@ -80,7 +50,7 @@ class csr2Sim {
   }
   updateMilestones(): void {
     let milestoneCount = 0;
-    let points = [10, 45, 80, 115, 220, 500];
+    const points = [10, 45, 80, 115, 220, 500];
     for (let i = 0; i < points.length; i++) {
       if (Math.max(this.lastPub, this.maxRho) >= points[i]) milestoneCount = i + 1;
     }
@@ -112,52 +82,39 @@ class csr2Sim {
   }
   updateError(n: number) {
     if (n < 6) {
-      let preComputed = [0, l10(2.060660172040101), l10(12.010407635829813), l10(70.00178562229294), l10(408.0003059755347), l10(2378.000049517553)];
+      const preComputed = [0, l10(2.060660172040101), l10(12.010407635829813), l10(70.00178562229294), l10(408.0003059755347), l10(2378.000049517553)];
       this.error = preComputed[n];
       return;
     }
-    let root2 = Math.SQRT2;
-    let vdn = ((-(root2 - 1)) ** n * (n % 2 ? -1 : 1) + (1 + root2) ** n) / 2 / root2;
-    let vp = (root2 + 1) ** n * (n % 2 ? -1 : 1);
+    const root2 = Math.SQRT2;
+    const vdn = ((-(root2 - 1)) ** n * (n % 2 ? -1 : 1) + (1 + root2) ** n) / 2 / root2;
+    const vp = (root2 + 1) ** n * (n % 2 ? -1 : 1);
     this.error = l10(Math.abs(vdn)) + l10(Math.abs(vp));
   }
   searchCoast(rhodot: number) {
     if (this.curMult > 0.7) {
       let i = getCoastLen(this.lastPub);
       const maxMulti = ((this.totMult + Math.log10(4) + Math.log10(200)) / 2.203) * 10;
+      const s = () => {
+        const endRho = add(this.rho, rhodot + this.variables[0].value * (this.maxRho >= 10 ? (this.maxRho >= 45 ? (this.maxRho >= 80 ? 1.15 : 1.1) : 1.05) : 1) + Math.log10(i * 1.5));
+        const endTauH = (Math.min(maxMulti, endRho) - this.lastPub) / ((this.t + i) / 3600);
+        if (this.bestCoast[0] < endTauH) {
+          this.bestCoast[0] = endTauH;
+          this.bestCoast[1] = this.t;
+        }
+      };
       if (this.lastPub < 500) {
-        {
-          let endRho = add(this.rho, rhodot + this.variables[0].value * (this.maxRho >= 10 ? (this.maxRho >= 45 ? (this.maxRho >= 80 ? 1.15 : 1.1) : 1.05) : 1) + Math.log10(i * 1.5));
-          let endTauH = (Math.min(maxMulti, endRho) - this.lastPub) / ((this.t + i) / 3600);
-          if (this.bestCoast[0] < endTauH) {
-            this.bestCoast[0] = endTauH;
-            this.bestCoast[1] = this.t;
-          }
-        }
+        s();
         i = i * 0.8;
-        {
-          let endRho = add(this.rho, rhodot + this.variables[0].value * (this.maxRho >= 10 ? (this.maxRho >= 45 ? (this.maxRho >= 80 ? 1.15 : 1.1) : 1.05) : 1) + Math.log10(i * 1.5));
-          let endTauH = (Math.min(maxMulti, endRho) - this.lastPub) / ((this.t + i) / 3600);
-          if (this.bestCoast[0] < endTauH) {
-            this.bestCoast[0] = endTauH;
-            this.bestCoast[1] = this.t;
-          }
-        }
+        s();
         i = i / 0.8 ** 2;
-        {
-          let endRho = add(this.rho, rhodot + this.variables[0].value * (this.maxRho >= 10 ? (this.maxRho >= 45 ? (this.maxRho >= 80 ? 1.15 : 1.1) : 1.05) : 1) + Math.log10(i * 1.5));
-          let endTauH = (Math.min(maxMulti, endRho) - this.lastPub) / ((this.t + i) / 3600);
-          if (this.bestCoast[0] < endTauH) {
-            this.bestCoast[0] = endTauH;
-            this.bestCoast[1] = this.t;
-          }
-        }
+        s();
       } else {
         rhodot = this.totMult + this.variables[0].value * (1 + 0.05 * this.milestones[0]) + this.variables[1].value + this.q;
-        let qdot = this.totMult + this.variables[2].value + this.variables[4].value * 1.15 + this.error;
-        let avgQ = add(this.q + l10(2), qdot + Math.log10(i * 1.5)) - l10(2);
-        let endRho = add(this.rho, rhodot - this.q + avgQ + Math.log10(i * 1.5));
-        let endTauH = (endRho - this.lastPub) / ((this.t + i) / 3600);
+        const qdot = this.totMult + this.variables[2].value + this.variables[4].value * 1.15 + this.error;
+        const avgQ = add(this.q + l10(2), qdot + Math.log10(i * 1.5)) - l10(2);
+        const endRho = add(this.rho, rhodot - this.q + avgQ + Math.log10(i * 1.5));
+        const endTauH = (endRho - this.lastPub) / ((this.t + i) / 3600);
         if (this.bestCoast[0] < endTauH && endRho < maxMulti) {
           this.bestCoast[0] = endTauH;
           this.bestCoast[1] = this.t;
@@ -166,26 +123,13 @@ class csr2Sim {
     }
   }
   constructor(data: theoryData) {
-    this.strat = data.strat as strat;
-    this.theory = "CSR2";
-    this.tauFactor = jsonData.theories.CSR2.tauFactor;
-    //theory
-    this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
-    this.lastPub = data.rho;
-    this.sigma = data.sigma;
+    super(data);
     this.totMult = this.getTotMult(data.rho);
     this.curMult = 0;
-    this.dt = global.dt;
-    this.ddt = global.ddt;
-    this.t = 0;
-    this.ticks = 0;
-    //currencies
     this.rho = 0;
-    this.maxRho = 0;
     this.q = 0;
-    this.t_var = 0;
     //initialize variables
+    this.varNames = ["q1", "q2", "c1", "n", "c2"];
     this.variables = [
       new Variable({ cost: new ExponentialCost(10, 5), stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(15, 128), varBase: 2 }),
@@ -197,24 +141,15 @@ class csr2Sim {
     this.bestCoast = [0, 0];
     this.updateError_flag = true;
     this.error = 0;
-    this.boughtVars = [];
-    //pub values
-    this.tauH = 0;
-    this.maxTauH = 0;
-    this.pubT = 0;
-    this.pubRho = 0;
-    //milestones  [q1exp, c2term,c2exp]
-    this.milestones = [0, 0, 0];
-    this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.updateMilestones();
   }
   async simulate(data: theoryData) {
-    if (this.lastPub >= 10 && data.recursionValue == null && this.strat === "CSR2XL") {
+    if (this.lastPub >= 10 && (data.recursionValue === null || data.recursionValue === undefined) && this.strat === "CSR2XL") {
       data.recursionValue = [Infinity, 0];
-      let sim = new csr2Sim(data);
-      let res = await sim.simulate(data);
+      const sim = new csr2Sim(data);
+      await sim.simulate(data);
       this.recursionValue = [sim.bestCoast[1], 1];
     }
     let pubCondition = false;
@@ -224,7 +159,7 @@ class csr2Sim {
       this.tick();
       if (this.rho > this.maxRho) this.maxRho = this.rho;
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
-      if ((this.recursionValue != null && this.t < this.recursionValue[0]) || this.curMult < 0.7 || this.recursionValue[1] === 0) this.buyVariables();
+      if ((this.recursionValue !== null && this.recursionValue !== undefined && this.t < this.recursionValue[0]) || this.curMult < 0.7 || this.recursionValue[1] === 0) this.buyVariables();
       if (this.lastPub < 500) this.updateMilestones();
       pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0]) && this.pubRho > 10;
       this.ticks++;
@@ -235,7 +170,7 @@ class csr2Sim {
       const costIncs = [5, 128, 16, 2 ** (Math.log2(256) * 3.346), 10 ** 5.65];
       lastBuy = Math.max(lastBuy, this.variables[i].cost - l10(costIncs[i]));
     }
-    let result = createResult(this, this.strat === "CSR2XL" ? " " + Math.min(this.pubMulti, 10 ** (this.getTotMult(lastBuy) - this.totMult)).toFixed(2) : "");
+    const result = createResult(this, this.strat === "CSR2XL" ? " " + Math.min(this.pubMulti, 10 ** (this.getTotMult(lastBuy) - this.totMult)).toFixed(2) : "");
 
     if (this.recursionValue[1] === 1 || this.strat !== "CSR2XL") {
       while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
@@ -245,12 +180,12 @@ class csr2Sim {
     return result;
   }
   tick() {
-    let vq1 = this.variables[0].value * (1 + 0.05 * this.milestones[0]);
-    let vc2 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.5 * this.milestones[2]) : 0;
+    const vq1 = this.variables[0].value * (1 + 0.05 * this.milestones[0]);
+    const vc2 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.5 * this.milestones[2]) : 0;
 
     if (this.updateError_flag) {
-      let c2level = this.milestones[1] > 0 ? this.variables[4].level : 0;
-      let vn = this.variables[3].level + 1 + c2level;
+      const c2level = this.milestones[1] > 0 ? this.variables[4].level : 0;
+      const vn = this.variables[3].level + 1 + c2level;
       this.updateError(vn);
 
       this.updateError_flag = false;
@@ -258,9 +193,9 @@ class csr2Sim {
 
     if (this.lastPub < 500) this.searchCoast(this.totMult + this.variables[1].value + this.q);
 
-    let qdot = this.variables[2].value + vc2 + this.error;
+    const qdot = this.variables[2].value + vc2 + this.error;
     this.q = add(this.q, this.totMult + l10(this.dt) + qdot);
-    let rhodot = this.totMult + vq1 + this.variables[1].value + this.q;
+    const rhodot = this.totMult + vq1 + this.variables[1].value + this.q;
     this.rho = add(this.rho, rhodot + l10(this.dt));
 
     this.t += this.dt / 1.5;
@@ -280,8 +215,7 @@ class csr2Sim {
       while (true) {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub && (this.recursionValue[1] === 1 || this.strat !== "CSR2XL")) {
-            let vars = ["q1", "q2", "c1", "n", "c2"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

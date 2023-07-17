@@ -36,9 +36,9 @@ export default class Variable {
     }
     reCalculate() {
         if (this.stepwisePowerSum.base !== 0) {
-            let intPart = Math.floor(this.level / this.stepwisePowerSum.length);
-            let modPart = this.level - intPart * this.stepwisePowerSum.length;
-            let d = this.stepwisePowerSum.length / (this.stepwisePowerSum.base - 1);
+            const intPart = Math.floor(this.level / this.stepwisePowerSum.length);
+            const modPart = this.level - intPart * this.stepwisePowerSum.length;
+            const d = this.stepwisePowerSum.length / (this.stepwisePowerSum.base - 1);
             this.value = subtract(Math.log10(d + modPart) + Math.log10(this.stepwisePowerSum.base) * intPart, Math.log10(d));
         }
         else

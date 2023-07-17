@@ -1,48 +1,19 @@
-import { global, varBuy, theory } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { global } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { specificTheoryProps, theoryClass, conditionFunction } from "../theory.js";
 
 export default async function t8(data: theoryData): Promise<simResult> {
-  let sim = new t8Sim(data);
-  let res = await sim.simulate();
+  const sim = new t8Sim(data);
+  const res = await sim.simulate();
   return res;
 }
 
-type strat = keyof typeof jsonData.theories.T8.strats;
+type theory = "T8";
 
-class t8Sim {
-  conditions: Array<Function>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<number>>;
-
-  strat: strat;
-  theory: theory;
-  //theory
-  cap: Array<number>;
-  recovery: { value: number; time: number; recoveryTime: boolean };
-  lastPub: number;
-  sigma: number;
-  totMult: number;
-  curMult: number;
-  dt: number;
-  ddt: number;
-  t: number;
-  ticks: number;
-  //currencies
+class t8Sim extends theoryClass<theory> implements specificTheoryProps {
   rho: number;
-  maxRho: number;
-  //initialize variables
-  variables: Array<Variable>;
-  boughtVars: Array<varBuy>;
-  //pub values
-  tauH: number;
-  maxTauH: number;
-  pubT: number;
-  pubRho: number;
-  //milestones  [dimensions, b1exp, b2exp, b3exp]
-  milestones: Array<number>;
+  curMult: number;
   bounds: Array<Array<Array<number>>>;
   defaultStates: Array<Array<number>>;
   dts: Array<number>;
@@ -53,10 +24,9 @@ class t8Sim {
   dy: number;
   dz: number;
   msTimer: number;
-  pubMulti: number;
 
   getBuyingConditions() {
-    const conditions: { [key in strat]: Array<boolean | Function> } = {
+    const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       T8: [true, true, true, true, true],
       T8noC3: [true, true, false, true, true],
       T8noC5: [true, true, true, true, false],
@@ -85,7 +55,7 @@ class t8Sim {
     return condition;
   }
   getMilestoneConditions() {
-    let conditions: Array<Function> = [() => true, () => true, () => true, () => true, () => true];
+    const conditions: Array<conditionFunction> = [() => true, () => true, () => true, () => true, () => true];
     return conditions;
   }
   getMilestoneTree() {
@@ -103,7 +73,7 @@ class t8Sim {
       [2, 2, 3, 3],
       [2, 3, 3, 3],
     ];
-    const tree: { [key in strat]: Array<Array<number>> } = {
+    const tree: { [key in stratType[theory]]: Array<Array<number>> } = {
       T8: [
         [0, 0, 0, 0],
         [1, 0, 0, 0],
@@ -206,7 +176,7 @@ class t8Sim {
     const stage = Math.min(11, Math.floor(Math.max(this.lastPub, this.maxRho) / 20));
     this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
-  dn(ix: number = this.x, iy: number = this.y, iz: number = this.z) {
+  dn(ix = this.x, iy = this.y, iz = this.z) {
     if (this.milestones[0] === 0) {
       this.dx = 10 * (iy - ix);
       this.dy = ix * (28 - iz) - iy;
@@ -224,23 +194,13 @@ class t8Sim {
     }
   }
   constructor(data: theoryData) {
-    this.strat = data.strat as strat;
-    this.theory = "T8";
-    //theory
-    this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
-    this.lastPub = data.rho;
-    this.sigma = data.sigma;
+    super(data);
     this.totMult = this.getTotMult(data.rho);
     this.curMult = 0;
-    this.dt = global.dt;
-    this.ddt = global.ddt;
-    this.t = 0;
-    this.ticks = 0;
     //currencies
     this.rho = 0;
-    this.maxRho = 0;
     //initialize variables
+    this.varNames = ["c1", "c2", "c3", "c4", "c5"];
     this.variables = [
       new Variable({ cost: new ExponentialCost(10, 1.5172), stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(20, 64), varBase: 2 }),
@@ -248,14 +208,6 @@ class t8Sim {
       new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(5), true), varBase: 5 }),
       new Variable({ cost: new ExponentialCost(1e2, 1.15 * Math.log2(7), true), varBase: 7 }),
     ];
-    this.boughtVars = [];
-    //pub values
-    this.tauH = 0;
-    this.maxTauH = 0;
-    this.pubT = 0;
-    this.pubRho = 0;
-    //milestones  [attractor, c3exp, c4exp, c5exp]
-    this.milestones = [0, 0, 0, 0];
     //attractor stuff
     this.bounds = [
       [
@@ -280,6 +232,7 @@ class t8Sim {
       [-6, 15, 0],
     ];
     this.dts = [0.02, 0.002, 0.00014];
+    this.milestones = [0, 0, 0, 0];
     this.x = this.defaultStates[this.milestones[0]][0];
     this.y = this.defaultStates[this.milestones[0]][1];
     this.z = this.defaultStates[this.milestones[0]][2];
@@ -287,7 +240,6 @@ class t8Sim {
     this.dy = 0;
     this.dz = 0;
     this.msTimer = 0;
-    this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.milestoneTree = this.getMilestoneTree();
@@ -307,7 +259,7 @@ class t8Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    let result = createResult(this, "");
+    const result = createResult(this, "");
 
     while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
     global.varBuy.push([result[7], this.boughtVars]);
@@ -317,9 +269,9 @@ class t8Sim {
   tick() {
     this.dn();
 
-    let midpointx = this.x + this.dx * 0.5 * this.dts[this.milestones[0]];
-    let midpointy = this.y + this.dy * 0.5 * this.dts[this.milestones[0]];
-    let midpointz = this.z + this.dz * 0.5 * this.dts[this.milestones[0]];
+    const midpointx = this.x + this.dx * 0.5 * this.dts[this.milestones[0]];
+    const midpointy = this.y + this.dy * 0.5 * this.dts[this.milestones[0]];
+    const midpointz = this.z + this.dz * 0.5 * this.dts[this.milestones[0]];
 
     this.dn(midpointx, midpointy, midpointz);
 
@@ -329,12 +281,12 @@ class t8Sim {
 
     this.dn();
 
-    let xlowerBound = (this.bounds[this.milestones[0]][0][1] - this.bounds[this.milestones[0]][0][0]) * 5 + this.bounds[this.milestones[0]][0][0];
-    let xupperBound = (this.bounds[this.milestones[0]][0][2] - this.bounds[this.milestones[0]][0][0]) * 5 + this.bounds[this.milestones[0]][0][0];
-    let ylowerBound = (this.bounds[this.milestones[0]][1][1] - this.bounds[this.milestones[0]][1][0]) * 5 + this.bounds[this.milestones[0]][1][0];
-    let yupperBound = (this.bounds[this.milestones[0]][1][2] - this.bounds[this.milestones[0]][1][0]) * 5 + this.bounds[this.milestones[0]][1][0];
-    let zlowerBound = (this.bounds[this.milestones[0]][2][1] - this.bounds[this.milestones[0]][2][0]) * 5 + this.bounds[this.milestones[0]][2][0];
-    let zupperBound = (this.bounds[this.milestones[0]][2][2] - this.bounds[this.milestones[0]][2][0]) * 5 + this.bounds[this.milestones[0]][2][0];
+    const xlowerBound = (this.bounds[this.milestones[0]][0][1] - this.bounds[this.milestones[0]][0][0]) * 5 + this.bounds[this.milestones[0]][0][0];
+    const xupperBound = (this.bounds[this.milestones[0]][0][2] - this.bounds[this.milestones[0]][0][0]) * 5 + this.bounds[this.milestones[0]][0][0];
+    const ylowerBound = (this.bounds[this.milestones[0]][1][1] - this.bounds[this.milestones[0]][1][0]) * 5 + this.bounds[this.milestones[0]][1][0];
+    const yupperBound = (this.bounds[this.milestones[0]][1][2] - this.bounds[this.milestones[0]][1][0]) * 5 + this.bounds[this.milestones[0]][1][0];
+    const zlowerBound = (this.bounds[this.milestones[0]][2][1] - this.bounds[this.milestones[0]][2][0]) * 5 + this.bounds[this.milestones[0]][2][0];
+    const zupperBound = (this.bounds[this.milestones[0]][2][2] - this.bounds[this.milestones[0]][2][0]) * 5 + this.bounds[this.milestones[0]][2][0];
 
     if (this.x < xlowerBound || this.x > xupperBound || this.y < ylowerBound || this.y > yupperBound || this.z < zlowerBound || this.z > zupperBound) {
       this.x = this.defaultStates[this.milestones[0]][0];
@@ -345,22 +297,22 @@ class t8Sim {
     this.dn();
 
     this.msTimer++;
-    if (this.msTimer == 335 && this.strat === "T8PlaySolarswap") {
+    if (this.msTimer === 335 && this.strat === "T8PlaySolarswap") {
       this.x = this.defaultStates[this.milestones[0]][0];
       this.y = this.defaultStates[this.milestones[0]][1];
       this.z = this.defaultStates[this.milestones[0]][2];
       this.msTimer = 0;
     }
 
-    let vc3 = this.variables[2].value * (1 + 0.05 * this.milestones[1]);
-    let vc4 = this.variables[3].value * (1 + 0.05 * this.milestones[2]);
-    let vc5 = this.variables[4].value * (1 + 0.05 * this.milestones[3]);
+    const vc3 = this.variables[2].value * (1 + 0.05 * this.milestones[1]);
+    const vc4 = this.variables[3].value * (1 + 0.05 * this.milestones[2]);
+    const vc5 = this.variables[4].value * (1 + 0.05 * this.milestones[3]);
 
-    let dx2Term = vc3 + l10(this.dx * this.dx);
-    let dy2Term = vc4 + l10(this.dy * this.dy);
-    let dz2Term = vc5 + l10(this.dz * this.dz);
+    const dx2Term = vc3 + l10(this.dx * this.dx);
+    const dy2Term = vc4 + l10(this.dy * this.dy);
+    const dz2Term = vc5 + l10(this.dz * this.dz);
 
-    let rhodot = l10(this.dt) + this.totMult + this.variables[0].value + this.variables[1].value + add(add(dx2Term, dy2Term), dz2Term) / 2 - 2;
+    const rhodot = l10(this.dt) + this.totMult + this.variables[0].value + this.variables[1].value + add(add(dx2Term, dy2Term), dz2Term) / 2 - 2;
     this.rho = add(this.rho, rhodot);
 
     this.t += this.dt / 1.5;
@@ -379,8 +331,7 @@ class t8Sim {
       while (true) {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
-            let vars = ["c1", "c2", "c3", "c4", "c5"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

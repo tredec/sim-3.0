@@ -348,7 +348,7 @@
                     "stratFilterCondition": "Active || Very-Active"
                 },
                 "RZdBH": {
-                    "stratFilterCondition": "Active || Very-Active",
+                    "stratFilterCondition": "false",
                     "UI_visible": false
                 },
                 "RZSpiralswap": {
@@ -358,7 +358,7 @@
                     "stratFilterCondition": "(Active || Very-Active) && rho >= 50"
                 },
                 "RZnoB": {
-                    "stratFilterCondition": "Idle || Semi-Idle",
+                    "stratFilterCondition": "false",
                     "UI_visible": false
                 }
             }
@@ -380,22 +380,6 @@
                 "BTd": {
                     "stratFilterCondition": "Active || Very-Active"
                 }
-            }
-        },
-        "LT-main": {
-            "tauFactor": 0.015,
-            "UI_visible": false,
-            "strats": {
-                "LT-main-30/30": {},
-                "LT-main-2/2": {},
-                "LT-main-2/240": {}
-            }
-        },
-        "LT-c1": {
-            "tauFactor": 1,
-            "UI_visible": false,
-            "strats": {
-                "LT-c1": {}
             }
         }
     },

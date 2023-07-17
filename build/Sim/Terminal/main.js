@@ -7,13 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/*eslint-disable no-inner-declarations*/
 import { event, qs, sleep } from "../../Utils/helpers.js";
 import { global, simulate } from "../main.js";
 import { parseSimParams } from "./parsers.js";
 import Terminal from "./terminal.js";
 if (localStorage.getItem("dev") === "true") {
     const terminal = new Terminal();
-    let customVal = localStorage.getItem("customVal");
+    const customVal = localStorage.getItem("customVal");
     if (customVal !== null)
         setValue([customVal]);
     //event for sending commands
@@ -28,7 +29,7 @@ if (localStorage.getItem("dev") === "true") {
             terminal.getHistory(1);
     });
     //events for moving the terminal
-    let offset = { x: 0, y: 0 };
+    const offset = { x: 0, y: 0 };
     let drag = null;
     event(terminal.terminal_element, "mousedown", (e) => {
         if (!e.target.classList.contains("terminal"))
@@ -58,7 +59,7 @@ if (localStorage.getItem("dev") === "true") {
                     : string
                         .slice(spaceIndex + 1, string.length)
                         .replace(/ /g, "")
-                        .split(",")
+                        .split(","),
             ];
             try {
                 switch (fn) {
@@ -70,6 +71,7 @@ if (localStorage.getItem("dev") === "true") {
                     case "rs":
                     case "resize":
                         resize(params);
+                        break;
                     case "sim":
                         sim(params);
                         break;
@@ -115,7 +117,7 @@ if (localStorage.getItem("dev") === "true") {
         terminal.writeLine(`Resized terminal to <g>${terminalSize.width}</g> | <g>${terminalSize.height}</g>.`);
     }
     function setValue(params) {
-        let str = params.join(",");
+        const str = params.join(",");
         if (str === "g")
             terminal.writeLine(`Value of global.customVal is <g>${JSON.stringify(global.customVal)}</g>.`);
         else {
@@ -126,10 +128,10 @@ if (localStorage.getItem("dev") === "true") {
     }
     function sim(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            let timeA = performance.now();
+            const timeA = performance.now();
             const data = parseSimParams(params);
             yield sleep();
-            let res = yield simulate(data);
+            const res = yield simulate(data);
             global.simulating = false;
             if (typeof res === "string" || res === null) {
                 terminal.writeLine(JSON.stringify(res));
@@ -159,9 +161,8 @@ if (localStorage.getItem("dev") === "true") {
         updateTable(arr);
     }
     function updateTable(arr) {
-        let table = qs(".simTable");
-        let thead = qs(".simTable > thead");
-        let tbody = qs(".simTable > tbody");
+        const thead = qs(".simTable > thead");
+        const tbody = qs(".simTable > tbody");
         while (tbody.firstChild)
             tbody.firstChild.remove();
         for (let i = 0; i < arr.length; i++) {

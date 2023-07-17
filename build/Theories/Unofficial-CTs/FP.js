@@ -10,15 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { CompositeCost, ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { theoryClass } from "../theory.js";
 export default function fp(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new fpSim(data);
-        let res = yield sim.simulate();
+        const sim = new fpSim(data);
+        const res = yield sim.simulate();
         return res;
     });
 }
-let un = [
+const un = [
     0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877, 3235413, 3527445, 4348245, 5600149, 5663317, 5807893,
     5940565, 6200341, 6655573, 6841621, 7178581, 7607701, 8272981, 9793813, 9983317, 10246549, 10727509, 11309845, 12941653, 13288981, 14109781, 15594133, 17392981, 22369685, 22400597, 22488341,
     22653269, 22839317, 23231573, 23488661, 23762261, 24243221, 24801365, 25677461, 26622293, 26830229, 27366485, 27800213, 28714325, 29858837, 30430805, 32081045, 33091925, 35461013, 39175253,
@@ -31,69 +31,15 @@ let un = [
     360371605, 361548373, 362178709, 362452309, 362933269, 363491413, 364367509, 365429077, 366052885, 367661653, 368962837, 371705173, 374740885, 374931541, 375481621, 375818581, 376608277, 377922133,
     378490645, 380196181, 380985877, 383354965, 387323029, 387891541, 388933525, 390220885, 392310037, 396821845,
 ];
-let stepwiseSum = (level, base, length) => {
+const stepwiseSum = (level, base, length) => {
     if (level <= length)
         return level;
     level -= length;
-    let cycles = Math.floor(level / length);
-    let mod = level - cycles * length;
+    const cycles = Math.floor(level / length);
+    const mod = level - cycles * length;
     return base * (cycles + 1) * ((length * cycles) / 2 + mod) + length + level;
 };
-class fpSim {
-    constructor(data) {
-        var _a;
-        this.strat = data.strat;
-        this.theory = "FP";
-        this.tauFactor = jsonData.theories.FP.tauFactor;
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = data.rho < 9 ? 0 : this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.pubUnlock = 12;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.rho = 0;
-        this.maxRho = 0;
-        this.q = 0;
-        this.r = 0;
-        this.t_var = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(1e4, 1e4) }),
-            new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
-            new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(1e76, 1e3) }),
-            new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
-            new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
-        ];
-        this.boughtVars = [];
-        this.T_n = 1;
-        this.U_n = 1;
-        this.S_n = 0;
-        this.n = 1;
-        this.prevN = 1;
-        this.updateN_flag = true;
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [q1exp, c2term, nboost]
-        this.milestones = { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 };
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class fpSim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
             FP: new Array(10).fill(true),
@@ -102,7 +48,7 @@ class fpSim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [
+        const conditions = [
             () => this.variables[0].level < 4,
             () => true,
             () => true,
@@ -135,9 +81,9 @@ class fpSim {
     getTotMult(val) {
         return Math.max(0, val * this.tauFactor * 1.324 + l10(5));
     }
-    updateMilestones() {
+    updatemilestones() {
         let stage = 0;
-        let points = [23, 90, 175, 300, 385, 420, 550, 600, 700, 1500];
+        const points = [23, 90, 175, 300, 385, 420, 550, 600, 700, 1500];
         for (let i = 0; i < points.length; i++) {
             if (Math.max(this.lastPub, this.maxRho) >= points[i])
                 stage = i + 1;
@@ -155,10 +101,10 @@ class fpSim {
     T(n) {
         if (n === 0)
             return 0;
-        let log2N = Math.log2(n);
+        const log2N = Math.log2(n);
         if (log2N % 1 === 0)
             return (Math.pow(2, (2 * log2N + 1)) + 1) / 3;
-        let i = n - Math.pow(2, Math.floor(log2N));
+        const i = n - Math.pow(2, Math.floor(log2N));
         return this.T(Math.pow(2, Math.floor(log2N))) + 2 * this.T(i) + this.T(i + 1) - 1;
     }
     u(n) {
@@ -176,7 +122,7 @@ class fpSim {
         return n - temp;
     }
     U(n) {
-        let p = n - (n % 100);
+        const p = n - (n % 100);
         let temp = this.prevN > p ? this.U_n : un[Math.floor(n / 100)];
         for (let i = this.prevN > p ? this.prevN + 1 : p + 1; i <= n; i++)
             temp += this.u(i);
@@ -190,7 +136,7 @@ class fpSim {
         return l10(1 / 3) + subtract(l10(2) + l10(3) * n, l10(3));
     }
     getS(level) {
-        let cutoffs = [32, 38];
+        const cutoffs = [32, 38];
         if (level < cutoffs[0])
             return 1 + level * 0.15;
         if (level < cutoffs[1])
@@ -201,6 +147,39 @@ class fpSim {
         this.T_n = this.T(this.n);
         this.U_n = this.U(this.n);
         this.S_n = this.S(Math.floor(Math.sqrt(this.n)));
+    }
+    constructor(data) {
+        super(data);
+        this.totMult = data.rho < 9 ? 0 : this.getTotMult(data.rho);
+        this.curMult = 0;
+        this.pubUnlock = 12;
+        this.rho = 0;
+        this.q = 0;
+        this.r = 0;
+        this.t_var = 0;
+        this.varNames = ["tdot", "c1", "c2", "q1", "q2", "r1", "n1", "s"];
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(1e4, 1e4) }),
+            new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
+            new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(1e76, 1e3) }),
+            new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
+            new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
+        ];
+        this.T_n = 1;
+        this.U_n = 1;
+        this.S_n = 0;
+        this.n = 1;
+        this.prevN = 1;
+        this.updateN_flag = true;
+        //pub values
+        this.milestones = { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 };
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updatemilestones();
     }
     simulate() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -213,14 +192,14 @@ class fpSim {
                 this.tick();
                 if (this.rho > this.maxRho)
                     this.maxRho = this.rho;
-                this.updateMilestones();
+                this.updatemilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
                 pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 1000) && this.pubRho > this.pubUnlock;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, "");
+            const result = createResult(this, "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -236,11 +215,11 @@ class fpSim {
             this.updateN();
             this.updateN_flag = false;
         }
-        let vq1 = this.variables[3].value - l10(1 + 1000 / Math.pow(this.variables[3].level, 1.5));
-        let vr1 = this.variables[5].value - l10(1 + 1e9 / Math.pow(this.variables[5].level, 4));
-        let A = this.approx(this.variables[4].level);
+        const vq1 = this.variables[3].value - l10(1 + 1000 / Math.pow(this.variables[3].level, 1.5));
+        const vr1 = this.variables[5].value - l10(1 + 1e9 / Math.pow(this.variables[5].level, 4));
+        const A = this.approx(this.variables[4].level);
         this.t_var += (this.variables[0].level / 5 + 0.2) * this.dt;
-        let qdot = vq1 + A + l10(this.U_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) : 0)) - 3;
+        const qdot = vq1 + A + l10(this.U_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) : 0)) - 3;
         this.q = this.milestones.fractals > 0 ? add(this.q, qdot + l10(this.dt)) : this.q;
         let rdot;
         if (this.milestones.expterm < 1)
@@ -268,8 +247,7 @@ class fpSim {
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
-                        let vars = ["tdot", "c1", "c2", "q1", "q2", "r1", "n1", "s"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

@@ -10,70 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { theoryClass } from "../theory.js";
 export default function wsp(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new wspSim(data);
-        let res = yield sim.simulate();
+        const sim = new wspSim(data);
+        const res = yield sim.simulate();
         return res;
     });
 }
-class wspSim {
-    constructor(data) {
-        var _a;
-        this.srK_helper = (x) => {
-            let x2 = x * x;
-            return Math.log(x2 + 1 / 6 + 1 / 120 / x2 + 1 / 810 / x2 / x2) / 2 - 1;
-        };
-        this.sineRatioK = (n, x, K = 5) => {
-            if (n < 1 || x >= n + 1)
-                return 0;
-            let N = n + 1 + K, x2 = x * x, L1 = this.srK_helper(N + x), L2 = this.srK_helper(N - x), L3 = this.srK_helper(N), result = N * (L1 + L2 - 2 * L3) + x * (L1 - L2) - Math.log(1 - x2 / N / N) / 2;
-            for (let k = n + 1; k < N; ++k)
-                result -= Math.log(1 - x2 / k / k);
-            return Math.LOG10E * result;
-        };
-        this.strat = data.strat;
-        this.theory = "WSP";
-        this.tauFactor = jsonData.theories.WSP.tauFactor;
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.rho = 0;
-        this.maxRho = 0;
-        this.q = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(10, 3.38 / 4, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(1000, 3.38 * 3, true), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(20, 3.38, true) }),
-            new Variable({ cost: new ExponentialCost(50, 3.38 / 1.5, true), stepwisePowerSum: { base: 2, length: 50 } }),
-            new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 }),
-        ];
-        this.S = 0;
-        this.boughtVars = [];
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [q1exp, c2term, nboost]
-        this.milestones = [0, 0, 0];
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class wspSim extends theoryClass {
     getBuyingConditions() {
         let c1weight = 0;
         if (this.lastPub >= 25)
@@ -101,7 +46,7 @@ class wspSim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
+        const conditions = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
         return conditions;
     }
     getMilestoneTree() {
@@ -128,7 +73,7 @@ class wspSim {
     }
     updateMilestones() {
         let stage = 0;
-        let points = [10, 25, 40, 55, 70, 100, 140, 200];
+        const points = [10, 25, 40, 55, 70, 100, 140, 200];
         for (let i = 0; i < points.length; i++) {
             if (Math.max(this.lastPub, this.maxRho) >= points[i])
                 stage = i + 1;
@@ -136,10 +81,43 @@ class wspSim {
         this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
     }
     updateS() {
-        let vn = l10(this.variables[2].value);
-        let vc1 = this.variables[3].value;
-        let chi = Math.pow(10, (l10(Math.PI) + vc1 + vn - add(vc1, vn - l10(3) * this.milestones[2]))) + 1;
+        const vn = l10(this.variables[2].value);
+        const vc1 = this.variables[3].value;
+        const chi = Math.pow(10, (l10(Math.PI) + vc1 + vn - add(vc1, vn - l10(3) * this.milestones[2]))) + 1;
         this.S = this.sineRatioK(this.variables[2].value, chi / Math.PI);
+    }
+    constructor(data) {
+        super(data);
+        this.srK_helper = (x) => {
+            const x2 = x * x;
+            return Math.log(x2 + 1 / 6 + 1 / 120 / x2 + 1 / 810 / x2 / x2) / 2 - 1;
+        };
+        this.sineRatioK = (n, x, K = 5) => {
+            if (n < 1 || x >= n + 1)
+                return 0;
+            const N = n + 1 + K, x2 = x * x, L1 = this.srK_helper(N + x), L2 = this.srK_helper(N - x), L3 = this.srK_helper(N);
+            let result = N * (L1 + L2 - 2 * L3) + x * (L1 - L2) - Math.log(1 - x2 / N / N) / 2;
+            for (let k = n + 1; k < N; ++k)
+                result -= Math.log(1 - x2 / k / k);
+            return Math.LOG10E * result;
+        };
+        this.totMult = this.getTotMult(data.rho);
+        this.rho = 0;
+        this.q = 0;
+        //initialize variables
+        this.varNames = ["q1", "q2", "n", "c1", "c2"];
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(10, 3.38 / 4, true), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(1000, 3.38 * 3, true), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(20, 3.38, true) }),
+            new Variable({ cost: new ExponentialCost(50, 3.38 / 1.5, true), stepwisePowerSum: { base: 2, length: 50 } }),
+            new Variable({ cost: new ExponentialCost(1e10, 3.38 * 10, true), varBase: 2 }),
+        ];
+        this.S = 0;
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updateMilestones();
     }
     simulate() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -160,7 +138,7 @@ class wspSim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, "");
+            const result = createResult(this, "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -168,10 +146,10 @@ class wspSim {
         });
     }
     tick() {
-        let vq1 = this.variables[0].value * (1 + 0.01 * this.milestones[0]);
-        let qdot = Math.max(0, l10(this.dt) + this.S + this.variables[4].value);
+        const vq1 = this.variables[0].value * (1 + 0.01 * this.milestones[0]);
+        const qdot = Math.max(0, l10(this.dt) + this.S + this.variables[4].value);
         this.q = add(this.q, qdot);
-        let rhodot = this.totMult + vq1 + this.variables[1].value + this.q + l10(this.dt);
+        const rhodot = this.totMult + vq1 + this.variables[1].value + this.q + l10(this.dt);
         this.rho = add(this.rho, rhodot);
         this.t += this.dt / 1.5;
         this.dt *= this.ddt;
@@ -191,8 +169,7 @@ class wspSim {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     if (this.maxRho + 5 > this.lastPub) {
-                        let vars = ["q1", "q2", "n", "c1", "c2"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.variables[i].buy();
                     if (i === 2 || i === 4)

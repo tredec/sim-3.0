@@ -4,8 +4,6 @@ import { updateTimeDiffTable } from "../Sim/parsers.js";
 //Inputs
 const theory = qs(".theory");
 const strat = qs(".strat");
-const sigma = qs(".sigma");
-const input = qs(".input");
 const cap = qs(".cap");
 const mode = qs(".mode");
 const modeInput = qs("textarea");

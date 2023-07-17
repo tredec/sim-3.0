@@ -1,19 +1,19 @@
-import { simulate, inputData, global, varBuy, theory } from "../Sim/main.js";
-import { qs, event, sleep, ce, qsa, convertTime, logToExp, simResult } from "../Utils/helpers.js";
+import { simulate, inputData, global } from "../Sim/main.js";
+import { qs, event, sleep, ce, qsa, convertTime, logToExp } from "../Utils/helpers.js";
 import { getSimState, setSimState } from "./simState.js";
 
 //Inputs
-const theory = <HTMLSelectElement>qs(".theory");
-const strat = <HTMLSelectElement>qs(".strat");
-const sigma = <HTMLInputElement>qs(".sigma");
-const input = <HTMLInputElement>qs(".input");
-const cap = <HTMLInputElement>qs(".cap");
-const mode = <HTMLSelectElement>qs(".mode");
-const modeInput = <HTMLInputElement>qs("textarea");
-const timeDiffInputs = <Array<HTMLInputElement>>(<unknown>qsa(".timeDiffInput"));
-const hardCap = <HTMLInputElement>qs(".hardCap");
-const semi_idle = <HTMLInputElement>qs(".semi-idle");
-const hard_active = <HTMLInputElement>qs(".hard-active");
+const theory = qs<HTMLSelectElement>(".theory");
+const strat = qs<HTMLSelectElement>(".strat");
+const sigma = qs<HTMLInputElement>(".sigma");
+const input = qs<HTMLInputElement>(".input");
+const cap = qs<HTMLInputElement>(".cap");
+const mode = qs<HTMLSelectElement>(".mode");
+const modeInput = qs<HTMLInputElement>("textarea");
+const timeDiffInputs = qsa<HTMLInputElement>(".timeDiffInput");
+const hardCap = qs<HTMLInputElement>(".hardCap");
+const semi_idle = qs<HTMLInputElement>(".semi-idle");
+const hard_active = qs<HTMLInputElement>(".hard-active");
 
 //Outputs
 const output = qs(".output");
@@ -50,7 +50,7 @@ event(simulateButton, "click", async () => {
   global.showA23 = showA23.checked;
   localStorage.setItem("simAllSettings", JSON.stringify([semi_idle.checked, hard_active.checked]));
   const data: inputData = {
-    theory: theory.value as theory,
+    theory: theory.value as theoryType,
     strat: strat.value,
     sigma: sigma.value.replace(" ", ""),
     rho: input.value.replace(" ", ""),
@@ -61,13 +61,13 @@ event(simulateButton, "click", async () => {
     timeDiffInputs: [],
     hardCap: hardCap.checked,
   };
-  for (let element of timeDiffInputs) {
+  for (const element of timeDiffInputs) {
     data.timeDiffInputs.push(element.value);
   }
   output.textContent = "";
   simulateButton.textContent = "Stop simulating";
   await sleep();
-  let res = await simulate(data);
+  const res = await simulate(data);
   if (typeof res === "string") output.textContent = res;
   else output.textContent = "";
   if (res !== null && typeof res !== "string") updateTable(res);
@@ -76,7 +76,7 @@ event(simulateButton, "click", async () => {
   setSimState();
 });
 
-function updateTable(arr: Array<simResult>): void {
+function updateTable(arr: Array<Array<string>>): void {
   if (prevMode !== mode.value) clearTable();
   prevMode = mode.value;
   table = qs(".simTable");
@@ -111,8 +111,8 @@ function resetVarBuy() {
   for (let i = 0; i < global.varBuy.length; i++) {
     for (let j = 0; j < tbody?.children.length; j++) {
       const row = tbody?.children[j];
-      if (parseFloat(row?.children[7].innerHTML) === parseFloat(<any>global.varBuy[i][0])) {
-        let val = global.varBuy[i][1];
+      if (parseFloat(row?.children[7].innerHTML) === global.varBuy[i][0]) {
+        const val = global.varBuy[i][1];
         (<HTMLElement>row?.children[8]).onclick = () => {
           openVarModal(val);
         };

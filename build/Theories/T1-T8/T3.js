@@ -8,64 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { global } from "../../Sim/main.js";
-import { add, createResult, l10, subtract } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { add, createResult, l10, subtract, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import { theoryClass } from "../theory.js";
 export default function t3(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new t3Sim(data);
-        let res = yield sim.simulate();
+        const sim = new t3Sim(data);
+        const res = yield sim.simulate();
         return res;
     });
 }
-class t3Sim {
-    constructor(data) {
-        var _a;
-        this.strat = data.strat;
-        this.theory = "T3";
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.currencies = [0, 0, 0];
-        this.maxRho = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(10, 1.18099), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(10, 1.308), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(3000, 1.675), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(20, 6.3496), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(10, 2.74), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1000, 1.965), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(500, 18.8343), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e5, 3.65), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e5, 2.27), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e4, 1248.27), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e3, 6.81744), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e5, 2.98), varBase: 2 }), //c33
-        ];
-        this.boughtVars = [];
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [dimensions, b1exp, b2exp, b3exp]
-        this.milestones = [0, 0, 0, 0];
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class t3Sim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
             T3: new Array(12).fill(true),
@@ -205,7 +158,7 @@ class t3Sim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [
+        const conditions = [
             () => true,
             () => true,
             () => this.milestones[0] > 0,
@@ -258,6 +211,33 @@ class t3Sim {
         const stage = Math.min(7, Math.floor(Math.max(this.lastPub, this.maxRho) / 25));
         this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
     }
+    constructor(data) {
+        super(data);
+        this.totMult = this.getTotMult(data.rho);
+        this.currencies = [0, 0, 0];
+        this.varNames = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(10, 1.18099), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(10, 1.308), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(3000, 1.675), stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(20, 6.3496), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(10, 2.74), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1000, 1.965), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(500, 18.8343), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e5, 3.65), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e5, 2.27), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e4, 1248.27), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e3, 6.81744), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e5, 2.98), varBase: 2 }), //c33
+        ];
+        this.curMult = 0;
+        //milestones  [dimensions, b1exp, b2exp, b3exp]
+        this.milestones = [0, 0, 0, 0];
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updateMilestones();
+    }
     simulate() {
         return __awaiter(this, void 0, void 0, function* () {
             let pubCondition = false;
@@ -277,7 +257,7 @@ class t3Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, "");
+            const result = createResult(this, "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -285,14 +265,14 @@ class t3Sim {
         });
     }
     tick() {
-        let vb1 = this.variables[0].value * (1 + 0.05 * this.milestones[1]);
-        let vb2 = this.variables[1].value * (1 + 0.05 * this.milestones[2]);
-        let vb3 = this.variables[2].value * (1 + 0.05 * this.milestones[3]);
-        let rhodot = add(add(this.variables[3].value + vb1, this.variables[4].value + vb2), this.variables[5].value + vb3);
+        const vb1 = this.variables[0].value * (1 + 0.05 * this.milestones[1]);
+        const vb2 = this.variables[1].value * (1 + 0.05 * this.milestones[2]);
+        const vb3 = this.variables[2].value * (1 + 0.05 * this.milestones[3]);
+        const rhodot = add(add(this.variables[3].value + vb1, this.variables[4].value + vb2), this.variables[5].value + vb3);
         this.currencies[0] = add(this.currencies[0], l10(this.dt) + this.totMult + rhodot);
-        let rho2dot = add(add(this.variables[6].value + vb1, this.variables[7].value + vb2), this.variables[8].value + vb3);
+        const rho2dot = add(add(this.variables[6].value + vb1, this.variables[7].value + vb2), this.variables[8].value + vb3);
         this.currencies[1] = add(this.currencies[1], l10(this.dt) + this.totMult + rho2dot);
-        let rho3dot = add(add(this.variables[9].value + vb1, this.variables[10].value + vb2), this.variables[11].value + vb3);
+        const rho3dot = add(add(this.variables[9].value + vb1, this.variables[10].value + vb2), this.variables[11].value + vb3);
         this.currencies[2] = this.milestones[0] > 0 ? add(this.currencies[2], l10(this.dt) + this.totMult + rho3dot) : 0;
         this.t += this.dt / 1.5;
         this.dt *= this.ddt;
@@ -307,12 +287,11 @@ class t3Sim {
     }
     buyVariables() {
         for (let i = this.variables.length - 1; i >= 0; i--) {
-            let currencyIndex = i % 3;
+            const currencyIndex = i % 3;
             while (true) {
                 if (this.currencies[currencyIndex] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
-                        let vars = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.currencies[currencyIndex] = subtract(this.currencies[currencyIndex], this.variables[i].cost);
                     this.variables[i].buy();

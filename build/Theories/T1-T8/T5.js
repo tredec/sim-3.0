@@ -10,56 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { global } from "../../Sim/main.js";
 import { add, createResult, l10, subtract, logToExp, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
+import { theoryClass } from "../theory.js";
 export default function t5(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        let sim = new t5Sim(data);
-        let res = yield sim.simulate();
+        const sim = new t5Sim(data);
+        const res = yield sim.simulate();
         return res;
     });
 }
-class t5Sim {
-    constructor(data) {
-        var _a;
-        this.strat = data.strat;
-        this.theory = "T5";
-        //theory
-        this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-        this.recovery = (_a = data.recovery) !== null && _a !== void 0 ? _a : { value: 0, time: 0, recoveryTime: false };
-        this.lastPub = data.rho;
-        this.sigma = data.sigma;
-        this.totMult = this.getTotMult(data.rho);
-        this.curMult = 0;
-        this.dt = global.dt;
-        this.ddt = global.ddt;
-        this.t = 0;
-        this.ticks = 0;
-        //currencies
-        this.rho = 0;
-        this.maxRho = 0;
-        this.q = 0;
-        //initialize variables
-        this.variables = [
-            new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(15, 64), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e6, 1.18099), value: 1, stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(75, 4.53725), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e3, 8.85507e7), varBase: 2 }),
-        ];
-        this.c2worth = true;
-        this.boughtVars = [];
-        //pub values
-        this.tauH = 0;
-        this.maxTauH = 0;
-        this.pubT = 0;
-        this.pubRho = 0;
-        //milestones  [q1exp,c3term,c3exp]
-        this.milestones = [0, 0, 0];
-        this.pubMulti = 0;
-        this.conditions = this.getBuyingConditions();
-        this.milestoneConditions = this.getMilestoneConditions();
-        this.milestoneTree = this.getMilestoneTree();
-        this.updateMilestones();
-    }
+class t5Sim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
             T5: [true, true, true, true, true],
@@ -76,7 +35,7 @@ class t5Sim {
         return condition;
     }
     getMilestoneConditions() {
-        let conditions = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
+        const conditions = [() => true, () => true, () => true, () => true, () => this.milestones[1] > 0];
         return conditions;
     }
     getMilestoneTree() {
@@ -104,19 +63,41 @@ class t5Sim {
         this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
     }
     calculateQ(ic1, ic2, ic3) {
-        let log10E = Math.log10(Math.E);
+        const log10E = Math.log10(Math.E);
         let sub = -Infinity;
         if (ic2 + ic3 > this.q)
             sub = subtract(ic2 + ic3, this.q);
         else if (ic2 + ic3 < this.q)
             sub = subtract(this.q, ic2 + ic3);
-        let sign = ic2 + ic3 >= this.q ? 1 : -1;
+        const sign = ic2 + ic3 >= this.q ? 1 : -1;
         let relT = 0;
         if (sub > this.q)
             relT = -(Math.pow(10, (ic2 - ic1 - ic3 + sign * Math.log10((sub - this.q) / log10E))));
         else if (sub < this.q)
             relT = Math.pow(10, (ic2 - ic1 - ic3 + sign * Math.log10((this.q - sub) / log10E)));
         return ic2 + ic3 - Math.log10(1 + 1 / Math.pow(Math.E, ((relT + this.dt) * Math.pow(10, (ic1 - ic2 + ic3)))));
+    }
+    constructor(data) {
+        super(data);
+        this.totMult = this.getTotMult(data.rho);
+        this.rho = 0;
+        this.q = 0;
+        //initialize variables
+        this.variables = [
+            new Variable({ cost: new ExponentialCost(10, 1.61328), stepwisePowerSum: { default: true }, firstFreeCost: true }),
+            new Variable({ cost: new ExponentialCost(15, 64), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e6, 1.18099), value: 1, stepwisePowerSum: { default: true } }),
+            new Variable({ cost: new ExponentialCost(75, 4.53725), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(1e3, 8.85507e7), varBase: 2 }),
+        ];
+        this.c2worth = true;
+        this.varNames = ["q1", "q2", "c1", "c2", "c3"];
+        //milestones  [q1exp,c3term,c3exp]
+        this.milestones = [0, 0, 0];
+        this.conditions = this.getBuyingConditions();
+        this.milestoneConditions = this.getMilestoneConditions();
+        this.milestoneTree = this.getMilestoneTree();
+        this.updateMilestones();
     }
     simulate() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -137,7 +118,7 @@ class t5Sim {
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
-            let result = createResult(this, this.strat === "T5Idle" ? " " + logToExp(this.variables[2].cost, 1) : "");
+            const result = createResult(this, this.strat === "T5Idle" ? " " + logToExp(this.variables[2].cost, 1) : "");
             while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT)
                 this.boughtVars.pop();
             global.varBuy.push([result[7], this.boughtVars]);
@@ -145,10 +126,10 @@ class t5Sim {
         });
     }
     tick() {
-        let vq1 = this.variables[0].value * (1 + 0.05 * this.milestones[0]);
-        let vc3 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.05 * this.milestones[2]) : 0;
+        const vq1 = this.variables[0].value * (1 + 0.05 * this.milestones[0]);
+        const vc3 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.05 * this.milestones[2]) : 0;
         this.q = this.calculateQ(this.variables[2].value, this.variables[3].value, vc3);
-        let rhodot = vq1 + this.variables[1].value + this.q;
+        const rhodot = vq1 + this.variables[1].value + this.q;
         this.rho = add(this.rho, rhodot + this.totMult + l10(this.dt));
         this.t += this.dt / 1.5;
         this.dt *= this.ddt;
@@ -163,15 +144,14 @@ class t5Sim {
     }
     buyVariables() {
         let c2Counter = 0;
-        let nc3 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.05 * this.milestones[2]) : 0;
+        const nc3 = this.milestones[1] > 0 ? this.variables[4].value * (1 + 0.05 * this.milestones[2]) : 0;
         let iq = this.calculateQ(this.variables[2].value, this.variables[3].value, nc3);
         this.c2worth = iq >= this.variables[3].value + nc3 + l10(2 / 3);
         for (let i = this.variables.length - 1; i >= 0; i--) {
             while (true) {
                 if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
-                        let vars = ["q1", "q2", "c1", "c2", "c3"];
-                        this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
                     }
                     this.rho = subtract(this.rho, this.variables[i].cost);
                     this.variables[i].buy();

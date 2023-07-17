@@ -1,7 +1,10 @@
 import jsonData from "../Data/data.json" assert { type: "json" };
-export const qs = (name) => document.querySelector(name);
+const raise = (err) => {
+    throw new Error(err);
+};
+export const qs = (name) => { var _a; return (_a = document.querySelector(name)) !== null && _a !== void 0 ? _a : raise(`HtmlElement ${name} not found.`); };
 export const qsa = (name) => document.querySelectorAll(name);
-export const ce = (type) => document.createElement(type);
+export const ce = (type) => { var _a; return (_a = document.createElement(type)) !== null && _a !== void 0 ? _a : raise(`HtmlElement ${type} could not be created.`); };
 export const event = (element, eventType, callback) => element.addEventListener(eventType, (e) => callback(e));
 export function findIndex(arr, val) {
     for (let i = 0; i < arr.length; i++)
@@ -30,10 +33,10 @@ export function logToExp(num, dec = 3) {
     return (frac1 >= 10 ? frac1 / 10 : frac1) + "e" + (frac1 >= 10 ? wholePart + 1 : wholePart);
 }
 export function convertTime(secs) {
-    let mins = Math.floor((secs / 60) % 60);
-    let hrs = Math.floor((secs / 3600) % 24);
-    let days = Math.floor((secs / 86400) % 365);
-    let years = Math.floor(secs / 31536000);
+    const mins = Math.floor((secs / 60) % 60);
+    const hrs = Math.floor((secs / 3600) % 24);
+    const days = Math.floor((secs / 86400) % 365);
+    const years = Math.floor(secs / 31536000);
     let result = "";
     if (years > 0) {
         result += years < 1e6 ? years : logToExp(Math.log10(years));
@@ -48,11 +51,6 @@ export function convertTime(secs) {
 }
 export function formatNumber(value, precision = 6) {
     return value.toPrecision(precision).replace(/[+]/, "");
-    // if (value >= 1e6) return logToExp(Math.log10(value), 3);
-    // const l: number = Math.floor(Math.log10(Math.abs(value)));
-    // let num = round(value, precision - l).toString();
-    // while (num.split(".")[1]?.length < precision - l) num += "0";
-    // return num;
 }
 export function round(number, decimals) {
     return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
@@ -86,7 +84,7 @@ export function binarySearch(arr, target) {
     let l = 0;
     let r = arr.length - 1;
     while (l < r) {
-        let m = Math.ceil((l + r) / 2);
+        const m = Math.ceil((l + r) / 2);
         if (arr[m] <= target)
             l = m;
         else

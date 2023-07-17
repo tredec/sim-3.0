@@ -1,3 +1,4 @@
+import html2canvas from "html2canvas";
 import { qs, event } from "../Utils/helpers.js";
 //Buttons
 const clear = qs(".clear");
@@ -47,6 +48,3 @@ event(getDist, "pointerdown", () => {
     var _a;
     modeInput.value = (_a = localStorage.getItem("savedDistribution")) !== null && _a !== void 0 ? _a : modeInput.value;
 });
-// const ctDev = <HTMLInputElement>qs(".ctDev");
-// event(ctDev, "input", () => {
-// });

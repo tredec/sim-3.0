@@ -1,57 +1,27 @@
-import { global, theory, varBuy } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, logToExp, simResult, theoryData } from "../../Utils/helpers.js";
-import { findIndex, sleep } from "../../Utils/helpers.js";
+import { global } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, logToExp, sleep } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { specificTheoryProps, theoryClass, conditionFunction } from "../theory.js";
 
 export default async function t1(data: theoryData): Promise<simResult> {
-  let sim = new t1Sim(data);
-  let res = await sim.simulate();
+  const sim = new t1Sim(data);
+  const res = await sim.simulate();
   return res;
 }
 
-type strat = keyof typeof jsonData.theories.T1.strats;
+type theory = "T1";
 
-class t1Sim {
-  conditions: Array<Function>;
-  milestoneConditions: Array<Function>;
-  milestoneTree: Array<Array<number>>;
-
-  strat: strat;
-  theory: theory;
-  //theory
-  cap: Array<number>;
-  recovery: { value: number; time: number; recoveryTime: boolean };
-  lastPub: number;
-  sigma: number;
-  totMult: number;
-  curMult: number;
-  dt: number;
-  ddt: number;
-  t: number;
-  ticks: number;
-  //currencies
+class t1Sim extends theoryClass<theory> implements specificTheoryProps {
   rho: number;
-  maxRho: number;
-  //initialize variables
-  variables: Array<Variable>;
+
   term1: number;
   term2: number;
   term3: number;
   termRatio: number;
   c3Ratio: number;
-  boughtVars: Array<varBuy>;
-  //pub values
-  tauH: number;
-  maxTauH: number;
-  pubT: number;
-  pubRho: number;
-  //milestones  [terms, c1exp, multQdot]
-  milestones: Array<number>;
-  pubMulti: number;
 
   getBuyingConditions() {
-    const conditions: { [key in strat]: Array<boolean | Function> } = {
+    const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       T1: new Array(6).fill(true),
       T1C34: [true, true, false, false, true, true],
       T1C4: [true, true, false, false, false, true],
@@ -79,7 +49,7 @@ class t1Sim {
     return condition;
   }
   getMilestoneConditions() {
-    let conditions: Array<Function> = [() => true, () => true, () => true, () => true, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
+    const conditions: Array<conditionFunction> = [() => true, () => true, () => true, () => true, () => this.milestones[2] > 0, () => this.milestones[3] > 0];
     return conditions;
   }
   getMilestoneTree() {
@@ -92,7 +62,7 @@ class t1Sim {
       [1, 2, 1, 1],
       [1, 3, 1, 1],
     ];
-    const tree: { [key in strat | string]: Array<Array<number>> } = {
+    const tree: { [key in stratType[theory]]: Array<Array<number>> } = {
       T1: globalOptimalRoute,
       T1C34: globalOptimalRoute,
       T1C4: globalOptimalRoute,
@@ -109,23 +79,10 @@ class t1Sim {
     this.milestones = this.milestoneTree[Math.min(this.milestoneTree.length - 1, stage)];
   }
   constructor(data: theoryData) {
-    this.strat = data.strat as strat;
-    this.theory = "T1";
-    //theory
-    this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
-    this.lastPub = data.rho;
-    this.sigma = data.sigma;
+    super(data);
     this.totMult = this.getTotMult(data.rho);
-    this.curMult = 0;
-    this.dt = global.dt;
-    this.ddt = global.ddt;
-    this.t = 0;
-    this.ticks = 0;
-    //currencies
     this.rho = 0;
-    this.maxRho = 0;
-    //initialize variables
+    this.varNames = ["q1", "q2", "c1", "c2", "c3", "c4"];
     this.variables = [
       new Variable({ cost: new ExponentialCost(5, 2), stepwisePowerSum: { default: true }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(100, 10), varBase: 2 }),
@@ -140,23 +97,16 @@ class t1Sim {
     this.term3 = 0;
     this.termRatio = 0;
     this.c3Ratio = this.lastPub < 300 ? 1 : this.lastPub < 450 ? 1.1 : this.lastPub < 550 ? 2 : this.lastPub < 655 ? 5 : 10;
-    this.boughtVars = [];
-    //pub values
-    this.tauH = 0;
-    this.maxTauH = 0;
-    this.pubT = 0;
-    this.pubRho = 0;
     //milestones  [logterm, c1exp, c3term, c4term]
     this.milestones = [0, 0, 0, 0];
-    this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.milestoneTree = this.getMilestoneTree();
     this.updateMilestones();
   }
   async simulate() {
-    let c4_nc = Math.ceil((this.lastPub - 10) / 8) * 8 + 10;
-    let pub = c4_nc - this.lastPub < 3 ? c4_nc + 2 : c4_nc - this.lastPub < 5 ? c4_nc - 2 + Math.log10(1.5) : c4_nc - 4 + Math.log10(1.4);
+    const c4_nc = Math.ceil((this.lastPub - 10) / 8) * 8 + 10;
+    const pub = c4_nc - this.lastPub < 3 ? c4_nc + 2 : c4_nc - this.lastPub < 5 ? c4_nc - 2 + Math.log10(1.5) : c4_nc - 4 + Math.log10(1.4);
     let coast = (c4_nc - this.lastPub < 3 ? c4_nc : Math.floor(this.lastPub)) + Math.log10(30);
     coast = Math.max(8 + Math.log10(30), coast + Math.floor(pub - coast));
     let pubCondition = false;
@@ -174,7 +124,7 @@ class t1Sim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    let result = createResult(this, global.forcedPubTime === Infinity && this.strat === "T1SolarXLII" ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
+    const result = createResult(this, global.forcedPubTime === Infinity && this.strat === "T1SolarXLII" ? ` ${this.lastPub < 50 ? "" : logToExp(Math.min(this.pubRho, coast), 2)}` : "");
     while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
     global.varBuy.push([result[7], this.boughtVars]);
     return result;
@@ -184,7 +134,7 @@ class t1Sim {
     this.term2 = add(this.variables[4].value + this.rho * 0.2, this.variables[5].value + this.rho * 0.3);
     this.term3 = this.variables[0].value + this.variables[1].value;
 
-    let rhodot = add(this.term1, this.term2) + this.term3 + this.totMult + l10(this.dt);
+    const rhodot = add(this.term1, this.term2) + this.term3 + this.totMult + l10(this.dt);
     this.rho = add(this.rho, rhodot);
 
     this.t += this.dt / 1.5;
@@ -204,8 +154,7 @@ class t1Sim {
       while (true) {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub && ((i !== 2 && i !== 3) || this.lastPub < 350)) {
-            let vars = ["q1", "q2", "c1", "c2", "c3", "c4"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

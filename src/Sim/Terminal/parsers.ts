@@ -1,6 +1,6 @@
 import jsonData from "../../Data/data.json" assert { type: "json" };
 import { getTheoryFromIndex } from "../../Utils/helpers.js";
-import { inputData, theory } from "../main.js";
+import { inputData } from "../main.js";
 
 export function parseSimParams(params: Array<string>) {
   if (params.length < 3) throw "At least 3 parameters [strat, sigma, start rho] required.";
@@ -16,13 +16,13 @@ export function parseSimParams(params: Array<string>) {
     modeInput: "",
     simAllInputs: [true, true],
     timeDiffInputs: [],
-    hardCap: false
+    hardCap: false,
   };
 
   const s01 = params[0].slice(0, 2).toLowerCase();
   const s2e = params[0].slice(2, params[0].length);
   if (["bo", "ba", "bs", "bi"].includes(s01)) {
-    data.theory = /[1-8]/.test(s2e) ? getTheoryFromIndex(parseInt(s2e) - 1) : (s2e.toUpperCase() as theory);
+    data.theory = /[1-8]/.test(s2e) ? getTheoryFromIndex(parseInt(s2e) - 1) : (s2e.toUpperCase() as theoryType);
     switch (s01) {
       case "bo":
         data.strat = "Best Overall";

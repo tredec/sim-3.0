@@ -28,7 +28,7 @@ export default class Terminal {
     this.writeLine(input, true);
     return input;
   }
-  writeLine(value: string, inp: boolean = false) {
+  writeLine(value: string, inp = false) {
     value = value.replace(/script/g, "/script/");
     value = value.replace(/[(]/g, "/(/");
     value = value.replace(/[)]/g, "/)/");

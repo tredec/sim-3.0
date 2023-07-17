@@ -2,15 +2,23 @@
   "devDependencies": {
     "@types/html2canvas": "^1.0.0",
     "@types/node": "^20.3.3",
-    "typescript": "^4.8.2",
-    "webpack": "^5.88.1",
-    "webpack-cli": "^4.10.0"
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.44.0",
+    "eslint-config-standard-with-typescript": "^36.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "typescript": "^4.9.5"
   },
   "scripts": {
-    "build": "tsc && webpack  --mode development",
-    "prod": "tsc && webpack  --mode production"
+    "build": "tsc && webpack --mode development",
+    "prod": "tsc && webpack --mode production",
+    "lint": "eslint src"
   },
   "dependencies": {
-    "html2canvas": "^1.4.1"
+    "cli": "^1.0.1",
+    "html2canvas": "^1.4.1",
+    "webpack": "^5.88.1"
   }
 }

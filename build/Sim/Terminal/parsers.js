@@ -14,7 +14,7 @@ export function parseSimParams(params) {
         modeInput: "",
         simAllInputs: [true, true],
         timeDiffInputs: [],
-        hardCap: false
+        hardCap: false,
     };
     const s01 = params[0].slice(0, 2).toLowerCase();
     const s2e = params[0].slice(2, params[0].length);

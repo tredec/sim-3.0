@@ -25,7 +25,7 @@ function parseExpression(expression) {
     return `return ${expression}`;
 }
 export function getStrats(theory, rho, type, lastStrat) {
-    let res = [];
+    const res = [];
     const args = [...jsonData.stratCategories.map((v) => v === type), rho, lastStrat];
     for (const strat of Object.keys(stratData[theory].strats)) {
         if ((stratData[theory].strats[strat].stratFilterCondition(...args) || !global.stratFilter) && stratData[theory].strats[strat].forcedCondition(...args))

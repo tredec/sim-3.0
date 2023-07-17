@@ -1,4 +1,5 @@
-import { simResult, event, qs, sleep } from "../../Utils/helpers.js";
+/*eslint-disable no-inner-declarations*/
+import { event, qs, sleep } from "../../Utils/helpers.js";
 import { global, inputData, simulate } from "../main.js";
 import { parseSimParams } from "./parsers.js";
 import Terminal from "./terminal.js";
@@ -6,11 +7,11 @@ import Terminal from "./terminal.js";
 if (localStorage.getItem("dev") === "true") {
   const terminal = new Terminal();
 
-  let customVal = localStorage.getItem("customVal");
+  const customVal = localStorage.getItem("customVal");
   if (customVal !== null) setValue([customVal]);
 
   //event for sending commands
-  event(terminal.input, "keydown", (e: KeyboardEvent) => {
+  event<KeyboardEvent>(terminal.input, "keydown", (e) => {
     if (e.key === "Enter") {
       const input = terminal.parseInput();
       executeCommand(input);
@@ -20,9 +21,9 @@ if (localStorage.getItem("dev") === "true") {
   });
 
   //events for moving the terminal
-  let offset = { x: 0, y: 0 };
+  const offset = { x: 0, y: 0 };
   let drag: HTMLElement | null = null;
-  event(terminal.terminal_element, "mousedown", (e: any) => {
+  event<MouseEvent & { layerX: number; layerY: number }>(terminal.terminal_element, "mousedown", (e) => {
     if (!(<HTMLElement>e.target).classList.contains("terminal")) return;
     drag = terminal.terminal_element;
     offset.x = e.layerX;
@@ -54,7 +55,7 @@ if (localStorage.getItem("dev") === "true") {
         : string
             .slice(spaceIndex + 1, string.length)
             .replace(/ /g, "")
-            .split(",")
+            .split(","),
     ];
 
     try {
@@ -67,6 +68,7 @@ if (localStorage.getItem("dev") === "true") {
         case "rs":
         case "resize":
           resize(params);
+          break;
         case "sim":
           sim(params);
           break;
@@ -113,7 +115,7 @@ if (localStorage.getItem("dev") === "true") {
   }
 
   function setValue(params: Array<string>) {
-    let str = params.join(",");
+    const str = params.join(",");
     if (str === "g") terminal.writeLine(`Value of global.customVal is <g>${JSON.stringify(global.customVal)}</g>.`);
     else {
       global.customVal = JSON.parse(str);
@@ -123,10 +125,10 @@ if (localStorage.getItem("dev") === "true") {
   }
 
   async function sim(params: Array<string>) {
-    let timeA = performance.now();
+    const timeA = performance.now();
     const data = parseSimParams(params);
     await sleep();
-    let res = await simulate(data);
+    const res = await simulate(data);
     global.simulating = false;
     if (typeof res === "string" || res === null) {
       terminal.writeLine(JSON.stringify(res));
@@ -137,7 +139,7 @@ if (localStorage.getItem("dev") === "true") {
     }
   }
 
-  function printSimResults(arr: Array<simResult>, data: inputData) {
+  function printSimResults(arr: Array<Array<string>>, data: inputData) {
     if (data.mode === "Single sim") {
       terminal.writeLine(`${arr[0][1]} | ${arr[0][2]} | ${arr[0][3]} | ${arr[0][5]} | ${arr[0][6]} | ${arr[0][7]} | ${arr[0][8]}`);
     } else if (data.mode === "Chain") {
@@ -153,10 +155,9 @@ if (localStorage.getItem("dev") === "true") {
     updateTable(arr);
   }
 
-  function updateTable(arr: Array<simResult>): void {
-    let table = qs(".simTable");
-    let thead = qs(".simTable > thead");
-    let tbody = qs(".simTable > tbody");
+  function updateTable(arr: Array<Array<string>>): void {
+    const thead = qs(".simTable > thead");
+    const tbody = qs(".simTable > tbody");
     while (tbody.firstChild) tbody.firstChild.remove();
 
     for (let i = 0; i < arr.length; i++) {

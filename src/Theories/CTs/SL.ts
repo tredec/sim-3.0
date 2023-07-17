@@ -1,56 +1,25 @@
-import { global, varBuy, theory } from "../../Sim/main.js";
-import { add, createResult, l10, subtract, simResult, theoryData } from "../../Utils/helpers.js";
-import { sleep } from "../../Utils/helpers.js";
+import { global } from "../../Sim/main.js";
+import { add, createResult, l10, subtract, sleep, l2 } from "../../Utils/helpers.js";
 import Variable, { ExponentialCost } from "../../Utils/variable.js";
-import jsonData from "../../Data/data.json" assert { type: "json" };
+import { specificTheoryProps, theoryClass, conditionFunction } from "../theory.js";
 
 export default async function sl(data: theoryData): Promise<simResult> {
-  let sim = new slSim(data);
-  let res = await sim.simulate();
+  const sim = new slSim(data);
+  const res = await sim.simulate();
   return res;
 }
 
-type strat = keyof typeof jsonData.theories.SL.strats;
+type theory = "SL";
 
-class slSim {
-  conditions: Array<Function>;
-  milestoneConditions: Array<Function>;
-
-  strat: strat;
-  theory: theory;
-  tauFactor: number;
-  //theory
-  cap: Array<number>;
-  recovery: { value: number; time: number; recoveryTime: boolean };
-  lastPub: number;
-  sigma: number;
-  totMult: number;
+class slSim extends theoryClass<theory> implements specificTheoryProps {
   curMult: number;
-  dt: number;
-  ddt: number;
-  t: number;
-  ticks: number;
-  //currencies
   rho: number;
-  maxRho: number;
   rho2: number;
   rho3: number;
-  q: number;
-  //initialize variables
-  variables: Array<Variable>;
   inverseE_Gamma: number;
-  boughtVars: Array<varBuy>;
-  //pub values
-  tauH: number;
-  maxTauH: number;
-  pubT: number;
-  pubRho: number;
-  //milestones  [dimensions, b1exp, b2exp, b3exp]
-  milestones: Array<number>;
-  pubMulti: number;
 
   getBuyingConditions() {
-    const conditions: { [key in strat]: Array<boolean | Function> } = {
+    const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       SL: [true, true, true, true],
       SLStopA: [() => this.curMult < 4.5, () => this.curMult < 4.5, () => this.curMult < 6, () => this.curMult < 6],
       SLStopAd: [
@@ -71,14 +40,14 @@ class slSim {
     return condition;
   }
   getMilestoneConditions() {
-    let conditions: Array<Function> = [() => true, () => true, () => true, () => true];
+    const conditions: Array<conditionFunction> = [() => true, () => true, () => true, () => true];
     return conditions;
   }
   getTotMult(val: number) {
     return Math.max(0, val * this.tauFactor * 1.5);
   }
   updateMilestones(): void {
-    let maxVal = Math.max(this.lastPub, this.maxRho);
+    const maxVal = Math.max(this.lastPub, this.maxRho);
     let milestoneCount = Math.min(13, Math.floor(maxVal / 25));
     this.milestones = [0, 0, 0, 0];
     let priority = [4, 3, 1, 2];
@@ -112,7 +81,7 @@ class slSim {
         emg_Before_b1b2 = 2;
         r2exp_Before_b1b2 = 2;
       }
-      let minCost = Math.min(this.variables[2].cost, this.variables[3].cost);
+      const minCost = Math.min(this.variables[2].cost, this.variables[3].cost);
       if (this.rho + l10(emg_Before_b1b2) < minCost) {
         //b12 exp
         priority = [4, 3, 1, 2];
@@ -133,47 +102,24 @@ class slSim {
     }
   }
   updateInverseE_Gamma = (x: number) => {
-    let y = l10(l10(2) / Math.LOG10E + x / Math.LOG10E + l10(Math.PI) / Math.LOG10E) - (l10(2) + x);
+    const y = l10(l10(2) / Math.LOG10E + x / Math.LOG10E + l10(Math.PI) / Math.LOG10E) - (l10(2) + x);
     this.inverseE_Gamma = 0 - Math.LOG10E - add(subtract(y, y + y - l10(2)), y + y + y + l10(6));
   };
   constructor(data: theoryData) {
-    this.strat = data.strat as strat;
-    this.theory = "SL";
-    this.tauFactor = jsonData.theories.SL.tauFactor;
-    //theory
-    this.cap = typeof data.cap === "number" && data.cap > 0 ? [data.cap, 1] : [Infinity, 0];
-    this.recovery = data.recovery ?? { value: 0, time: 0, recoveryTime: false };
-    this.lastPub = data.rho;
-    this.sigma = data.sigma;
+    super(data);
     this.totMult = this.getTotMult(data.rho);
     this.curMult = 0;
-    this.dt = global.dt;
-    this.ddt = global.ddt;
-    this.t = 0;
-    this.ticks = 0;
-    //currencies
     this.rho = 0;
-    this.maxRho = 0;
     this.rho2 = 0;
     this.rho3 = 0;
-    this.q = 0;
-    //initialize variables
+    this.varNames = ["a1", "a2", "b1", "b2"];
     this.variables = [
-      new Variable({ cost: new ExponentialCost(1, 0.369 * Math.log2(10), true), stepwisePowerSum: { base: 3.5, length: 3 }, firstFreeCost: true }),
+      new Variable({ cost: new ExponentialCost(1, 0.369 * l2(10), true), stepwisePowerSum: { base: 3.5, length: 3 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(175, 10), varBase: 2 }),
-      new Variable({ cost: new ExponentialCost(500, 0.649 * Math.log2(10), true), stepwisePowerSum: { base: 6.5, length: 4 } }),
-      new Variable({ cost: new ExponentialCost(1000, 0.926 * Math.log2(10), true), varBase: 2 }),
+      new Variable({ cost: new ExponentialCost(500, 0.649 * l2(10), true), stepwisePowerSum: { base: 6.5, length: 4 } }),
+      new Variable({ cost: new ExponentialCost(1000, 0.926 * l2(10), true), varBase: 2 }),
     ];
     this.inverseE_Gamma = 0;
-    this.boughtVars = [];
-    //pub values
-    this.tauH = 0;
-    this.maxTauH = 0;
-    this.pubT = 0;
-    this.pubRho = 0;
-    //milestones  [rho2exp, a3exp, b1exp, b2exp]
-    this.milestones = [0, 0, 0, 0];
-    this.pubMulti = 0;
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.updateMilestones();
@@ -192,7 +138,7 @@ class slSim {
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
-    let result = createResult(this, "");
+    const result = createResult(this, "");
 
     while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
     global.varBuy.push([result[7], this.boughtVars]);
@@ -200,15 +146,15 @@ class slSim {
     return result;
   }
   tick() {
-    let rho3dot = this.variables[2].value * (1 + 0.02 * this.milestones[2]) + this.variables[3].value * (1 + 0.02 * this.milestones[3]);
+    const rho3dot = this.variables[2].value * (1 + 0.02 * this.milestones[2]) + this.variables[3].value * (1 + 0.02 * this.milestones[3]);
     this.rho3 = add(this.rho3, rho3dot + l10(this.dt));
     this.updateInverseE_Gamma(Math.max(1, this.rho3));
 
-    let rho2dot = Math.LOG10E * (this.variables[0].value / Math.LOG10E + this.variables[1].value / Math.LOG10E - Math.log(2 - 0.008 * this.milestones[1]) * (Math.max(1, this.rho3) / Math.LOG10E));
+    const rho2dot = Math.LOG10E * (this.variables[0].value / Math.LOG10E + this.variables[1].value / Math.LOG10E - Math.log(2 - 0.008 * this.milestones[1]) * (Math.max(1, this.rho3) / Math.LOG10E));
 
     this.rho2 = add(this.rho2, Math.max(0, rho2dot) + l10(this.dt));
 
-    let rhodot = this.rho2 * (1 + this.milestones[0] * 0.02) * 0.5 + this.inverseE_Gamma;
+    const rhodot = this.rho2 * (1 + this.milestones[0] * 0.02) * 0.5 + this.inverseE_Gamma;
     this.rho = add(this.rho, rhodot + this.totMult + l10(this.dt));
 
     this.t += this.dt / 1.5;
@@ -227,8 +173,7 @@ class slSim {
       while (true) {
         if (this.rho > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
-            let vars = ["a1", "a2", "b1", "b2"];
-            this.boughtVars.push({ variable: vars[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
           }
           this.rho = subtract(this.rho, this.variables[i].cost);
           this.variables[i].buy();

@@ -63,13 +63,13 @@ event(simulateButton, "click", () => __awaiter(void 0, void 0, void 0, function*
         timeDiffInputs: [],
         hardCap: hardCap.checked,
     };
-    for (let element of timeDiffInputs) {
+    for (const element of timeDiffInputs) {
         data.timeDiffInputs.push(element.value);
     }
     output.textContent = "";
     simulateButton.textContent = "Stop simulating";
     yield sleep();
-    let res = yield simulate(data);
+    const res = yield simulate(data);
     if (typeof res === "string")
         output.textContent = res;
     else
@@ -117,8 +117,8 @@ function resetVarBuy() {
     for (let i = 0; i < global.varBuy.length; i++) {
         for (let j = 0; j < (tbody === null || tbody === void 0 ? void 0 : tbody.children.length); j++) {
             const row = tbody === null || tbody === void 0 ? void 0 : tbody.children[j];
-            if (parseFloat(row === null || row === void 0 ? void 0 : row.children[7].innerHTML) === parseFloat(global.varBuy[i][0])) {
-                let val = global.varBuy[i][1];
+            if (parseFloat(row === null || row === void 0 ? void 0 : row.children[7].innerHTML) === global.varBuy[i][0]) {
+                const val = global.varBuy[i][1];
                 (row === null || row === void 0 ? void 0 : row.children[8]).onclick = () => {
                     openVarModal(val);
                 };
