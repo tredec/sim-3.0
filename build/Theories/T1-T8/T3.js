@@ -21,7 +21,7 @@ export default function t3(data) {
 class t3Sim extends theoryClass {
     getBuyingConditions() {
         const conditions = {
-            T3: new Array(12).fill(true),
+            T3: new Array(12).fill(true), //t3
             T3C11C12C21: [true, true, false, true, true, false, true, false, false, false, false, false],
             T3noC11C13C21C33: [true, true, true, false, true, false, false, true, true, true, true, false],
             T3noC13C32C33: [true, true, true, true, true, false, true, true, true, true, false, false],
@@ -125,6 +125,20 @@ class t3Sim extends theoryClass {
                 true,
                 false,
             ],
+            T3P2C23d: [
+                false,
+                () => this.variables[1].cost + l10(3) < Math.min(this.variables[4].cost, this.variables[7].cost, this.variables[10].cost),
+                () => this.variables[2].cost + l10(9) < this.variables[8].cost,
+                false,
+                true,
+                false,
+                false,
+                true,
+                true,
+                false,
+                true,
+                false,
+            ],
             T3Play: [
                 () => (this.curMult < 2 ? this.variables[0].cost + l10(8) < this.variables[9].cost : false),
                 () => (this.curMult < 2 ? this.variables[1].cost + l10(4) < Math.min(this.variables[4].cost, this.variables[10].cost) && this.variables[1].cost + l10(2) < this.variables[7].cost : true),
@@ -199,6 +213,7 @@ class t3Sim extends theoryClass {
             T3noC11C13C33d: globalOptimalRoute,
             T3noC13C32C33d: globalOptimalRoute,
             T3noC13C33d: globalOptimalRoute,
+            T3P2C23d: globalOptimalRoute,
             T3Play: globalOptimalRoute,
             T3Play2: globalOptimalRoute,
         };
@@ -217,17 +232,17 @@ class t3Sim extends theoryClass {
         this.currencies = [0, 0, 0];
         this.varNames = ["b1", "b2", "b3", "c11", "c12", "c13", "c21", "c22", "c23", "c31", "c32", "c33"];
         this.variables = [
-            new Variable({ cost: new ExponentialCost(10, 1.18099), stepwisePowerSum: { default: true }, firstFreeCost: true }),
-            new Variable({ cost: new ExponentialCost(10, 1.308), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(3000, 1.675), stepwisePowerSum: { default: true } }),
-            new Variable({ cost: new ExponentialCost(20, 6.3496), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(10, 2.74), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1000, 1.965), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(500, 18.8343), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e5, 3.65), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e5, 2.27), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e4, 1248.27), varBase: 2 }),
-            new Variable({ cost: new ExponentialCost(1e3, 6.81744), varBase: 2 }),
+            new Variable({ cost: new ExponentialCost(10, 1.18099), stepwisePowerSum: { default: true }, firstFreeCost: true }), //b1
+            new Variable({ cost: new ExponentialCost(10, 1.308), stepwisePowerSum: { default: true } }), //b2
+            new Variable({ cost: new ExponentialCost(3000, 1.675), stepwisePowerSum: { default: true } }), //b3
+            new Variable({ cost: new ExponentialCost(20, 6.3496), varBase: 2 }), //c11
+            new Variable({ cost: new ExponentialCost(10, 2.74), varBase: 2 }), //c12
+            new Variable({ cost: new ExponentialCost(1000, 1.965), varBase: 2 }), //c13
+            new Variable({ cost: new ExponentialCost(500, 18.8343), varBase: 2 }), //c21
+            new Variable({ cost: new ExponentialCost(1e5, 3.65), varBase: 2 }), //c22
+            new Variable({ cost: new ExponentialCost(1e5, 2.27), varBase: 2 }), //c23
+            new Variable({ cost: new ExponentialCost(1e4, 1248.27), varBase: 2 }), //c31
+            new Variable({ cost: new ExponentialCost(1e3, 6.81744), varBase: 2 }), //c32
             new Variable({ cost: new ExponentialCost(1e5, 2.98), varBase: 2 }), //c33
         ];
         this.curMult = 0;
@@ -291,7 +306,7 @@ class t3Sim extends theoryClass {
             while (true) {
                 if (this.currencies[currencyIndex] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
                     if (this.maxRho + 5 > this.lastPub) {
-                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+                        this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t, symbol: `rho_${currencyIndex + 1}` });
                     }
                     this.currencies[currencyIndex] = subtract(this.currencies[currencyIndex], this.variables[i].cost);
                     this.variables[i].buy();

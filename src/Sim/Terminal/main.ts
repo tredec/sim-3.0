@@ -100,7 +100,10 @@ if (localStorage.getItem("dev") === "true") {
     const x = parseFloat(params[0]);
     const y = parseFloat(params[1]);
 
-    const terminalSize = params[0] === "d" ? { width: "700px", height: "400px" } : JSON.parse(localStorage.getItem("terminalSize") ?? `{"width": "700px", "height":"400px"}`);
+    const terminalSize =
+      params[0] === "d"
+        ? { width: "700px", height: "400px" }
+        : JSON.parse(localStorage.getItem("terminalSize") ?? `{"width": "700px", "height":"400px"}`);
 
     if (!isNaN(x)) {
       terminalSize.width = `${x < 5 ? terminal.terminal_element.clientWidth * x : x}px`;

@@ -45,7 +45,7 @@ class slSim extends theoryClass {
         return conditions;
     }
     getTotMult(val) {
-        return Math.max(0, val * this.tauFactor * 1.5);
+        return Math.max(0, val * this.tauFactor * 0.375);
     }
     updateMilestones() {
         const maxVal = Math.max(this.lastPub, this.maxRho);
@@ -149,7 +149,10 @@ class slSim extends theoryClass {
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 10;
+                pubCondition =
+                    (global.forcedPubTime !== Infinity
+                        ? this.t > global.forcedPubTime
+                        : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 10;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));
@@ -164,7 +167,10 @@ class slSim extends theoryClass {
         const rho3dot = this.variables[2].value * (1 + 0.02 * this.milestones[2]) + this.variables[3].value * (1 + 0.02 * this.milestones[3]);
         this.rho3 = add(this.rho3, rho3dot + l10(this.dt));
         this.updateInverseE_Gamma(Math.max(1, this.rho3));
-        const rho2dot = Math.LOG10E * (this.variables[0].value / Math.LOG10E + this.variables[1].value / Math.LOG10E - Math.log(2 - 0.008 * this.milestones[1]) * (Math.max(1, this.rho3) / Math.LOG10E));
+        const rho2dot = Math.LOG10E *
+            (this.variables[0].value / Math.LOG10E +
+                this.variables[1].value / Math.LOG10E -
+                Math.log(2 - 0.008 * this.milestones[1]) * (Math.max(1, this.rho3) / Math.LOG10E));
         this.rho2 = add(this.rho2, Math.max(0, rho2dot) + l10(this.dt));
         const rhodot = this.rho2 * (1 + this.milestones[0] * 0.02) * 0.5 + this.inverseE_Gamma;
         this.rho = add(this.rho, rhodot + this.totMult + l10(this.dt));

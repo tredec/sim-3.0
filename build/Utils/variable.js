@@ -1,25 +1,35 @@
 import { log10, add, subtract } from "./helpers.js";
 export default class Variable {
     constructor(data) {
+        this.data = data;
+        this.level = 0;
+        this.cost = 0;
+        this.value = 0;
+        this.isZero = false;
+        this.stepwisePowerSum = { length: 0, base: 0 };
+        this.varBase = 0;
+        this.firstFreeCost = 0;
+        this.init();
+    }
+    init() {
         var _a, _b, _c, _d;
-        this.level = (_a = data.level) !== null && _a !== void 0 ? _a : 0;
-        this.costData = data.cost;
-        this.cost = this.costData.getCost(this.level);
-        this.value = typeof data.value === "number" || typeof data.value === "string" ? parseValue(String(data.value)) : 0;
+        this.level = (_a = this.data.level) !== null && _a !== void 0 ? _a : 0;
+        this.cost = this.data.cost.getCost(this.level);
+        this.value = typeof this.data.value === "number" || typeof this.data.value === "string" ? parseValue(String(this.data.value)) : 0;
         this.isZero = false;
         if (this.value === -Infinity) {
             this.value = 0;
             this.isZero = true;
         }
         this.stepwisePowerSum =
-            ((_b = data.stepwisePowerSum) === null || _b === void 0 ? void 0 : _b.default) === true
+            ((_b = this.data.stepwisePowerSum) === null || _b === void 0 ? void 0 : _b.default) === true
                 ? { base: 2, length: 10 }
-                : typeof ((_c = data.stepwisePowerSum) === null || _c === void 0 ? void 0 : _c.base) === "number" && typeof ((_d = data.stepwisePowerSum) === null || _d === void 0 ? void 0 : _d.length) === "number"
-                    ? { base: data.stepwisePowerSum.base, length: data.stepwisePowerSum.length }
+                : typeof ((_c = this.data.stepwisePowerSum) === null || _c === void 0 ? void 0 : _c.base) === "number" && typeof ((_d = this.data.stepwisePowerSum) === null || _d === void 0 ? void 0 : _d.length) === "number"
+                    ? { base: this.data.stepwisePowerSum.base, length: this.data.stepwisePowerSum.length }
                     : { base: 0, length: 0 };
-        this.varBase = data.varBase ? data.varBase : 10;
-        this.firstFreeCost = data.firstFreeCost === true ? 1 : 0;
-        if (data.firstFreeCost)
+        this.varBase = this.data.varBase ? this.data.varBase : 10;
+        this.firstFreeCost = this.data.firstFreeCost === true ? 1 : 0;
+        if (this.data.firstFreeCost)
             this.buy();
     }
     buy() {
@@ -32,7 +42,7 @@ export default class Variable {
         else
             this.value = Math.log10(this.varBase) * (this.level + 1);
         this.level++;
-        this.cost = this.costData.getCost(this.level - this.firstFreeCost);
+        this.cost = this.data.cost.getCost(this.level - this.firstFreeCost);
     }
     reCalculate() {
         if (this.stepwisePowerSum.base !== 0) {
@@ -43,6 +53,9 @@ export default class Variable {
         }
         else
             this.value = Math.log10(this.varBase) * this.level;
+    }
+    reset() {
+        this.init();
     }
 }
 function parseValue(val) {

@@ -82,6 +82,10 @@
         "T3noC13C33d": {
           "stratFilterCondition": "(Active || Very-Active) && rho >= 150 && rho < 225"
         },
+        "T3P2C23d": {
+          "stratFilterCondition": "Active && rho > 250 ",
+          "forcedCondition": "rho >= 125"
+        },
         "T3Play": {
           "stratFilterCondition": "Very-Active && rho > 200 && rho < 375",
           "forcedCondition": "rho >= 125"
@@ -274,7 +278,7 @@
       }
     },
     "WSP": {
-      "tauFactor": 0.1,
+      "tauFactor": 0.4,
       "strats": {
         "WSP": {
           "stratFilterCondition": "(Idle || Semi-Idle) && rho < 525"
@@ -288,7 +292,7 @@
       }
     },
     "SL": {
-      "tauFactor": 0.1,
+      "tauFactor": 0.4,
       "strats": {
         "SL": {
           "stratFilterCondition": "Idle || rho < 25"
@@ -308,7 +312,7 @@
       }
     },
     "EF": {
-      "tauFactor": 0.4,
+      "tauFactor": 1.6,
       "strats": {
         "EF": {
           "stratFilterCondition": "Idle || rho < 10"
@@ -325,7 +329,7 @@
       }
     },
     "CSR2": {
-      "tauFactor": 0.1,
+      "tauFactor": 0.4,
       "strats": {
         "CSR2": {
           "stratFilterCondition": "(Idle || Semi-Idle) || rho < 10"
@@ -334,12 +338,32 @@
           "stratFilterCondition": "Active && rho < 500"
         },
         "CSR2XL": {
-          "stratFilterCondition": "((Active && rho >= 500) || Very-Active) && rho > 10"
+          "stratFilterCondition": "((Active && rho >= 500) || Very-Active) && rho >= 10"
+        }
+      }
+    },
+    "FI":{
+      "tauFactor":0.4,
+      "strats":{
+        "FI":{
+          "stratFilterCondition":"true"
+        }
+      }}
+    ,
+    "FP": {
+      "tauFactor": 0.3,
+      "strats": {
+        "FP": {
+          "stratFilterCondition": "Idle || Semi-Idle || rho <= 20"
+        },
+        "FPdMS": {
+          "stratFilterCondition": "Active || Very-Active"
         }
       }
     },
     "RZ": {
       "tauFactor": 0.1,
+      "UI_visible":false,
       "strats": {
         "RZ": {
           "stratFilterCondition": "Idle || Semi-Idle"
@@ -363,16 +387,9 @@
         }
       }
     },
-    "FP": {
-      "tauFactor": 0.075,
-      "strats": {
-        "FP": {
-          "stratFilterCondition": "true"
-        }
-      }
-    },
     "BT": {
       "tauFactor": 0.1,
+      "UI_visible":false,
       "strats": {
         "BT": {
           "stratFilterCondition": "Idle || Semi-Idle"
@@ -387,14 +404,14 @@
   "modes": ["All", "Single sim", "Chain", "Steps", "Amount", "Time", "Time diff."],
   "modeInputDescriptions": ["", "", "", "Step length: ", "Amount of pubs (Chain): ", "Total Time: "],
   "modeInputPlaceholder": [
-    "<sigma> <t1>* [t2]* ... [wsp]* ... [csr2]* \n\n*[r/t/m] = rho/tau/total multiplier | default tau",
+    "<sigma> <t1>* [t2]* ... [wsp]* ... [fp]* \n\n*[r/t/m] = rho/tau/total multiplier | default tau",
     "",
     "",
     "",
     "<Number>",
     "<Hours>",
-    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <csr2> [csr2]",
-    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <csr2> [csr2]",
+    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <fp> [fp]",
+    "<t1> [t1], ... , <t8> [t8] or <wsp> [wsp], ... , <fp> [fp]",
     "<sigma 1> <sigma 2> [ct y/n] [idle strats only y/n]"
   ]
 }

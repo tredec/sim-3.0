@@ -241,14 +241,14 @@ class t6Sim extends theoryClass {
             while (true) {
                 const rawCost = this.variables.map((item) => item.cost);
                 const weights = [
-                    l10(7 + (this.variables[0].level % 10)),
-                    0,
-                    l10(5 + (this.variables[2].level % 10)),
-                    0,
-                    Math.max(0, this.k) + l10(8 + (this.variables[4].level % 10)),
-                    Math.max(0, this.k),
-                    Infinity,
-                    Infinity,
+                    l10(7 + (this.variables[0].level % 10)), //q1
+                    0, //q2
+                    l10(5 + (this.variables[2].level % 10)), //r1
+                    0, //r2
+                    Math.max(0, this.k) + l10(8 + (this.variables[4].level % 10)), //c1
+                    Math.max(0, this.k), //c2
+                    Infinity, //c3
+                    Infinity, //c4
                     -Math.min(0, this.k), //c5
                 ];
                 let minCost = [Number.MAX_VALUE, -1];

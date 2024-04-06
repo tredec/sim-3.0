@@ -14,7 +14,8 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
-import fp from "../Theories/Unofficial-CTs/FP.js";
+import fi from "../Theories/CTs/FI";
+import fp from "../Theories/CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
 import bt from "../Theories/Unofficial-CTs/BT.js";
 
@@ -127,10 +128,12 @@ async function singleSim(data: Omit<parsedData, "simAllInputs">): Promise<simRes
       return await ef(sendData);
     case "CSR2":
       return await csr2(sendData);
-    case "RZ":
-      return await rz(sendData);
     case "FP":
       return await fp(sendData);
+    case "FI":
+      return await fi(sendData);
+    case "RZ":
+      return await rz(sendData);
     case "BT":
       return await bt(sendData);
   }
@@ -212,9 +215,21 @@ async function simAll(data: parsedData): Promise<Array<Array<string>>> {
   return res;
 }
 function createSimAllOutput(arr: Array<simResult>): Array<string> {
-  return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]].map((v) =>
-    v.toString()
-  );
+  return [
+    arr[0][0],
+    arr[0][2],
+    arr[1][7],
+    arr[0][7],
+    formatNumber(arr[1][7] / arr[0][7], 4),
+    arr[1][5],
+    arr[0][5],
+    arr[1][6],
+    arr[0][6],
+    arr[1][8],
+    arr[0][8],
+    arr[1][4],
+    arr[0][4],
+  ].map((v) => v.toString());
 }
 async function getBestStrat(data: Omit<parsedData, "simAllInputs">): Promise<simResult> {
   const strats: Array<string> = getStrats(data.theory, data.rho, data.strat, cache.lastStrat);

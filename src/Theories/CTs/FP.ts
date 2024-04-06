@@ -12,17 +12,21 @@ export default async function fp(data: theoryData): Promise<simResult> {
 type theory = "FP";
 
 const un = [
-  0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877, 3235413, 3527445, 4348245, 5600149, 5663317, 5807893,
-  5940565, 6200341, 6655573, 6841621, 7178581, 7607701, 8272981, 9793813, 9983317, 10246549, 10727509, 11309845, 12941653, 13288981, 14109781, 15594133, 17392981, 22369685, 22400597, 22488341,
-  22653269, 22839317, 23231573, 23488661, 23762261, 24243221, 24801365, 25677461, 26622293, 26830229, 27366485, 27800213, 28714325, 29858837, 30430805, 32081045, 33091925, 35461013, 39175253,
-  39364757, 39933269, 40196501, 40986197, 42341525, 42910037, 43952021, 45239381, 47328533, 51766613, 52321301, 53155925, 54567701, 56439125, 61199765, 62376533, 64838933, 69571925, 74595221,
-  89478741, 89511189, 89602389, 89763861, 89953365, 90387093, 90613077, 90872853, 91357269, 91915413, 92926293, 93732885, 93954645, 94480533, 95049045, 95838741, 96972885, 97555221, 99205461,
-  100247445, 102709845, 106289301, 106489173, 107042709, 107320917, 108110613, 109465941, 110024085, 111200853, 112394901, 114857301, 118877205, 119435349, 120311445, 121723221, 123594645, 128324181,
-  129625365, 132367701, 136696341, 141844053, 156588693, 156701013, 156964245, 157459029, 158027541, 159733077, 159996309, 160786005, 162239253, 163944789, 167070741, 169366101, 170062485, 171640149,
-  173304213, 175808085, 179086101, 180957525, 185783829, 189314133, 196701333, 207066453, 207624597, 209285205, 210161301, 212623701, 216565269, 218270805, 222174357, 225756501, 232770453, 244799061,
-  246473493, 249506133, 253368213, 259355733, 273171093, 278287701, 285394965, 298380885, 314103957, 357914965, 357953557, 358044757, 358209685, 358409557, 358962709, 359055445, 359318677, 359813461,
-  360371605, 361548373, 362178709, 362452309, 362933269, 363491413, 364367509, 365429077, 366052885, 367661653, 368962837, 371705173, 374740885, 374931541, 375481621, 375818581, 376608277, 377922133,
-  378490645, 380196181, 380985877, 383354965, 387323029, 387891541, 388933525, 390220885, 392310037, 396821845,
+  0, 9749, 38997, 92821, 155989, 271765, 371285, 448661, 623957, 808853, 1087061, 1415829, 1485141, 1663893, 1794645, 2068245, 2495829, 2681877,
+  3235413, 3527445, 4348245, 5600149, 5663317, 5807893, 5940565, 6200341, 6655573, 6841621, 7178581, 7607701, 8272981, 9793813, 9983317, 10246549,
+  10727509, 11309845, 12941653, 13288981, 14109781, 15594133, 17392981, 22369685, 22400597, 22488341, 22653269, 22839317, 23231573, 23488661,
+  23762261, 24243221, 24801365, 25677461, 26622293, 26830229, 27366485, 27800213, 28714325, 29858837, 30430805, 32081045, 33091925, 35461013,
+  39175253, 39364757, 39933269, 40196501, 40986197, 42341525, 42910037, 43952021, 45239381, 47328533, 51766613, 52321301, 53155925, 54567701,
+  56439125, 61199765, 62376533, 64838933, 69571925, 74595221, 89478741, 89511189, 89602389, 89763861, 89953365, 90387093, 90613077, 90872853,
+  91357269, 91915413, 92926293, 93732885, 93954645, 94480533, 95049045, 95838741, 96972885, 97555221, 99205461, 100247445, 102709845, 106289301,
+  106489173, 107042709, 107320917, 108110613, 109465941, 110024085, 111200853, 112394901, 114857301, 118877205, 119435349, 120311445, 121723221,
+  123594645, 128324181, 129625365, 132367701, 136696341, 141844053, 156588693, 156701013, 156964245, 157459029, 158027541, 159733077, 159996309,
+  160786005, 162239253, 163944789, 167070741, 169366101, 170062485, 171640149, 173304213, 175808085, 179086101, 180957525, 185783829, 189314133,
+  196701333, 207066453, 207624597, 209285205, 210161301, 212623701, 216565269, 218270805, 222174357, 225756501, 232770453, 244799061, 246473493,
+  249506133, 253368213, 259355733, 273171093, 278287701, 285394965, 298380885, 314103957, 357914965, 357953557, 358044757, 358209685, 358409557,
+  358962709, 359055445, 359318677, 359813461, 360371605, 361548373, 362178709, 362452309, 362933269, 363491413, 364367509, 365429077, 366052885,
+  367661653, 368962837, 371705173, 374740885, 374931541, 375481621, 375818581, 376608277, 377922133, 378490645, 380196181, 380985877, 383354965,
+  387323029, 387891541, 388933525, 390220885, 392310037, 396821845,
 ];
 const stepwiseSum = (level: number, base: number, length: number) => {
   if (level <= length) return level;
@@ -59,6 +63,11 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
   getBuyingConditions() {
     const conditions: { [key in stratType[theory]]: Array<boolean | conditionFunction> } = {
       FP: new Array(10).fill(true),
+      FPdMS: [
+        true,
+        () => this.variables[1].cost + Math.log10((this.variables[1].level % 100) + 1) < this.variables[2].cost,
+        ...new Array(8).fill(true),
+      ],
     };
     const condition = conditions[this.strat].map((v) => (typeof v === "function" ? v : () => v));
     return condition;
@@ -77,30 +86,32 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
     return conditions;
   }
   getMilestoneTree() {
+    const globalOptimalRoute = [
+      { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 0, fractals: 1, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 0, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 0, fractals: 2, nboost: 1, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 0, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 1, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 2, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 3, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
+      { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
+      { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
+      { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 },
+    ];
     const tree: { [key in stratType[theory]]: Array<milestones> } = {
-      FP: [
-        { snexp: 0, fractals: 0, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 0, fractals: 1, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 0, fractals: 2, nboost: 0, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 0, fractals: 2, nboost: 1, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 0, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 1, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 2, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 2, snboost: 0, sterm: 0, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 0, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 0 },
-        { snexp: 3, fractals: 2, nboost: 2, snboost: 1, sterm: 1, expterm: 1 },
-      ],
+      FP: globalOptimalRoute,
+      FPdMS: globalOptimalRoute,
     };
     return tree[this.strat];
   }
 
   getTotMult(val: number) {
-    return Math.max(0, val * this.tauFactor * 1.324 + l10(5));
+    return Math.max(0, val * this.tauFactor * 0.331 + l10(5));
   }
-  updatemilestones(): void {
+  updateMilestones(): void {
     let stage = 0;
-    const points = [23, 90, 175, 300, 385, 420, 550, 600, 700, 1500];
+    const points = [l10(5e22), 95, 175, 300, 385, 420, 550, 600, 700, 1500];
     for (let i = 0; i < points.length; i++) {
       if (Math.max(this.lastPub, this.maxRho) >= points[i]) stage = i + 1;
     }
@@ -146,7 +157,7 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
     return l10(1 / 3) + subtract(l10(2) + l10(3) * n, l10(3));
   }
   getS(level: number): number {
-    const cutoffs = [32, 38];
+    const cutoffs = [32, 39];
     if (level < cutoffs[0]) return 1 + level * 0.15;
     if (level < cutoffs[1]) return this.getS(cutoffs[0] - 1) + 0.15 + (level - cutoffs[0]) * 0.2;
     return this.getS(cutoffs[1] - 1) + 0.2 + (level - cutoffs[1]) * 0.15;
@@ -169,10 +180,14 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
     this.variables = [
       new Variable({ cost: new ExponentialCost(1e4, 1e4) }),
       new Variable({ cost: new ExponentialCost(10, 1.4), stepwisePowerSum: { base: 150, length: 100 }, firstFreeCost: true }),
-      new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e41, 16.42)), varBase: 2 }),
+      new Variable({ cost: new CompositeCost(15, new ExponentialCost(1e15, 40), new ExponentialCost(1e37, 16.42)), varBase: 2 }),
       new Variable({ cost: new ExponentialCost(1e35, 12), stepwisePowerSum: { base: 10, length: 10 }, firstFreeCost: true }),
       new Variable({ cost: new ExponentialCost(1e76, 1e3) }),
-      new Variable({ cost: new CompositeCost(285, new ExponentialCost(1e75, 20), new ExponentialCost("1e440", 150)), stepwisePowerSum: { base: 2, length: 5 }, firstFreeCost: true }),
+      new Variable({
+        cost: new CompositeCost(285, new ExponentialCost(1e80, 25), new ExponentialCost("1e480", 150)),
+        stepwisePowerSum: { base: 2, length: 5 },
+        firstFreeCost: true,
+      }),
       new Variable({ cost: new ExponentialCost(1e4, 3e6) }),
       new Variable({ cost: new ExponentialCost("1e730", 1e30) }),
     ];
@@ -187,7 +202,7 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
     this.conditions = this.getBuyingConditions();
     this.milestoneConditions = this.getMilestoneConditions();
     this.milestoneTree = this.getMilestoneTree();
-    this.updatemilestones();
+    this.updateMilestones();
   }
   async simulate() {
     let pubCondition = false;
@@ -196,10 +211,13 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
       if ((this.ticks + 1) % 500000 === 0) await sleep();
       this.tick();
       if (this.rho > this.maxRho) this.maxRho = this.rho;
-      this.updatemilestones();
+      this.updateMilestones();
       this.curMult = 10 ** (this.getTotMult(this.maxRho) - this.totMult);
       this.buyVariables();
-      pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 1000) && this.pubRho > this.pubUnlock;
+      pubCondition =
+        (global.forcedPubTime !== Infinity
+          ? this.t > global.forcedPubTime
+          : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 10000) && this.pubRho > this.pubUnlock;
       this.ticks++;
     }
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
@@ -220,6 +238,11 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
       this.updateN_flag = false;
     }
 
+    if (this.strat == "FPdMS" && this.lastPub > 700 && this.getS(this.variables[7].level) < 2) {
+      this.milestones.sterm = 1;
+      if (this.ticks % 20 < 10 / this.getS(this.variables[7].level)) this.milestones.sterm = 0;
+    }
+
     const vq1 = this.variables[3].value - l10(1 + 1000 / this.variables[3].level ** 1.5);
     const vr1 = this.variables[5].value - l10(1 + 1e9 / this.variables[5].level ** 4);
 
@@ -235,7 +258,12 @@ class fpSim extends theoryClass<theory, milestones> implements specificTheoryPro
     else rdot = vr1 + (l10(this.T_n) + l10(this.U_n)) * (l10(this.U_n * 2) / 2) + this.S_n * (1 + 0.6 * this.milestones.snexp);
     this.r = this.milestones.fractals > 1 ? add(this.r, rdot + l10(this.dt)) : this.r;
 
-    let rhodot = this.totMult + this.variables[1].value + this.variables[2].value + l10(this.T_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) - 2 : 0)) + l10(this.t_var);
+    let rhodot =
+      this.totMult +
+      this.variables[1].value +
+      this.variables[2].value +
+      l10(this.T_n) * (7 + (this.milestones.sterm > 0 ? this.getS(this.variables[7].level) - 2 : 0)) +
+      l10(this.t_var);
     rhodot += this.milestones.fractals > 0 ? this.q : 0;
     rhodot += this.milestones.fractals > 1 ? this.r : 0;
 

@@ -23,7 +23,8 @@ import wsp from "../Theories/CTs/WSP.js";
 import sl from "../Theories/CTs/SL.js";
 import ef from "../Theories/CTs/EF.js";
 import csr2 from "../Theories/CTs/CSR2.js";
-import fp from "../Theories/Unofficial-CTs/FP.js";
+import fi from "../Theories/CTs/FI";
+import fp from "../Theories/CTs/FP.js";
 import rz from "../Theories/Unofficial-CTs/RZ/RZ.js";
 import bt from "../Theories/Unofficial-CTs/BT.js";
 const output = qs(".output");
@@ -114,10 +115,12 @@ function singleSim(data) {
                 return yield ef(sendData);
             case "CSR2":
                 return yield csr2(sendData);
-            case "RZ":
-                return yield rz(sendData);
             case "FP":
                 return yield fp(sendData);
+            case "FI":
+                return yield fi(sendData);
+            case "RZ":
+                return yield rz(sendData);
             case "BT":
                 return yield bt(sendData);
         }
@@ -211,7 +214,21 @@ function simAll(data) {
     });
 }
 function createSimAllOutput(arr) {
-    return [arr[0][0], arr[0][2], arr[1][7], arr[0][7], formatNumber(arr[1][7] / arr[0][7], 4), arr[1][5], arr[0][5], arr[1][6], arr[0][6], arr[1][8], arr[0][8], arr[1][4], arr[0][4]].map((v) => v.toString());
+    return [
+        arr[0][0],
+        arr[0][2],
+        arr[1][7],
+        arr[0][7],
+        formatNumber(arr[1][7] / arr[0][7], 4),
+        arr[1][5],
+        arr[0][5],
+        arr[1][6],
+        arr[0][6],
+        arr[1][8],
+        arr[0][8],
+        arr[1][4],
+        arr[0][4],
+    ].map((v) => v.toString());
 }
 function getBestStrat(data) {
     return __awaiter(this, void 0, void 0, function* () {

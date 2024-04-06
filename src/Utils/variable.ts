@@ -10,8 +10,8 @@ interface variableData {
 }
 
 export default class Variable {
+  data: variableData;
   level: number;
-  costData: costTypes;
   cost: number;
   value: number;
   stepwisePowerSum: { default?: boolean; length: number; base: number };
@@ -20,24 +20,34 @@ export default class Variable {
   isZero: boolean;
 
   constructor(data: variableData) {
-    this.level = data.level ?? 0;
-    this.costData = data.cost;
-    this.cost = this.costData.getCost(this.level);
-    this.value = typeof data.value === "number" || typeof data.value === "string" ? parseValue(String(data.value)) : 0;
+    this.data = data;
+    this.level = 0;
+    this.cost = 0;
+    this.value = 0;
+    this.isZero = false;
+    this.stepwisePowerSum = { length: 0, base: 0 };
+    this.varBase = 0;
+    this.firstFreeCost = 0;
+    this.init();
+  }
+  init() {
+    this.level = this.data.level ?? 0;
+    this.cost = this.data.cost.getCost(this.level);
+    this.value = typeof this.data.value === "number" || typeof this.data.value === "string" ? parseValue(String(this.data.value)) : 0;
     this.isZero = false;
     if (this.value === -Infinity) {
       this.value = 0;
       this.isZero = true;
     }
     this.stepwisePowerSum =
-      data.stepwisePowerSum?.default === true
+      this.data.stepwisePowerSum?.default === true
         ? { base: 2, length: 10 }
-        : typeof data.stepwisePowerSum?.base === "number" && typeof data.stepwisePowerSum?.length === "number"
-        ? { base: data.stepwisePowerSum.base, length: data.stepwisePowerSum.length }
+        : typeof this.data.stepwisePowerSum?.base === "number" && typeof this.data.stepwisePowerSum?.length === "number"
+        ? { base: this.data.stepwisePowerSum.base, length: this.data.stepwisePowerSum.length }
         : { base: 0, length: 0 };
-    this.varBase = data.varBase ? data.varBase : 10;
-    this.firstFreeCost = data.firstFreeCost === true ? 1 : 0;
-    if (data.firstFreeCost) this.buy();
+    this.varBase = this.data.varBase ? this.data.varBase : 10;
+    this.firstFreeCost = this.data.firstFreeCost === true ? 1 : 0;
+    if (this.data.firstFreeCost) this.buy();
   }
   buy() {
     if (this.stepwisePowerSum.base !== 0) {
@@ -47,7 +57,7 @@ export default class Variable {
       this.isZero = false;
     } else this.value = Math.log10(this.varBase) * (this.level + 1);
     this.level++;
-    this.cost = this.costData.getCost(this.level - this.firstFreeCost);
+    this.cost = this.data.cost.getCost(this.level - this.firstFreeCost);
   }
   reCalculate() {
     if (this.stepwisePowerSum.base !== 0) {
@@ -56,6 +66,9 @@ export default class Variable {
       const d = this.stepwisePowerSum.length / (this.stepwisePowerSum.base - 1);
       this.value = subtract(Math.log10(d + modPart) + Math.log10(this.stepwisePowerSum.base) * intPart, Math.log10(d));
     } else this.value = Math.log10(this.varBase) * this.level;
+  }
+  reset() {
+    this.init();
   }
 }
 

@@ -121,6 +121,20 @@ class t3Sim extends theoryClass<theory> implements specificTheoryProps {
         true,
         false,
       ],
+      T3P2C23d: [
+        false,
+        () => this.variables[1].cost + l10(3) < Math.min(this.variables[4].cost, this.variables[7].cost, this.variables[10].cost),
+        () => this.variables[2].cost + l10(9) < this.variables[8].cost,
+        false,
+        true,
+        false,
+        false,
+        true,
+        true,
+        false,
+        true,
+        false,
+      ],
       T3Play: [
         () => (this.curMult < 2 ? this.variables[0].cost + l10(8) < this.variables[9].cost : false),
         () => (this.curMult < 2 ? this.variables[1].cost + l10(4) < Math.min(this.variables[4].cost, this.variables[10].cost) && this.variables[1].cost + l10(2) < this.variables[7].cost : true),
@@ -195,6 +209,7 @@ class t3Sim extends theoryClass<theory> implements specificTheoryProps {
       T3noC11C13C33d: globalOptimalRoute,
       T3noC13C32C33d: globalOptimalRoute,
       T3noC13C33d: globalOptimalRoute,
+      T3P2C23d: globalOptimalRoute,
       T3Play: globalOptimalRoute,
       T3Play2: globalOptimalRoute,
     };
@@ -286,7 +301,7 @@ class t3Sim extends theoryClass<theory> implements specificTheoryProps {
       while (true) {
         if (this.currencies[currencyIndex] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub) {
-            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t, symbol: `rho_${currencyIndex + 1}` });
           }
           this.currencies[currencyIndex] = subtract(this.currencies[currencyIndex], this.variables[i].cost);
           this.variables[i].buy();

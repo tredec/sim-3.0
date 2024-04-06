@@ -35,10 +35,12 @@ class wspSim extends theoryClass {
             WSP: [true, true, true, true, true],
             WSPStopC1: [true, true, true, () => this.lastPub < 450 || this.t < 15, true],
             WSPdStopC1: [
-                () => this.variables[0].cost + l10(8 + (this.variables[0].level % 10)) < Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity),
+                () => this.variables[0].cost + l10(8 + (this.variables[0].level % 10)) <
+                    Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity),
                 true,
                 true,
-                () => this.variables[3].cost + c1weight < Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity) || this.t < 15,
+                () => this.variables[3].cost + c1weight <
+                    Math.min(this.variables[1].cost, this.variables[2].cost, this.milestones[1] > 0 ? this.variables[4].cost : Infinity) || this.t < 15,
                 true,
             ],
         };
@@ -69,7 +71,7 @@ class wspSim extends theoryClass {
         return tree[this.strat];
     }
     getTotMult(val) {
-        return Math.max(0, val * this.tauFactor * 1.5);
+        return Math.max(0, val * this.tauFactor * 0.375);
     }
     updateMilestones() {
         let stage = 0;
@@ -134,7 +136,10 @@ class wspSim extends theoryClass {
                     this.updateMilestones();
                 this.curMult = Math.pow(10, (this.getTotMult(this.maxRho) - this.totMult));
                 this.buyVariables();
-                pubCondition = (global.forcedPubTime !== Infinity ? this.t > global.forcedPubTime : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 8;
+                pubCondition =
+                    (global.forcedPubTime !== Infinity
+                        ? this.t > global.forcedPubTime
+                        : this.t > this.pubT * 2 || this.pubRho > this.cap[0] || this.curMult > 15) && this.pubRho > 8;
                 this.ticks++;
             }
             this.pubMulti = Math.pow(10, (this.getTotMult(this.pubRho) - this.totMult));

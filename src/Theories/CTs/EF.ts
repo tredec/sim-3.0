@@ -36,11 +36,23 @@ class efSim extends theoryClass<theory> implements specificTheoryProps {
         true,
         true,
       ],
-      EFd: [true, () => this.variables[1].cost + 1 < this.variables[2].cost, true, true, true, true, true, () => this.variables[6].cost + l10(2.5) < this.variables[2].cost, true, true],
+      EFd: [
+        true,
+        () => this.variables[1].cost + 1 < this.variables[2].cost,
+        true,
+        true,
+        true,
+        true,
+        true,
+        () => this.variables[6].cost + l10(2.5) < this.variables[2].cost,
+        true,
+        true,
+      ],
       EFAI: [
         /*tdot*/ true,
         /*q1*/ () =>
-          this.variables[1].cost + l10(10 + (this.variables[1].level % 10)) < this.variables[2].cost && this.variables[1].cost + l10((this.variables[1].level % 10) + 5) < this.recursionValue[0],
+          this.variables[1].cost + l10(10 + (this.variables[1].level % 10)) < this.variables[2].cost &&
+          this.variables[1].cost + l10((this.variables[1].level % 10) + 5) < this.recursionValue[0],
         /*q2*/ () => this.variables[2].cost + 0.2 < this.recursionValue[0],
         /*b1*/ () => this.variables[3].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
         /*b2*/ () => this.variables[4].cost + l10(5) < this.variables[8].cost || this.milestones[1] < 2 || this.curMult < 1,
@@ -98,7 +110,7 @@ class efSim extends theoryClass<theory> implements specificTheoryProps {
     return tree[this.strat];
   }
   getTotMult(val: number) {
-    return Math.max(0, val * this.tauFactor * 0.387);
+    return Math.max(0, val * this.tauFactor * 0.09675);
   }
   updateMilestones(): void {
     let stage = 0;
@@ -150,7 +162,9 @@ class efSim extends theoryClass<theory> implements specificTheoryProps {
       (this.lastPub < 298.2 && this.maxRho > 300) ||
       (this.lastPub < 323.2 && this.maxRho > 325) ||
       (totalMilestones - initMilestones < 1 && this.curMult > 2.6 + (totalMilestones - initMilestones) && this.recursionValue[1] < 2 && this.isEFAI) ||
-      (this.recursionValue[1] === 2 && this.pubRho > this.variables[7].cost + l10(4) && this.variables[7].cost + l10((this.variables[7].level % 10) / 3) > this.recursionValue[0])
+      (this.recursionValue[1] === 2 &&
+        this.pubRho > this.variables[7].cost + l10(4) &&
+        this.variables[7].cost + l10((this.variables[7].level % 10) / 3) > this.recursionValue[0])
     );
   }
   forcedPubConditions() {
@@ -219,7 +233,10 @@ class efSim extends theoryClass<theory> implements specificTheoryProps {
     this.pubMulti = 10 ** (this.getTotMult(this.pubRho) - this.totMult);
     const result = createResult(
       this,
-      this.isEFAI ? ` q1: ${this.variables[1].level} q2: ${this.variables[2].level} a1: ${this.variables[7].level}` + (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "") : ""
+      this.isEFAI
+        ? ` q1: ${this.variables[1].level} q2: ${this.variables[2].level} a1: ${this.variables[7].level}` +
+            (global.showA23 ? ` a2: ${this.lastA23[0]} a3: ${this.lastA23[1]}` : "")
+        : ""
     );
     if (!this.isEFAI || this.recursionValue[1] === 2) {
       while (this.boughtVars[this.boughtVars.length - 1].timeStamp > this.pubT) this.boughtVars.pop();
@@ -276,7 +293,13 @@ class efSim extends theoryClass<theory> implements specificTheoryProps {
       while (true) {
         if (this.currencies[currencyIndicies[i]] > this.variables[i].cost && this.conditions[i]() && this.milestoneConditions[i]()) {
           if (this.maxRho + 5 > this.lastPub && (!this.isEFAI || this.recursionValue[1] === 2)) {
-            this.boughtVars.push({ variable: this.varNames[i], level: this.variables[i].level + 1, cost: this.variables[i].cost, timeStamp: this.t });
+            this.boughtVars.push({
+              variable: this.varNames[i],
+              level: this.variables[i].level + 1,
+              cost: this.variables[i].cost,
+              timeStamp: this.t,
+              symbol: ["rho", "R", "I"][currencyIndicies[i]],
+            });
           }
           this.currencies[currencyIndicies[i]] = subtract(this.currencies[currencyIndicies[i]], this.variables[i].cost);
           this.variables[i].buy();
