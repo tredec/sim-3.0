@@ -132,6 +132,10 @@ export function reverseMulti(theory, value, sigma) {
             return value * (1 / 0.387) * 2.5;
         case "CSR2":
             return (value + Math.log10(200)) * (1 / 2.203) * 10;
+        case "FI":
+            return value * (1 / 0.1625) * 2.5;
+        case "FP":
+            return (value - Math.log10(5)) * (1 / 0.331) * (10 / 3);
     }
     throw `Failed parsing multiplier. Please contact the author of the sim.`;
 }

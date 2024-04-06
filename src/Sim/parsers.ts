@@ -19,7 +19,8 @@ export function parseData(data: inputData) {
 
   if (data.mode !== "All" && data.mode !== "Time diff.") {
     //parsing sigma
-    if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0) parsedDataObj.sigma = parseInt(data.sigma);
+    if (data.sigma.length > 0 && data.sigma.match(/^[0-9]+$/) !== null && parseInt(data.sigma) >= 0 && parseFloat(data.sigma) % 1 === 0)
+      parsedDataObj.sigma = parseInt(data.sigma);
     else if (data.theory.charAt(0) === "T") throw "Invalid sigma value. Sigma must be an integer that's >= 0";
 
     //parsing currency
@@ -115,6 +116,10 @@ export function reverseMulti(theory: string, value: number, sigma: number) {
       return value * (1 / 0.387) * 2.5;
     case "CSR2":
       return (value + Math.log10(200)) * (1 / 2.203) * 10;
+    case "FI":
+      return value * (1 / 0.1625) * 2.5;
+    case "FP":
+      return (value - Math.log10(5)) * (1 / 0.331) * (10 / 3);
   }
   throw `Failed parsing multiplier. Please contact the author of the sim.`;
 }
@@ -157,7 +162,8 @@ function parseSimAll(input: string): Array<number> {
   //needs at least two items
   if (split.length < 2) throw "Student count and at least one theory value that is not 0 is required.";
   //dont allow more inputs than students + theories
-  if (split.length - 1 > Object.keys(jsonData.theories).length) throw `Invalid value ${split[Object.keys(jsonData.theories).length + 1]} does not match any theory.`;
+  if (split.length - 1 > Object.keys(jsonData.theories).length)
+    throw `Invalid value ${split[Object.keys(jsonData.theories).length + 1]} does not match any theory.`;
   //parse students
   const res: Array<number> = [];
   if (isInt(split[0])) res.push(parseInt(split[0]));
